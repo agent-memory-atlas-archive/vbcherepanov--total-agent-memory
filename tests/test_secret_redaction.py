@@ -25,7 +25,7 @@ SECRETS = {
     "github_classic": "ghp_" + "A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8",
     "gitlab": "glpat-AbCdEfGhIjKlMnOpQrSt",
     "slack": "xox" + "b-1234567890-0987654321-AbCdEfGhIjKlMnOpQrSt",
-    "google": "AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz0123456",
+    "google": "AIza" + "SyAbCdEfGhIjKlMnOpQrStUvWxYz0123456",
     "huggingface": "hf_AbCdEfGhIjKlMnOpQrStUvWxYz01234567",
     "aws_key_id": "AKIAIOSFODNN7EXAMPLE",
 }

@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "total-agent-memory"
+abstract: >-
+  A local, reproducible long-term memory server for AI coding agents.
+  It stores decisions, solutions, facts and session summaries in a local
+  SQLite store and returns them to any Model Context Protocol (MCP) client
+  through hybrid retrieval (BM25, dense embeddings, fuzzy matching and a
+  knowledge graph fused with reciprocal rank fusion).
+authors:
+  - family-names: Cherepanov
+    given-names: Vitalii
+    orcid: "https://orcid.org/0009-0009-8289-8435"
+version: 14.6.0
+date-released: 2026-09-27
+license: MIT
+repository-code: "https://github.com/vbcherepanov/total-agent-memory"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23011523
+    description: "Preprint describing the software (Zenodo)"
+keywords:
+  - AI agents
+  - agent memory
+  - information retrieval
+  - Model Context Protocol
+  - knowledge graph

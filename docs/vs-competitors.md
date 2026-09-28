@@ -1,5 +1,10 @@
 # total-agent-memory vs the field (April 2026)
 
+> **Snapshot, not maintained.** This page was written on 2026-04-17. Funding, star counts,
+> prices and feature marks for other projects are the author's reading of their public pages at that
+> time and have not been re-checked; tool counts for this project are out of date (77 tools as of
+> 14.6.0). For measured comparisons, see [benchmarks.md](benchmarks.md#comparison-with-published-numbers-of-other-systems).
+
 The agent-memory space grew up fast in 2025–2026. This page is an honest side-by-side with
 the money, features, and real numbers — so you can pick the right tool for your job.
 
@@ -146,10 +151,9 @@ been withdrawn. Version 14 has not been evaluated on this corpus yet.
 
 ---
 
-## Three features nobody else has (yet)
+## Three features we did not find in the systems above (April 2026)
 
-These are the actual moats. They're the reason a coding agent on your machine plays in a different
-league than a chatbot memory SaaS.
+These target coding agents rather than chat assistants.
 
 ### 1. Procedural memory — `workflow_predict` / `workflow_track`
 
@@ -158,7 +162,7 @@ played out in your past — including which files got touched in what order, whi
 fix worked. If `confidence < 0.3`, the agent asks you before diving in. When you finish, you call
 `workflow_track(outcome)` and the predictor learns from success *and* failure.
 
-Nobody else does this. mem0 stores what you said; this stores *how you work*.
+mem0 stores what you said; this stores *how you work*.
 
 ### 2. Cross-project analogy — `analogize`
 
@@ -171,7 +175,7 @@ project A to project B, without you remembering project A existed.
 When a bash command fails or an edit backfires, `learn_error(file, error, root_cause, fix, pattern)`
 records it. After N≥3 same patterns across projects it **auto-consolidates into a behavioral rule**,
 surfaced to the agent at next session start via `self_rules_context`. Your memory stops making
-the same mistakes. Literally nobody else ships this out of the box.
+the same mistakes.
 
 ---
 

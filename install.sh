@@ -7,6 +7,7 @@
 #   bash install.sh --ide claude-code
 #   bash install.sh --ide codex
 #   bash install.sh --ide cursor
+#   bash install.sh --ide claude-desktop
 #   bash install.sh --ide cline
 #   bash install.sh --ide continue
 #   bash install.sh --ide aider
@@ -50,22 +51,22 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -h|--help)
-            sed -n '2,17p' "$0"
+            sed -n '2,18p' "$0"
             exit 0
             ;;
         *)
             echo "ERROR: unknown argument: $1" >&2
-            echo "Usage: bash install.sh [--ide claude-code|cursor|gemini-cli|opencode|codex] [--uninstall]" >&2
+            echo "Usage: bash install.sh [--ide claude-code|claude-desktop|cursor|gemini-cli|opencode|codex|cline|continue|aider|windsurf] [--uninstall]" >&2
             exit 2
             ;;
     esac
 done
 
 case "$IDE" in
-    claude-code|cursor|gemini-cli|opencode|codex|cline|continue|aider|windsurf) ;;
+    claude-code|claude-desktop|cursor|gemini-cli|opencode|codex|cline|continue|aider|windsurf) ;;
     *)
         echo "ERROR: unsupported --ide value: $IDE" >&2
-        echo "Supported: claude-code, codex, cursor, cline, continue, aider, windsurf, gemini-cli, opencode" >&2
+        echo "Supported: claude-code, claude-desktop, codex, cursor, cline, continue, aider, windsurf, gemini-cli, opencode" >&2
         exit 2
         ;;
 esac
@@ -264,7 +265,8 @@ if [ "$UNINSTALL" = "1" ]; then
         echo "  SKIP: no background services to remove on $OS_NAME"
     fi
     echo "  Note: MCP config entries and memory dir were kept. Remove manually if desired:"
-    echo "    - $HOME/.claude/settings.json (mcpServers.memory + hooks)"
+    echo "    - $HOME/.claude.json (mcpServers.memory) and $HOME/.claude/settings.json (hooks)"
+    echo "      or run: PYTHONPATH=$INSTALL_DIR/src python3 -m setup_wizard.register --unregister --client $IDE"
     echo "    - $MEMORY_DIR"
     exit 0
 fi
@@ -359,487 +361,25 @@ fi
 # =============================================================
 # Step 4: Register MCP server with the chosen IDE
 # =============================================================
-
-# ----- Helper: JSON merge (works for claude-code / cursor / gemini-cli / opencode)
-# Arg 1: config path
-# Arg 2: parent key ("mcpServers" or "mcp")
-# Uses env vars: PY_PATH, SRV_PATH, MEMORY_DIR
-_json_merge_mcp() {
-    local config_path="$1"
-    local parent_key="$2"
-    mkdir -p "$(dirname "$config_path")"
-    CONFIG_PATH="$config_path" PARENT_KEY="$parent_key" PY_PATH="$PY_PATH" SRV_PATH="$SRV_PATH" MEMORY_DIR="$MEMORY_DIR" \
-    python3 - <<'PY'
-import json, os
-
-path = os.environ['CONFIG_PATH']
-parent = os.environ['PARENT_KEY']
-
-server_entry = {
-    'command': os.environ['PY_PATH'],
-    'args': [os.environ['SRV_PATH']],
-    'env': {
-        'TAM_MEMORY_DIR': os.environ['MEMORY_DIR'],
-    },
-}
-
-data = {}
-if os.path.exists(path):
-    try:
-        with open(path, 'r') as f:
-            data = json.load(f)
-        if not isinstance(data, dict):
-            data = {}
-    except Exception:
-        data = {}
-
-if parent not in data or not isinstance(data.get(parent), dict):
-    data[parent] = {}
-data[parent]['memory'] = server_entry
-
-with open(path, 'w') as f:
-    json.dump(data, f, indent=2)
-    f.write('\n')
-
-print(f'  OK: MCP memory registered in {path} (key: {parent})')
-PY
-}
-
-# -----------------------------------------------------------------
-# Install hooks into ~/.claude/hooks/
-#
-# Copies:
-#   hooks/*.sh                        — core hooks (session-start, on-stop, etc.)
-#   hooks/lib/common.sh               — shared utils sourced by example hooks
-#   (pre-edit.sh and on-bash-error.sh moved from examples/hooks/ into
-#    hooks/ in v13 so the Claude Code plugin can reference one directory.)
-#
-# Behaviour:
-#   Existing files are preserved (user may have customized them). Set
-#   INSTALL_OVERWRITE_HOOKS=1 to force-overwrite. Skipped files are logged.
-#   All copied .sh files get chmod +x.
-# -----------------------------------------------------------------
-install_hooks_to_home() {
-    local hooks_target="$HOME/.claude/hooks"
-    local lib_target="$hooks_target/lib"
-    local overwrite="${INSTALL_OVERWRITE_HOOKS:-0}"
-    local copied=0 skipped=0
-
-    mkdir -p "$lib_target"
-
-    _copy_hook() {
-        local src="$1"
-        local dst="$2"
-        if [ ! -f "$src" ]; then
-            return 0
-        fi
-        if [ -f "$dst" ] && [ "$overwrite" != "1" ]; then
-            echo "  SKIP (exists): $(basename "$dst") — set INSTALL_OVERWRITE_HOOKS=1 to replace"
-            skipped=$((skipped + 1))
-            return 0
-        fi
-        cp "$src" "$dst"
-        chmod +x "$dst" 2>/dev/null || true
-        copied=$((copied + 1))
-    }
-
-    # Core hooks (hooks/*.sh — excluding lib/)
-    local src
-    for src in "$INSTALL_DIR"/hooks/*.sh; do
-        [ -f "$src" ] || continue
-        _copy_hook "$src" "$hooks_target/$(basename "$src")"
-    done
-
-    # Shared lib
-    if [ -f "$INSTALL_DIR/hooks/lib/common.sh" ]; then
-        local lib_dst="$lib_target/common.sh"
-        if [ -f "$lib_dst" ] && [ "$overwrite" != "1" ]; then
-            echo "  SKIP (exists): lib/common.sh"
-            skipped=$((skipped + 1))
-        else
-            cp "$INSTALL_DIR/hooks/lib/common.sh" "$lib_dst"
-            copied=$((copied + 1))
-        fi
-    fi
-
-    echo "  OK: Hooks synced to $hooks_target (copied=$copied, skipped=$skipped)"
-}
-
-register_mcp_claude_code() {
-    local settings="$HOME/.claude/settings.json"
-    echo "-> Step 4: Configuring Claude Code MCP server..."
-    # Try `claude mcp add-json` CLI first (preferred by official tool)
-    if command -v claude >/dev/null 2>&1 && [ "$TEST_MODE" != "1" ]; then
-        local payload
-        payload=$(python3 -c "
-import json, os
-print(json.dumps({
-    'command': os.environ['PY_PATH'],
-    'args': [os.environ['SRV_PATH']],
-    'env': {
-        'TAM_MEMORY_DIR': os.environ['MEMORY_DIR'],
-    },
-}))
-" PY_PATH="$PY_PATH" SRV_PATH="$SRV_PATH" MEMORY_DIR="$MEMORY_DIR" 2>/dev/null) || payload=""
-        if [ -n "$payload" ] && claude mcp add-json memory "$payload" --scope user >/dev/null 2>&1; then
-            echo "  OK: Registered via 'claude mcp add-json' (scope: user)"
-        else
-            _json_merge_mcp "$settings" "mcpServers"
-        fi
-    else
-        _json_merge_mcp "$settings" "mcpServers"
-    fi
-
-    # -- 4a. Copy hooks into ~/.claude/hooks/ --
-    echo "-> Step 4a: Installing hook scripts..."
-    install_hooks_to_home
-
-    # -- 4b. Register hooks in settings.json (claude-code only) --
-    # Paths resolve against $HOME/.claude/hooks/ so users can edit them
-    # independently of the install tree.
-    echo "-> Step 4b: Registering hooks..."
-    local HOOKS_DIR="$HOME/.claude/hooks"
-    local HOOK_SESSION="$HOOKS_DIR/session-start.sh"
-    local HOOK_SESSION_END="$HOOKS_DIR/session-end.sh"
-    local HOOK_STOP="$HOOKS_DIR/on-stop.sh"
-    local HOOK_BASH="$HOOKS_DIR/memory-trigger.sh"
-    local HOOK_WRITE="$HOOKS_DIR/auto-capture.sh"
-    local HOOK_PROMPT="$HOOKS_DIR/user-prompt-submit.sh"
-    local HOOK_POSTTOOL="$HOOKS_DIR/post-tool-use.sh"
-    local HOOK_PREEDIT="$HOOKS_DIR/pre-edit.sh"
-    local HOOK_BASH_ERR="$HOOKS_DIR/on-bash-error.sh"
-
-    SETTINGS_PATH="$settings" \
-    HOOK_SESSION="$HOOK_SESSION" HOOK_SESSION_END="$HOOK_SESSION_END" \
-    HOOK_STOP="$HOOK_STOP" HOOK_BASH="$HOOK_BASH" HOOK_WRITE="$HOOK_WRITE" \
-    HOOK_PROMPT="$HOOK_PROMPT" HOOK_POSTTOOL="$HOOK_POSTTOOL" \
-    HOOK_PREEDIT="$HOOK_PREEDIT" HOOK_BASH_ERR="$HOOK_BASH_ERR" \
-    python3 - <<'PY'
-import json, os
-
-path = os.environ['SETTINGS_PATH']
-data = {}
-if os.path.exists(path):
-    try:
-        with open(path) as f:
-            data = json.load(f)
-    except Exception:
-        data = {}
-
-data.setdefault('hooks', {})
-hooks = data['hooks']
-
-def _has_cmd(entries, cmd):
-    """Check if a matcher block with the given command already exists."""
-    if not isinstance(entries, list):
-        return False
-    for block in entries:
-        if not isinstance(block, dict):
-            continue
-        for h in block.get('hooks', []) or []:
-            if isinstance(h, dict) and h.get('command') == cmd:
-                return True
-    return False
-
-def _set_single(key, matcher, cmd):
-    """Set a hook list with a single entry (overwrites prior CMM-owned entry)."""
-    hooks[key] = [
-        {'matcher': matcher, 'hooks': [{'type': 'command', 'command': cmd}]}
-    ]
-
-def _ensure_entry(key, matcher, cmd):
-    """Append {matcher, [cmd]} to hooks[key] if not already present."""
-    entries = hooks.setdefault(key, [])
-    if _has_cmd(entries, cmd):
-        return
-    entries.append(
-        {'matcher': matcher, 'hooks': [{'type': 'command', 'command': cmd}]}
-    )
-
-# Primary total-agent-memory hooks — always registered.
-_set_single('SessionStart', '',           os.environ['HOOK_SESSION'])
-_set_single('SessionEnd',   '',           os.environ['HOOK_SESSION_END'])
-_set_single('Stop',         '',           os.environ['HOOK_STOP'])
-
-# v8.0: capture user prompts as intents (always registered; safe no-op when
-# the intents table is missing).
-_set_single('UserPromptSubmit', '', os.environ['HOOK_PROMPT'])
-
-# PostToolUse: Bash (+optional on-bash-error), Write|Edit (auto-capture),
-# and opt-in post-tool-use (no-op without MEMORY_POST_TOOL_CAPTURE=1).
-hooks['PostToolUse'] = [
-    {'matcher': 'Bash', 'hooks': [
-        {'type': 'command', 'command': os.environ['HOOK_BASH']},
-    ]},
-    {'matcher': 'Write|Edit', 'hooks': [
-        {'type': 'command', 'command': os.environ['HOOK_WRITE']},
-    ]},
-    {'matcher': '', 'hooks': [
-        {'type': 'command', 'command': os.environ['HOOK_POSTTOOL']},
-    ]},
-]
-# Append on-bash-error if the script was installed.
-if os.path.isfile(os.environ['HOOK_BASH_ERR']):
-    for block in hooks['PostToolUse']:
-        if block.get('matcher') == 'Bash':
-            block['hooks'].append(
-                {'type': 'command', 'command': os.environ['HOOK_BASH_ERR']}
-            )
-            break
-
-# PreToolUse: pre-edit guard (only if the script was installed).
-if os.path.isfile(os.environ['HOOK_PREEDIT']):
-    _ensure_entry('PreToolUse', 'Write|Edit', os.environ['HOOK_PREEDIT'])
-
-os.makedirs(os.path.dirname(path), exist_ok=True)
-with open(path, 'w') as f:
-    json.dump(data, f, indent=2)
-    f.write('\n')
-
-present = sorted(hooks.keys())
-print('  OK: Hooks registered: ' + ', '.join(present))
-PY
-}
-
-register_mcp_cursor() {
-    echo "-> Step 4: Configuring Cursor MCP server..."
-    _json_merge_mcp "$HOME/.cursor/mcp.json" "mcpServers"
-}
-
-register_mcp_gemini_cli() {
-    echo "-> Step 4: Configuring Gemini CLI MCP server..."
-    _json_merge_mcp "$HOME/.gemini/settings.json" "mcpServers"
-}
-
-register_mcp_opencode() {
-    echo "-> Step 4: Configuring OpenCode MCP server..."
-    _json_merge_mcp "$HOME/.opencode/config.json" "mcp"
-}
-
-# v10.5 — Cline (VS Code extension)
-# Cline reads MCP config from VS Code user settings.json.
-register_mcp_cline() {
-    echo "-> Step 4: Configuring Cline (VS Code) MCP server..."
-    # Resolve VS Code user settings dir per OS
-    case "$OS_NAME" in
-        Darwin)  vscode_dir="$HOME/Library/Application Support/Code/User" ;;
-        Linux)   vscode_dir="$HOME/.config/Code/User" ;;
-        *)       vscode_dir="$HOME/.config/Code/User" ;;
-    esac
-    mkdir -p "$vscode_dir"
-    _json_merge_mcp_nested "$vscode_dir/settings.json" "cline.mcpServers"
-
-    # Per-project rules file (Cline auto-loads .clinerules/)
-    if [ -d "$INSTALL_DIR/skills/memory-protocol/templates" ]; then
-        echo "  Note: copy templates/cline-rules.md into your project's .clinerules/memory-protocol.md to activate the protocol."
-    fi
-}
-
-# v10.5 — Continue (VS Code / JetBrains extension)
-register_mcp_continue() {
-    echo "-> Step 4: Configuring Continue MCP server..."
-    local cont_dir="$HOME/.continue"
-    mkdir -p "$cont_dir/rules"
-    _json_merge_mcp "$cont_dir/config.json" "mcpServers"
-
-    # Install rules file
-    if [ -f "$INSTALL_DIR/skills/memory-protocol/SKILL.md" ]; then
-        cp "$INSTALL_DIR/skills/memory-protocol/SKILL.md" "$cont_dir/rules/memory-protocol.md"
-        echo "  OK: Rules installed to $cont_dir/rules/memory-protocol.md"
-    fi
-}
-
-# v10.5 — Aider (no MCP yet — bash bridge via .aider.conf.yml)
-register_mcp_aider() {
-    echo "-> Step 4: Configuring Aider memory bridge..."
-    local aider_conf="$HOME/.aider.conf.yml"
-    local skill_path="$INSTALL_DIR/skills/memory-protocol/SKILL.md"
-
-    if [ ! -f "$skill_path" ]; then
-        echo "  WARN: skill SKILL.md missing — bridge incomplete"
-        return 0
-    fi
-
-    # Append a 'read:' entry without clobbering user config.
-    if [ -f "$aider_conf" ] && grep -q "memory-protocol/SKILL.md" "$aider_conf"; then
-        echo "  OK: Aider already configured to read memory-protocol skill"
-    else
-        {
-            [ -s "$aider_conf" ] && echo ""
-            echo "# --- total-agent-memory v10.5 (memory bridge) ---"
-            echo "read:"
-            echo "  - $skill_path"
-            echo "# --- end total-agent-memory ---"
-        } >> "$aider_conf"
-        echo "  OK: Appended skill reference to $aider_conf"
-    fi
-    echo "  Note: Aider has no MCP yet. Use bash bridges:"
-    echo "        (modern: use 'lookup-memory \"<query>\"' or 'tam-lookup \"<query>\"' directly)"
-    echo "        ~/claude-memory-server/ollama/lookup_memory.sh \"<query>\""
-}
-
-# v10.5 — Windsurf (Codeium IDE)
-register_mcp_windsurf() {
-    echo "-> Step 4: Configuring Windsurf MCP server..."
-    local ws_dir="$HOME/.codeium/windsurf"
-    mkdir -p "$ws_dir"
-    _json_merge_mcp "$ws_dir/mcp_config.json" "mcpServers"
-
-    if [ -f "$INSTALL_DIR/skills/memory-protocol/templates/cursor-rules.mdc" ]; then
-        echo "  Note: paste templates/cursor-rules.mdc body into project .windsurfrules to activate the protocol."
-    fi
-}
-
-# v10.5 — JSON merge for nested mcpServers under a dotted key (e.g. cline.mcpServers).
-_json_merge_mcp_nested() {
-    local CFG="$1"
-    local NESTED_KEY="$2"
-    mkdir -p "$(dirname "$CFG")"
-    [ -f "$CFG" ] || echo '{}' > "$CFG"
-    CFG_PATH="$CFG" NESTED_KEY="$NESTED_KEY" PY_PATH="$PY_PATH" SRV_PATH="$SRV_PATH" \
-    MEMORY_DIR="$MEMORY_DIR" python3 - <<'PY'
-import json, os, sys
-cfg_path = os.environ['CFG_PATH']
-nested = os.environ['NESTED_KEY']  # e.g. "cline.mcpServers"
-parts = nested.split('.')
-try:
-    with open(cfg_path) as f:
-        s = json.load(f)
-except Exception:
-    s = {}
-node = s
-for p in parts[:-1]:
-    node = node.setdefault(p, {})
-node.setdefault(parts[-1], {})
-node[parts[-1]]['memory'] = {
-    "command": os.environ['PY_PATH'],
-    "args": [os.environ['SRV_PATH']],
-    "env": {"TAM_MEMORY_DIR": os.environ['MEMORY_DIR']},
-}
-with open(cfg_path, 'w') as f:
-    json.dump(s, f, indent=2)
-print(f"  OK: MCP config written to {cfg_path} under {nested}")
-PY
-}
-
-register_mcp_codex() {
-    echo "-> Step 4: Configuring Codex CLI MCP server..."
-    local codex_dir="$HOME/.codex"
-    local config_path="$codex_dir/config.toml"
-    mkdir -p "$codex_dir"
-
-    CODEX_CONFIG="$config_path" PY_PATH="$PY_PATH" SRV_PATH="$SRV_PATH" MEMORY_DIR="$MEMORY_DIR" \
-    python3 - <<'PY'
-import os, re
-
-config_path = os.environ['CODEX_CONFIG']
-
-# Escape backslashes and double quotes for safe TOML embedding
-def toml_escape(s):
-    return s.replace('\\', '/').replace('"', '\\"')
-
-py_path = toml_escape(os.environ['PY_PATH'])
-srv_path = toml_escape(os.environ['SRV_PATH'])
-memory_dir = toml_escape(os.environ['MEMORY_DIR'])
-
-toml_block = f'''
-# --- total-agent-memory MCP Server ---
-[mcp_servers.memory]
-command = "{py_path}"
-args = ["{srv_path}"]
-required = true
-startup_timeout_sec = 15.0
-tool_timeout_sec = 120.0
-
-[mcp_servers.memory.env]
-TAM_MEMORY_DIR = "{memory_dir}"
-CLAUDE_MEMORY_DIR = "{memory_dir}"
-MEMORY_MODE = "fast"
-MEMORY_TRIPLE_TIMEOUT_SEC = "120"
-MEMORY_ENRICH_TIMEOUT_SEC = "90"
-MEMORY_REPR_TIMEOUT_SEC = "120"
-MEMORY_TRIPLE_MAX_PREDICT = "512"
-# --- End total-agent-memory ---
-'''
-
-content = ''
-if os.path.exists(config_path):
-    with open(config_path, 'r') as f:
-        content = f.read()
-
-if '[mcp_servers.memory]' in content:
-    pattern = r'# --- (Claude Total Memory|total-agent-memory) MCP Server ---.*?# --- End (Claude Total Memory|total-agent-memory) ---'
-    if re.search(pattern, content, re.DOTALL):
-        content = re.sub(pattern, toml_block.strip(), content, flags=re.DOTALL)
-    else:
-        content = re.sub(r'\[mcp_servers\.memory\].*?(?=\n\[|\Z)', toml_block.strip(), content, flags=re.DOTALL)
-    print('  OK: Updated existing memory config in ' + config_path)
-else:
-    content = content.rstrip() + '\n' + toml_block
-    print('  OK: Added memory config to ' + config_path)
-
-content = content.lstrip('\n')
-with open(config_path, 'w') as f:
-    f.write(content)
-PY
-
-    # -- Install Codex Skill --
-    local skill_target="$HOME/.agents/skills/memory"
-    local skill_src="$INSTALL_DIR/codex-skill"
-    if [ -d "$skill_src" ]; then
-        echo "-> Step 4b: Installing Codex memory skill..."
-        mkdir -p "$skill_target/agents"
-        cp "$skill_src/SKILL.md" "$skill_target/SKILL.md"
-        if [ -d "$skill_src/agents" ]; then
-            cp "$skill_src/agents/"* "$skill_target/agents/" 2>/dev/null || true
-        fi
-        echo "  OK: Skill installed to $skill_target"
-    fi
-}
-
-# Dispatch
-case "$IDE" in
-    claude-code) register_mcp_claude_code ;;
-    cursor)      register_mcp_cursor ;;
-    gemini-cli)  register_mcp_gemini_cli ;;
-    opencode)    register_mcp_opencode ;;
-    codex)       register_mcp_codex ;;
-    cline)       register_mcp_cline ;;
-    continue)    register_mcp_continue ;;
-    aider)       register_mcp_aider ;;
-    windsurf)    register_mcp_windsurf ;;
-esac
-
-# v10.5 — Universal skill installation. The memory-protocol skill is
-# the same content for every IDE (only the wiring differs). Copy it
-# into the right location per IDE so the agent surfaces it.
-if [ -d "$INSTALL_DIR/skills/memory-protocol" ]; then
-    case "$IDE" in
-        claude-code)
-            skill_target="$HOME/.claude/skills/memory-protocol"
-            ;;
-        codex)
-            skill_target="$HOME/.codex/skills/memory-protocol"
-            ;;
-        opencode)
-            skill_target="$HOME/.opencode/skills/memory-protocol"
-            ;;
-        *)
-            # Cursor / Cline / Continue / Aider / Windsurf / Gemini-CLI
-            # don't have a skill API — protocol is loaded via rules file
-            # by their respective register_mcp_* function above.
-            skill_target=""
-            ;;
-    esac
-    if [ -n "$skill_target" ]; then
-        echo "-> Step 4d: Installing memory-protocol skill to $skill_target ..."
-        mkdir -p "$skill_target/references" "$skill_target/templates"
-        cp "$INSTALL_DIR/skills/memory-protocol/SKILL.md" "$skill_target/SKILL.md"
-        cp "$INSTALL_DIR/skills/memory-protocol/references/"*.md "$skill_target/references/" 2>/dev/null || true
-        cp "$INSTALL_DIR/skills/memory-protocol/templates/"* "$skill_target/templates/" 2>/dev/null || true
-        echo "  OK: skill v10.5 installed"
-    fi
+# setup_wizard.register is the one implementation of client registration
+# (config paths and formats, Claude Code hooks, skills); the wizard and the
+# npm wrapper use it too. It parses every config before writing any of them.
+echo "-> Step 4: Registering the MCP server with $IDE..."
+REGISTER_ARGS=(--client "$IDE" --memory-dir "$MEMORY_DIR" --command "$PY_PATH" --arg "$SRV_PATH")
+if [ "$IDE" = "codex" ]; then
+    REGISTER_ARGS+=(--env "CLAUDE_MEMORY_DIR=$MEMORY_DIR" --env MEMORY_MODE=fast
+                    --env MEMORY_TRIPLE_TIMEOUT_SEC=120 --env MEMORY_ENRICH_TIMEOUT_SEC=90
+                    --env MEMORY_REPR_TIMEOUT_SEC=120 --env MEMORY_TRIPLE_MAX_PREDICT=512)
 fi
+if [ "$IDE" = "claude-code" ]; then
+    REGISTER_ARGS+=(--hooks)
+else
+    REGISTER_ARGS+=(--no-hooks)
+fi
+if [ "${INSTALL_OVERWRITE_HOOKS:-0}" = "1" ]; then
+    REGISTER_ARGS+=(--overwrite-hooks)
+fi
+PYTHONPATH="$INSTALL_DIR/src${PYTHONPATH:+:$PYTHONPATH}" "$PY_PATH" -m setup_wizard.register "${REGISTER_ARGS[@]}"
 
 # -- 4c. Ollama check + optional install prompt --
 echo ""
@@ -923,99 +463,6 @@ else
     echo "  FAIL: Server not found at $SRV_PATH"
 fi
 
-case "$IDE" in
-    claude-code)
-        CFG="$HOME/.claude/settings.json"
-        python3 -c "
-import json
-with open('$CFG') as f:
-    s = json.load(f)
-assert 'memory' in s.get('mcpServers', {})
-print('  OK: MCP server configured in $CFG')
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-    cursor)
-        CFG="$HOME/.cursor/mcp.json"
-        python3 -c "
-import json
-with open('$CFG') as f:
-    s = json.load(f)
-assert 'memory' in s.get('mcpServers', {})
-print('  OK: MCP server configured in $CFG')
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-    gemini-cli)
-        CFG="$HOME/.gemini/settings.json"
-        python3 -c "
-import json
-with open('$CFG') as f:
-    s = json.load(f)
-assert 'memory' in s.get('mcpServers', {})
-print('  OK: MCP server configured in $CFG')
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-    opencode)
-        CFG="$HOME/.opencode/config.json"
-        python3 -c "
-import json
-with open('$CFG') as f:
-    s = json.load(f)
-assert 'memory' in s.get('mcp', {})
-print('  OK: MCP server configured in $CFG')
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-    codex)
-        CFG="$HOME/.codex/config.toml"
-        if grep -q "mcp_servers.memory" "$CFG" 2>/dev/null; then
-            echo "  OK: MCP server configured in $CFG"
-        else
-            echo "  FAIL: MCP config issue ($CFG)"
-        fi
-        ;;
-    cline)
-        case "$OS_NAME" in
-            Darwin) CFG="$HOME/Library/Application Support/Code/User/settings.json" ;;
-            *)      CFG="$HOME/.config/Code/User/settings.json" ;;
-        esac
-        CLINE_CFG="$CFG" python3 -c "
-import json, os
-cfg = os.environ['CLINE_CFG']
-with open(cfg) as f:
-    s = json.load(f)
-assert 'memory' in s.get('cline', {}).get('mcpServers', {})
-print('  OK: MCP server configured in', cfg)
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-    continue)
-        CFG="$HOME/.continue/config.json"
-        python3 -c "
-import json
-with open('$CFG') as f:
-    s = json.load(f)
-assert 'memory' in s.get('mcpServers', {})
-print('  OK: MCP server configured in $CFG')
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-    aider)
-        CFG="$HOME/.aider.conf.yml"
-        if grep -q "memory-protocol/SKILL.md" "$CFG" 2>/dev/null; then
-            echo "  OK: Aider memory bridge wired in $CFG"
-        else
-            echo "  FAIL: Aider memory bridge missing"
-        fi
-        ;;
-    windsurf)
-        CFG="$HOME/.codeium/windsurf/mcp_config.json"
-        python3 -c "
-import json
-with open('$CFG') as f:
-    s = json.load(f)
-assert 'memory' in s.get('mcpServers', {})
-print('  OK: MCP server configured in $CFG')
-" 2>/dev/null || echo "  FAIL: MCP config issue ($CFG)"
-        ;;
-esac
-
 if [ -d "$MEMORY_DIR" ]; then
     echo "  OK: Memory directory: $MEMORY_DIR"
 else
@@ -1045,6 +492,10 @@ case "$IDE" in
         echo "  Claude Code now has persistent memory."
         echo "  Just start 'claude' as usual — memory is automatic."
         ;;
+    claude-desktop)
+        echo "  Claude Desktop now has persistent memory."
+        echo "  Quit and reopen Claude Desktop — it loads claude_desktop_config.json."
+        ;;
     cursor)
         echo "  Cursor now has persistent memory."
         echo "  Restart Cursor — the 'memory' MCP server will auto-start."
@@ -1063,12 +514,12 @@ case "$IDE" in
         ;;
     cline)
         echo "  Cline (VS Code) now has persistent memory."
-        echo "  Reload VS Code — Cline picks up cline.mcpServers from settings.json."
+        echo "  Reload VS Code — Cline reads its cline_mcp_settings.json."
         echo "  Add .clinerules/memory-protocol.md to each project to load the protocol."
         ;;
     continue)
         echo "  Continue now has persistent memory."
-        echo "  Restart your IDE — Continue auto-loads ~/.continue/config.json."
+        echo "  Restart your IDE — Continue loads ~/.continue/mcpServers/memory.yaml."
         ;;
     aider)
         echo "  Aider now reads the memory-protocol skill at startup."

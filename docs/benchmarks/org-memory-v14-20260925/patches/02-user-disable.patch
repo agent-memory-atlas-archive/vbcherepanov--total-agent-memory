@@ -1,0 +1,104 @@
+diff --git a/docs/TEAM_SERVER_V14.md b/docs/TEAM_SERVER_V14.md
+index fd6afe5..be90993 100644
+--- a/docs/TEAM_SERVER_V14.md
++++ b/docs/TEAM_SERVER_V14.md
+@@ -30,7 +30,7 @@ tam-team --root /path/to/team-data token-create vasya --client codex --out /path
+ tam-team --root /path/to/team-data serve --host 127.0.0.1 --port 3738
+ ```
+ 
+-Токен записывается в новый файл с правами0600; существующий файл не перезаписывается. Для второго пользователя создать отдельный токен. Отзыв: `tam-team --root /path/to/team-data token-revoke --file /path/to/vasya.token`. Удаление членства: `tam-team --root /path/to/team-data member petya engineering remove`.
++Токен записывается в новый файл с правами0600; существующий файл не перезаписывается. Для второго пользователя создать отдельный токен. Отзыв: `tam-team --root /path/to/team-data token-revoke --file /path/to/vasya.token`. Удаление членства: `tam-team --root /path/to/team-data member petya engineering remove`. Увольнение без файлов токенов: `tam-team --root /path/to/team-data user-disable petya` отзывает все токены пользователя и запрещает выпуск новых; его командные записи и авторство остаются, личная область остаётся на диске и в резервной копии, но через API недоступна никому.
+ 
+ Из checkout та же CLI: `PYTHONPATH=src python -m team_memory.cli ...`. В PowerShell сначала `$env:PYTHONPATH='src'`, затем `python -m team_memory.cli ...`. Эти команды не запускались против рабочей установки.
+ 
+diff --git a/src/team_memory/cli.py b/src/team_memory/cli.py
+index 0dc924c..ee006ef 100644
+--- a/src/team_memory/cli.py
++++ b/src/team_memory/cli.py
+@@ -25,6 +25,8 @@ def main():
+     token.add_argument("user")
+     token.add_argument("--client", required=True)
+     token.add_argument("--out", type=Path, required=True)
++    disable = commands.add_parser("user-disable")
++    disable.add_argument("id")
+     revoke = commands.add_parser("token-revoke")
+     revoke.add_argument("--file", type=Path, required=True)
+     snapshot = commands.add_parser("backup")
+@@ -53,6 +55,8 @@ def main():
+         fd = os.open(args.out, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+         with os.fdopen(fd, "w") as destination:
+             destination.write(registry.issue_token(args.user, args.client) + "\n")
++    elif args.command == "user-disable":
++        registry.disable_user(args.id)
+     elif args.command == "token-revoke":
+         registry.revoke(args.file.read_text().strip())
+     elif args.command == "serve":
+diff --git a/src/team_memory/registry.py b/src/team_memory/registry.py
+index 44e0f50..0d6723c 100644
+--- a/src/team_memory/registry.py
++++ b/src/team_memory/registry.py
+@@ -99,6 +99,15 @@ class Registry:
+             db.execute("UPDATE tokens SET revoked=1 WHERE digest=?", (self.digest(token),))
+             self._event(db, "token_revoked", self.digest(token))
+ 
++    def disable_user(self, user_id: str) -> int:
++        """Offboard without the user's token files: block login, revoke every token. Returns tokens revoked."""
++        with self.connect() as db:
++            if db.execute("UPDATE users SET active=0 WHERE id=?", (user_id,)).rowcount == 0:
++                raise Forbidden("Unknown user")
++            revoked = db.execute("UPDATE tokens SET revoked=1 WHERE user_id=? AND revoked=0", (user_id,)).rowcount
++            self._event(db, "user_disabled", user_id)
++        return revoked
++
+     def authenticate(self, token: str) -> Actor:
+         with self.connect() as db:
+             row = db.execute("SELECT u.id,u.name,t.client FROM tokens t JOIN users u ON u.id=t.user_id "
+diff --git a/tests/test_team_user_disable.py b/tests/test_team_user_disable.py
+new file mode 100644
+index 0000000..878ffc6
+--- /dev/null
++++ b/tests/test_team_user_disable.py
+@@ -0,0 +1,43 @@
++import os
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++from team_memory.contracts import Forbidden, Unauthorized
++from team_memory.registry import Registry
++
++
++@pytest.fixture
++def registry(tmp_path):
++    result = Registry(tmp_path)
++    result.add_user('anna', 'Anna')
++    result.add_team('finance', 'Finance')
++    result.membership('anna', 'finance', 'editor')
++    return result
++
++
++def test_disable_user_revokes_every_token_without_token_files(registry):
++    first = registry.issue_token('anna', 'codex')
++    second = registry.issue_token('anna', 'cursor')
++    assert registry.disable_user('anna') == 2
++    for token in (first, second):
++        with pytest.raises(Unauthorized):
++            registry.authenticate(token)
++    with pytest.raises(Forbidden):
++        registry.issue_token('anna', 'reissue')
++    with pytest.raises(Forbidden):
++        registry.disable_user('nobody')
++    with registry.connect() as db:
++        assert db.execute("SELECT COUNT(*) FROM admin_events WHERE action='user_disabled' AND subject='anna'").fetchone()[0] == 1
++
++
++def test_user_disable_cli(registry, tmp_path):
++    token = registry.issue_token('anna', 'codex')
++    root = Path(__file__).resolve().parents[1]
++    env = {**os.environ, 'PYTHONPATH': str(root / 'src')}
++    subprocess.run([sys.executable, '-m', 'team_memory.cli', '--root', str(registry.root), 'user-disable', 'anna'],
++                   env=env, check=True, capture_output=True, timeout=60)
++    with pytest.raises(Unauthorized):
++        registry.authenticate(token)

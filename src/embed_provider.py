@@ -9,12 +9,18 @@ Providers:
   - OpenAIEmbedProvider — POST {base}/embeddings; supports any
     OpenAI-compatible embed endpoint (OpenRouter, LiteLLM, LM Studio).
   - CohereEmbedProvider — POST {base}/embed (v2 API).
+  - DashScopeEmbedProvider — Alibaba Cloud Model Studio text-embedding-v4
+    through its OpenAI-compatible endpoint (dimensions, 10-text batches).
 """
 
 from __future__ import annotations
 
+import datetime
+import email.utils
 import json
+import random
 import sys
+import time
 import urllib.error
 import urllib.request
 from typing import Protocol, Sequence, runtime_checkable
@@ -58,6 +64,15 @@ _OPENAI_DIM = {
     "text-embedding-ada-002": 1536,
 }
 
+# Alibaba Cloud Model Studio text embeddings: allowed `dimensions` values
+# (first entry = native default) and the per-request text limit.
+TEXT_EMBEDDING_V4 = "text-embedding-v4"
+_DASHSCOPE_DIMENSIONS = {
+    TEXT_EMBEDDING_V4: (1024, 2048, 1536, 768, 512, 256, 128, 64),
+    "text-embedding-v3": (1024, 768, 512, 256, 128, 64),
+}
+DASHSCOPE_MAX_BATCH = 10
+
 _COHERE_DIM = {
     "embed-english-v3.0": 1024,
     "embed-multilingual-v3.0": 1024,
@@ -93,15 +108,53 @@ def _ssl_context():
         return ssl.create_default_context()
 
 
+RETRYABLE_HTTP_STATUS = frozenset((408, 425, 429, 500, 502, 503, 504))
+DEFAULT_MAX_BACKOFF_SEC = 30.0
+
+
+def _retry_after_seconds(error: urllib.error.HTTPError) -> float | None:
+    """Parse a Retry-After header (delta-seconds or HTTP-date); None if absent/invalid."""
+    raw = error.headers.get("Retry-After") if error.headers is not None else None
+    if not raw:
+        return None
+    raw = raw.strip()
+    try:
+        return max(0.0, float(raw))
+    except ValueError:
+        pass
+    try:
+        when = email.utils.parsedate_to_datetime(raw)
+    except (TypeError, ValueError):
+        return None
+    if when is None:
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=datetime.UTC)
+    return max(0.0, (when - datetime.datetime.now(datetime.UTC)).total_seconds())
+
+
+def _backoff_seconds(attempt: int, retry_after: float | None, max_backoff: float) -> float:
+    """Server-requested delay when given, else jittered exponential backoff; both capped."""
+    if retry_after is not None:
+        return min(retry_after, max_backoff)
+    base = min(float(2 ** attempt), max_backoff)
+    return random.uniform(base / 2, base)
+
+
 def _http_post_json(
     url: str,
     body: dict,
     headers: dict[str, str],
     timeout: float,
     retries: int = 4,
+    *,
+    max_backoff: float = DEFAULT_MAX_BACKOFF_SEC,
 ) -> dict:
-    """POST JSON with exponential backoff retry on timeout / 5xx / network errors."""
-    import time
+    """POST JSON; retry 408/425/429/5xx and network errors with capped backoff.
+
+    Honours Retry-After on retryable responses. Other 4xx (auth, quota,
+    malformed input) raise immediately — retrying cannot fix them.
+    """
     data = json.dumps(body).encode("utf-8")
     hdrs = {"Content-Type": "application/json", **headers}
     last_exc: Exception | None = None
@@ -113,18 +166,17 @@ def _http_post_json(
                 raw = resp.read()
             return json.loads(raw)
         except urllib.error.HTTPError as e:
-            # Retry only on rate limit / server errors; raise on 4xx auth/quota.
-            if e.code in (408, 429, 500, 502, 503, 504) and attempt < retries:
-                wait = 2 ** attempt
-                LOG(f"HTTP {e.code} on {url} — retry in {wait}s (attempt {attempt + 1})")
+            if e.code in RETRYABLE_HTTP_STATUS and attempt < retries:
+                wait = _backoff_seconds(attempt, _retry_after_seconds(e), max_backoff)
+                LOG(f"HTTP {e.code} on {url} — retry in {wait:.1f}s (attempt {attempt + 1})")
                 time.sleep(wait)
                 last_exc = e
                 continue
             raise
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             if attempt < retries:
-                wait = 2 ** attempt
-                LOG(f"Network error on {url}: {e} — retry in {wait}s (attempt {attempt + 1})")
+                wait = _backoff_seconds(attempt, None, max_backoff)
+                LOG(f"Network error on {url}: {e} — retry in {wait:.1f}s (attempt {attempt + 1})")
                 time.sleep(wait)
                 last_exc = e
                 continue
@@ -266,12 +318,24 @@ class OpenAIEmbedProvider:
         *,
         batch_size: int = 64,
         normalize: bool = False,
+        dimensions: int | None = None,
+        max_retries: int = 4,
+        timeout: float = 60.0,
+        max_backoff: float = DEFAULT_MAX_BACKOFF_SEC,
     ) -> None:
         self.api_key = api_key
         self.api_base = (api_base or config.get_embed_api_base("openai")).rstrip("/")
         self._model = model or config.get_embed_model("openai")
         self._batch_size = max(1, int(batch_size))
         self._normalize = bool(normalize)
+        if dimensions is not None and int(dimensions) < 1:
+            raise ValueError(f"dimensions must be positive, got {dimensions}")
+        self._dimensions = int(dimensions) if dimensions is not None else None
+        if int(max_retries) < 0:
+            raise ValueError(f"max_retries must be >= 0, got {max_retries}")
+        self._max_retries = int(max_retries)
+        self._timeout = float(timeout)
+        self._max_backoff = float(max_backoff)
 
     @property
     def model(self) -> str:
@@ -281,49 +345,136 @@ class OpenAIEmbedProvider:
     def batch_size(self) -> int:
         return self._batch_size
 
+    @property
+    def dimensions(self) -> int | None:
+        return self._dimensions
+
     def available(self) -> bool:
         return bool(self.api_key) and bool(self.api_base)
 
     def dim(self) -> int:
+        if self._dimensions is not None:
+            return self._dimensions
         return _OPENAI_DIM.get(self._model, 0)
 
+    def _request_body(self, batch: list[str]) -> dict:
+        body: dict = {"input": batch, "model": self._model}
+        if self._dimensions is not None:
+            body["dimensions"] = self._dimensions
+        return body
+
     def _embed_batch(self, batch: list[str], *, timeout: float) -> list[list[float]]:
-        body = {"input": batch, "model": self._model}
         headers = {"Authorization": f"Bearer {self.api_key}"}
         resp = _http_post_json(
             f"{self.api_base}/embeddings",
-            body=body,
+            body=self._request_body(batch),
             headers=headers,
             timeout=timeout,
+            retries=self._max_retries,
+            max_backoff=self._max_backoff,
         )
         try:
             items = resp["data"]
         except (KeyError, TypeError) as exc:
-            raise RuntimeError(f"OpenAIEmbedProvider: malformed response: {exc}") from exc
+            raise RuntimeError(f"{type(self).__name__}: malformed response: {exc}") from exc
+        if not isinstance(items, list) or len(items) != len(batch):
+            got = len(items) if isinstance(items, list) else type(items).__name__
+            raise RuntimeError(
+                f"{type(self).__name__}: expected {len(batch)} embeddings, got {got}"
+            )
         # Preserve input order via `index` when provided.
-        ordered: list[list[float]] = [[] for _ in items]
-        for entry in items:
+        ordered: list[list[float] | None] = [None] * len(items)
+        for position, entry in enumerate(items):
             try:
-                idx = int(entry.get("index", 0))
+                idx = int(entry.get("index", position))
                 vec = [float(x) for x in entry["embedding"]]
-            except (KeyError, TypeError, ValueError) as exc:
+            except (AttributeError, KeyError, TypeError, ValueError) as exc:
                 raise RuntimeError(
-                    f"OpenAIEmbedProvider: malformed entry: {exc}"
+                    f"{type(self).__name__}: malformed entry: {exc}"
                 ) from exc
+            if not 0 <= idx < len(items) or ordered[idx] is not None:
+                raise RuntimeError(f"{type(self).__name__}: invalid embedding index {idx}")
+            if self._dimensions is not None and len(vec) != self._dimensions:
+                raise RuntimeError(
+                    f"{type(self).__name__}: requested {self._dimensions} dimensions, "
+                    f"got {len(vec)}"
+                )
             ordered[idx] = _l2_normalise_vec(vec) if self._normalize else vec
-        return ordered
+        return [vec for vec in ordered if vec is not None]
 
-    def embed(self, texts: Sequence[str], *, timeout: float = 60.0) -> list[list[float]]:
+    def embed(self, texts: Sequence[str], *, timeout: float | None = None) -> list[list[float]]:
         if not self.api_key:
-            raise RuntimeError("OpenAIEmbedProvider: missing api_key")
+            raise RuntimeError(f"{type(self).__name__}: missing api_key")
         if not texts:
             return []
         all_texts = list(texts)
+        per_request = self._timeout if timeout is None else float(timeout)
         out: list[list[float]] = []
         for i in range(0, len(all_texts), self._batch_size):
             chunk = all_texts[i : i + self._batch_size]
-            out.extend(self._embed_batch(chunk, timeout=timeout))
+            out.extend(self._embed_batch(chunk, timeout=per_request))
         return out
+
+
+class DashScopeEmbedProvider(OpenAIEmbedProvider):
+    """Alibaba Cloud Model Studio embeddings (text-embedding-v4 by default).
+
+    Uses the OpenAI-compatible `POST {base}/embeddings` endpoint. Differences
+    from OpenAI that matter here: at most 10 texts per request, `dimensions`
+    restricted to the model's published sizes, empty strings rejected by the
+    API. The base URL is region-bound (Singapore `dashscope-intl` by default).
+    """
+
+    name = "dashscope"
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        api_base: str | None = None,
+        model: str | None = None,
+        *,
+        batch_size: int = DASHSCOPE_MAX_BATCH,
+        normalize: bool = True,
+        dimensions: int | None = None,
+        max_retries: int = 6,
+        timeout: float = 60.0,
+        max_backoff: float = DEFAULT_MAX_BACKOFF_SEC,
+    ) -> None:
+        resolved_model = model or config.get_embed_model("dashscope")
+        allowed = _DASHSCOPE_DIMENSIONS.get(resolved_model)
+        if dimensions is None and allowed:
+            dimensions = allowed[0]
+        if allowed and dimensions not in allowed:
+            raise ValueError(
+                f"{resolved_model} supports dimensions {sorted(allowed)}, got {dimensions}"
+            )
+        if int(batch_size) > DASHSCOPE_MAX_BATCH:
+            raise ValueError(
+                f"DashScope accepts at most {DASHSCOPE_MAX_BATCH} texts per request, "
+                f"got batch_size={batch_size}"
+            )
+        super().__init__(
+            api_key=api_key,
+            api_base=api_base or config.get_embed_api_base("dashscope"),
+            model=resolved_model,
+            batch_size=batch_size,
+            normalize=normalize,
+            dimensions=dimensions,
+            max_retries=max_retries,
+            timeout=timeout,
+            max_backoff=max_backoff,
+        )
+
+    def _request_body(self, batch: list[str]) -> dict:
+        body = super()._request_body(batch)
+        body["encoding_format"] = "float"
+        return body
+
+    def embed(self, texts: Sequence[str], *, timeout: float | None = None) -> list[list[float]]:
+        for position, text in enumerate(texts):
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError(f"DashScopeEmbedProvider: text #{position} is empty")
+        return super().embed(texts, timeout=timeout)
 
 
 # ──────────────────────────────────────────────
@@ -403,7 +554,8 @@ class CohereEmbedProvider:
 def make_embed_provider(name: str, **kwargs) -> EmbeddingProvider:
     """Build an embedding provider by name.
 
-    kwargs (optional): api_key, api_base, model, batch_size, normalize.
+    kwargs (optional): api_key, api_base, model, batch_size, normalize,
+    dimensions; dashscope also takes max_retries, timeout, max_backoff.
     Missing values fall back to config-driven defaults.
 
     `name="auto"` — read `MEMORY_EMBED_PROVIDER` (default fastembed). When
@@ -429,6 +581,7 @@ def make_embed_provider(name: str, **kwargs) -> EmbeddingProvider:
             api_key=kwargs.get("api_key") or config.get_embed_api_key("openai"),
             api_base=kwargs.get("api_base") or config.get_embed_api_base("openai"),
             model=kwargs.get("model") or config.get_embed_model("openai"),
+            dimensions=kwargs.get("dimensions") or config.get_embed_dimensions("openai"),
             **opts,
         )
     if key == "cohere":
@@ -437,8 +590,20 @@ def make_embed_provider(name: str, **kwargs) -> EmbeddingProvider:
             api_base=kwargs.get("api_base") or config.get_embed_api_base("cohere"),
             model=kwargs.get("model"),
         )
+    if key == "dashscope":
+        return DashScopeEmbedProvider(
+            api_key=kwargs.get("api_key") or config.get_embed_api_key("dashscope"),
+            api_base=kwargs.get("api_base") or config.get_embed_api_base("dashscope"),
+            model=kwargs.get("model") or config.get_embed_model("dashscope"),
+            batch_size=int(kwargs.get("batch_size") or config.get_embed_batch_size("dashscope")),
+            normalize=bool(kwargs.get("normalize", True)),
+            dimensions=kwargs.get("dimensions") or config.get_embed_dimensions("dashscope"),
+            max_retries=int(kwargs.get("max_retries", config.get_embed_max_retries())),
+            timeout=float(kwargs.get("timeout") or config.get_embed_timeout_sec()),
+            max_backoff=float(kwargs.get("max_backoff") or config.get_embed_max_backoff_sec()),
+        )
     raise ValueError(
-        f"unknown embedding provider {name!r}; expected fastembed|openai|cohere|auto"
+        f"unknown embedding provider {name!r}; expected fastembed|openai|cohere|dashscope|auto"
     )
 
 
@@ -450,7 +615,7 @@ def make_embed_provider(name: str, **kwargs) -> EmbeddingProvider:
 def provider_from_env() -> EmbeddingProvider:
     """Build an embedding provider from MEMORY_EMBED_* env vars.
 
-    Reads `MEMORY_EMBED_PROVIDER` (fastembed|openai|cohere) and
+    Reads `MEMORY_EMBED_PROVIDER` (fastembed|openai|cohere|dashscope) and
     `MEMORY_EMBED_MODEL`; secrets/base URLs come from
     `config.get_embed_api_key()` / `get_embed_api_base()` so the same
     plumbing as `choose_embed.get_provider()` is used. Intended for

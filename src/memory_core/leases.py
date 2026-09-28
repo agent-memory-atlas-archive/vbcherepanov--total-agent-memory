@@ -9,9 +9,14 @@ from datetime import datetime, timezone
 from typing import Self
 
 from memory_core.telemetry import counters, op_timer
+from tam_db.contracts import Backend
 
 
 class LeaseLost(RuntimeError):
+    pass
+
+
+class LeaseUnsupported(RuntimeError):
     pass
 
 
@@ -41,6 +46,11 @@ class LeaseHeartbeat(AbstractContextManager):
         self.logger = logger
         self.stop = threading.Event()
         self.thread: threading.Thread | None = None
+        if getattr(db, "backend", None) is Backend.POSTGRES:
+            # The heartbeat renews leases over its own sqlite3 connection to the
+            # database file; async enrichment is refused on PostgreSQL
+            # (enrichment_worker.reject_postgres), so no lease exists to renew here.
+            raise LeaseUnsupported("Enrichment lease heartbeat requires a SQLite database")
         self.path = next(
             (row[2] for row in db.execute("PRAGMA database_list") if row[1] == "main"),
             "",

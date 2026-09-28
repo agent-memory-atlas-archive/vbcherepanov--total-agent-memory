@@ -1,0 +1,12 @@
+interface:
+  display_name: "Onboarding report"
+  short_description: "Department head view: results, grading, curriculum editing"
+
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "total-agent-memory"
+      description: "total-agent-memory team server with onboarding_* tools"

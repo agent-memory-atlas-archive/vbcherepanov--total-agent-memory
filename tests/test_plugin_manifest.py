@@ -17,7 +17,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "bin"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 PLUGIN = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
 MARKETPLACE = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())
@@ -48,6 +48,17 @@ def test_marketplace_lists_this_plugin():
     assert MARKETPLACE["owner"]["name"]
 
 
+def test_marketplace_ships_the_plugin_from_this_repo():
+    """The plugin lives at the marketplace root, so its source is the root."""
+    (entry,) = [p for p in MARKETPLACE["plugins"] if p["name"] == PLUGIN["name"]]
+    assert entry["source"] == "./"
+
+
+def test_plugin_has_no_top_level_bin_dir():
+    """claude.ai and Cowork refuse a plugin with a top-level bin/ directory."""
+    assert not (ROOT / "bin").exists()
+
+
 # ── Wiring ──────────────────────────────────────────────────────────
 
 
@@ -68,8 +79,10 @@ def test_every_hook_command_exists_and_is_executable():
         for matcher in matchers:
             for hook in matcher["hooks"]:
                 command = hook["command"]
-                assert command.startswith("${CLAUDE_PLUGIN_ROOT}/"), event
-                path = ROOT / command.replace("${CLAUDE_PLUGIN_ROOT}/", "")
+                # Quoted so an install path with spaces stays one word.
+                assert command.startswith('"${CLAUDE_PLUGIN_ROOT}/'), event
+                assert command.endswith('"'), event
+                path = ROOT / command.strip('"').replace("${CLAUDE_PLUGIN_ROOT}/", "")
                 assert path.is_file(), f"{event}: missing {path}"
                 assert os.stat(path).st_mode & stat.S_IXUSR, f"{event}: {path} not +x"
                 seen += 1

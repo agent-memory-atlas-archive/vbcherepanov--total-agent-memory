@@ -29,6 +29,20 @@ class Unavailable(DomainError):
     code = "unavailable"
 
 
+class RateLimited(DomainError):
+    code = "rate_limited"
+
+
+class NotFound(DomainError):
+    code = "not_found"
+
+
+ORG_ROLES = ("member", "company_viewer", "superadmin")
+TEAM_ROLES = ("reader", "editor", "manager")
+WRITER_ROLES = frozenset(("editor", "manager"))
+OVERSIGHT_ROLES = frozenset(("company_viewer", "superadmin"))
+
+
 class ScopeKind(str, Enum):
     personal = "personal"
     team = "team"
@@ -43,6 +57,7 @@ class Actor(DTO):
     user_id: str
     display_name: str
     client: str
+    org_role: Literal["member", "company_viewer", "superadmin"] = "member"
 
 
 class Scope(DTO):
@@ -83,6 +98,8 @@ class Save(DTO):
 
     @model_validator(mode="after")
     def validate_tags(self):
+        if not self.content.strip():
+            raise ValueError("content must be non-empty text")
         if any(len(t) > 128 or t.startswith(("scope:", "team:", "user:")) for t in self.tags):
             raise ValueError("Use scope fields for access; reserved or oversized tag")
         return self
@@ -110,6 +127,12 @@ class Update(RecordRequest):
     expected_revision: int = Field(gt=0)
     content: str = Field(min_length=1, max_length=MAX_CONTENT_CHARS)
     reason: str = Field(min_length=1, max_length=2000)
+
+    @model_validator(mode="after")
+    def validate_content(self):
+        if not self.content.strip():
+            raise ValueError("content must be non-empty text")
+        return self
 
 
 class Delete(RecordRequest):
@@ -139,3 +162,122 @@ class Reply(DTO):
     data: JsonValue = None
     error: str | None = None
     code: str | None = None
+
+
+IDENTIFIER = r"^[a-zA-Z0-9_-]{1,64}$"
+MAX_SECRET_CHARS = 512
+
+
+class PasswordLogin(DTO):
+    user_id: str = Field(pattern=IDENTIFIER)
+    password: str = Field(min_length=1, max_length=MAX_SECRET_CHARS)
+
+
+class TokenLogin(DTO):
+    token: str = Field(min_length=1, max_length=MAX_SECRET_CHARS)
+
+
+class InviteRedeem(DTO):
+    user_id: str = Field(pattern=IDENTIFIER)
+    code: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1, max_length=MAX_SECRET_CHARS)
+
+
+class PasswordChange(DTO):
+    current: str = Field(min_length=1, max_length=MAX_SECRET_CHARS)
+    new: str = Field(min_length=1, max_length=MAX_SECRET_CHARS)
+
+
+class MemoryCall(DTO):
+    name: str = Field(min_length=1, max_length=64)
+    arguments: dict[str, JsonValue] = Field(default_factory=dict)
+
+
+class TokenCreate(DTO):
+    client: str = Field(min_length=1, max_length=128)
+
+
+class TokenRef(DTO):
+    id: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class UserCreate(DTO):
+    id: str = Field(pattern=IDENTIFIER)
+    name: str = Field(min_length=1, max_length=128)
+    org_role: Literal["member", "company_viewer", "superadmin"] = "member"
+
+
+class UserRef(DTO):
+    user_id: str = Field(pattern=IDENTIFIER)
+
+
+class UserActive(UserRef):
+    active: bool
+
+
+class OrgRoleChange(UserRef):
+    org_role: Literal["member", "company_viewer", "superadmin"]
+
+
+class TeamRef(DTO):
+    team_id: str = Field(pattern=IDENTIFIER)
+
+
+class TeamCreate(DTO):
+    id: str = Field(pattern=IDENTIFIER)
+    name: str = Field(min_length=1, max_length=128)
+
+
+class TeamRename(TeamRef):
+    name: str = Field(min_length=1, max_length=128)
+
+
+class MembershipChange(DTO):
+    user_id: str = Field(pattern=IDENTIFIER)
+    team_id: str = Field(pattern=IDENTIFIER)
+    role: Literal["reader", "editor", "manager"] | None
+
+
+class TokenFilter(DTO):
+    user_id: str | None = Field(default=None, pattern=IDENTIFIER)
+
+
+class AuditPage(DTO):
+    before: int | None = Field(default=None, gt=0)
+    limit: int = Field(default=50, ge=1, le=200)
+    actor: str | None = Field(default=None, max_length=64)
+    action: str | None = Field(default=None, max_length=64)
+    subject: str | None = Field(default=None, max_length=128)
+
+
+class SettingsChange(DTO):
+    values: dict[str, str | None] = Field(min_length=1, max_length=64)
+
+
+class ProviderTest(DTO):
+    target: Literal["llm", "embed"]
+    provider: str | None = Field(default=None, pattern=r"^[a-z-]{1,32}$")
+
+
+class SetupVerify(DTO):
+    token: str = Field(min_length=1, max_length=64)
+
+
+class SetupComplete(DTO):
+    token: str = Field(min_length=1, max_length=64)
+    company_name: str = Field(min_length=1, max_length=128)
+    public_url: str | None = Field(default=None, max_length=512)
+    user_id: str = Field(pattern=IDENTIFIER)
+    name: str = Field(min_length=1, max_length=128)
+    password: str = Field(min_length=1, max_length=MAX_SECRET_CHARS)
+
+
+class OrganizationUpdate(DTO):
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    public_url: str | None = Field(default=None, max_length=512)
+
+    @model_validator(mode="after")
+    def validate_change(self):
+        if self.name is None and self.public_url is None:
+            raise ValueError("Provide name or public_url")
+        return self

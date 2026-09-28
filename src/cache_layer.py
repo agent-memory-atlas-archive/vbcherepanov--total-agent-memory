@@ -443,6 +443,36 @@ class L2EmbeddingCache:
                 pass
 
 
+class DisabledL2Cache:
+    """L2 stand-in for stores without a local memory.db (PostgreSQL workspaces).
+
+    Opens no connection; every lookup misses and every write is refused, the
+    same observable behaviour as ``L2EmbeddingCache`` with the flag off.
+    """
+
+    enabled = False
+
+    def get(
+        self,
+        text: str,
+        expected_dim: int | None = None,
+        expected_model: str | None = None,
+    ) -> list[float] | None:
+        return None
+
+    def set(self, text: str, vector: Iterable[float], model: str) -> bool:
+        return False
+
+    def size(self) -> int:
+        return 0
+
+    def purge_all(self) -> int:
+        return 0
+
+    def close(self) -> None:
+        return None
+
+
 # ──────────────────────────────────────────────────────────────
 # Facade
 # ──────────────────────────────────────────────────────────────
@@ -460,10 +490,16 @@ class TwoLevelCache:
         self,
         db_path: str | os.PathLike[str] | None = None,
         l1: L1QueryCache | None = None,
-        l2: L2EmbeddingCache | None = None,
+        l2: L2EmbeddingCache | DisabledL2Cache | None = None,
+        l2_enabled: bool = True,
     ) -> None:
         self.l1 = l1 if l1 is not None else L1QueryCache()
-        self.l2 = l2 if l2 is not None else L2EmbeddingCache(db_path=db_path)
+        if l2 is not None:
+            self.l2 = l2
+        elif l2_enabled:
+            self.l2 = L2EmbeddingCache(db_path=db_path)
+        else:
+            self.l2 = DisabledL2Cache()
 
     # ── L1 helpers ─────────────────────────────────────────
 
@@ -520,6 +556,7 @@ class TwoLevelCache:
 
 
 __all__ = [
+    "DisabledL2Cache",
     "L1QueryCache",
     "L2EmbeddingCache",
     "TwoLevelCache",

@@ -15,6 +15,13 @@ from team_memory.contracts import (
     Unauthorized,
 )
 from team_memory.registry import Registry
+from tests.team_db_helpers import stored_identity_bytes
+
+
+@pytest.fixture(autouse=True)
+def backend(team_backend):
+    """Every test of this module runs on each selected team backend (--backend)."""
+    return team_backend
 
 
 @pytest.fixture
@@ -41,7 +48,7 @@ def test_identity_membership_and_revocation(registry):
     registry.revoke(token)
     with pytest.raises(Unauthorized):
         registry.authenticate(token)
-    assert token.encode() not in registry.path.read_bytes()
+    assert token.encode() not in stored_identity_bytes(registry)
 
 
 def test_reader_cannot_write_and_cannot_select_foreign_personal_owner(registry):

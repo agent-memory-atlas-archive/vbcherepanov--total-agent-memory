@@ -57,6 +57,23 @@ def _enabled() -> bool:
     )
 
 
+class AsyncEnrichmentUnsupported(RuntimeError):
+    """MEMORY_ASYNC_ENRICHMENT is on for a PostgreSQL workspace store."""
+
+
+def reject_postgres() -> None:
+    """Refuse async enrichment on PostgreSQL.
+
+    The worker thread shares the Store's connection, and a psycopg connection
+    shared across threads shares its transaction state; the SQLite path opens a
+    second connection to memory.db, which a PostgreSQL workspace does not have.
+    """
+    if _enabled():
+        raise AsyncEnrichmentUnsupported(
+            "MEMORY_ASYNC_ENRICHMENT=true is not supported on a PostgreSQL workspace; set it to false"
+        )
+
+
 def _tick_interval() -> float:
     raw = os.environ.get("MEMORY_ENRICH_TICK_SEC")
     if not raw:

@@ -1,0 +1,400 @@
+{"qid": "engineering-001-direct", "kind": "direct", "question": "When are deployments of the gateway worker frozen?", "department": "engineering", "fact": "engineering-001", "updated": false}
+{"qid": "engineering-001-paraphrase", "kind": "paraphrase", "question": "Can I ship a change to the gateway worker late in the week?", "department": "engineering", "fact": "engineering-001", "updated": false}
+{"qid": "engineering-002-direct", "kind": "direct", "question": "When are deployments of the gateway cluster frozen?", "department": "engineering", "fact": "engineering-002", "updated": false}
+{"qid": "engineering-002-paraphrase", "kind": "paraphrase", "question": "Can I ship a change to the gateway cluster late in the week?", "department": "engineering", "fact": "engineering-002", "updated": false}
+{"qid": "engineering-003-direct", "kind": "direct", "question": "When are deployments of the metrics API frozen?", "department": "engineering", "fact": "engineering-003", "updated": false}
+{"qid": "engineering-003-paraphrase", "kind": "paraphrase", "question": "Can I ship a change to the metrics API late in the week?", "department": "engineering", "fact": "engineering-003", "updated": false}
+{"qid": "engineering-004-direct", "kind": "direct", "question": "When are deployments of the ledger API frozen?", "department": "engineering", "fact": "engineering-004", "updated": false}
+{"qid": "engineering-004-paraphrase", "kind": "paraphrase", "question": "Can I ship a change to the ledger API late in the week?", "department": "engineering", "fact": "engineering-004", "updated": false}
+{"qid": "engineering-005-direct", "kind": "direct", "question": "When are deployments of the inventory cluster frozen?", "department": "engineering", "fact": "engineering-005", "updated": false}
+{"qid": "engineering-005-paraphrase", "kind": "paraphrase", "question": "Can I ship a change to the inventory cluster late in the week?", "department": "engineering", "fact": "engineering-005", "updated": false}
+{"qid": "engineering-006-direct", "kind": "direct", "question": "How many approvals does a pull request for the ledger cluster need?", "department": "engineering", "fact": "engineering-006", "updated": false}
+{"qid": "engineering-006-paraphrase", "kind": "paraphrase", "question": "What must happen before my ledger cluster change can be merged?", "department": "engineering", "fact": "engineering-006", "updated": false}
+{"qid": "engineering-007-direct", "kind": "direct", "question": "How many approvals does a pull request for the invoice service need?", "department": "engineering", "fact": "engineering-007", "updated": false}
+{"qid": "engineering-007-paraphrase", "kind": "paraphrase", "question": "What must happen before my invoice service change can be merged?", "department": "engineering", "fact": "engineering-007", "updated": false}
+{"qid": "engineering-008-direct", "kind": "direct", "question": "How many approvals does a pull request for the payments API need?", "department": "engineering", "fact": "engineering-008", "updated": false}
+{"qid": "engineering-008-paraphrase", "kind": "paraphrase", "question": "What must happen before my payments API change can be merged?", "department": "engineering", "fact": "engineering-008", "updated": false}
+{"qid": "engineering-009-direct", "kind": "direct", "question": "How many approvals does a pull request for the ledger cache need?", "department": "engineering", "fact": "engineering-009", "updated": false}
+{"qid": "engineering-009-paraphrase", "kind": "paraphrase", "question": "What must happen before my ledger cache change can be merged?", "department": "engineering", "fact": "engineering-009", "updated": false}
+{"qid": "engineering-010-direct", "kind": "direct", "question": "How many approvals does a pull request for the notification API need?", "department": "engineering", "fact": "engineering-010", "updated": false}
+{"qid": "engineering-010-paraphrase", "kind": "paraphrase", "question": "What must happen before my notification API change can be merged?", "department": "engineering", "fact": "engineering-010", "updated": false}
+{"qid": "engineering-011-direct", "kind": "direct", "question": "Which database does the metrics worker use?", "department": "engineering", "fact": "engineering-011", "updated": true}
+{"qid": "engineering-011-paraphrase", "kind": "paraphrase", "question": "What storage engine did the team pick for the metrics worker, and why?", "department": "engineering", "fact": "engineering-011", "updated": true}
+{"qid": "engineering-012-direct", "kind": "direct", "question": "Which database does the catalog cache use?", "department": "engineering", "fact": "engineering-012", "updated": false}
+{"qid": "engineering-012-paraphrase", "kind": "paraphrase", "question": "What storage engine did the team pick for the catalog cache, and why?", "department": "engineering", "fact": "engineering-012", "updated": false}
+{"qid": "engineering-013-direct", "kind": "direct", "question": "Which database does the billing cluster use?", "department": "engineering", "fact": "engineering-013", "updated": false}
+{"qid": "engineering-013-paraphrase", "kind": "paraphrase", "question": "What storage engine did the team pick for the billing cluster, and why?", "department": "engineering", "fact": "engineering-013", "updated": false}
+{"qid": "engineering-014-direct", "kind": "direct", "question": "Which database does the export cache use?", "department": "engineering", "fact": "engineering-014", "updated": true}
+{"qid": "engineering-014-paraphrase", "kind": "paraphrase", "question": "What storage engine did the team pick for the export cache, and why?", "department": "engineering", "fact": "engineering-014", "updated": true}
+{"qid": "engineering-015-direct", "kind": "direct", "question": "Which database does the invoice cluster use?", "department": "engineering", "fact": "engineering-015", "updated": false}
+{"qid": "engineering-015-paraphrase", "kind": "paraphrase", "question": "What storage engine did the team pick for the invoice cluster, and why?", "department": "engineering", "fact": "engineering-015", "updated": false}
+{"qid": "engineering-016-direct", "kind": "direct", "question": "What protocol does the export pipeline expose now?", "department": "engineering", "fact": "engineering-016", "updated": false}
+{"qid": "engineering-016-paraphrase", "kind": "paraphrase", "question": "Did the export pipeline migrate its interface recently, and to what?", "department": "engineering", "fact": "engineering-016", "updated": false}
+{"qid": "engineering-017-direct", "kind": "direct", "question": "What protocol does the routing worker expose now?", "department": "engineering", "fact": "engineering-017", "updated": true}
+{"qid": "engineering-017-paraphrase", "kind": "paraphrase", "question": "Did the routing worker migrate its interface recently, and to what?", "department": "engineering", "fact": "engineering-017", "updated": true}
+{"qid": "engineering-018-direct", "kind": "direct", "question": "What protocol does the catalog cluster expose now?", "department": "engineering", "fact": "engineering-018", "updated": true}
+{"qid": "engineering-018-paraphrase", "kind": "paraphrase", "question": "Did the catalog cluster migrate its interface recently, and to what?", "department": "engineering", "fact": "engineering-018", "updated": true}
+{"qid": "engineering-019-direct", "kind": "direct", "question": "What protocol does the routing pipeline expose now?", "department": "engineering", "fact": "engineering-019", "updated": false}
+{"qid": "engineering-019-paraphrase", "kind": "paraphrase", "question": "Did the routing pipeline migrate its interface recently, and to what?", "department": "engineering", "fact": "engineering-019", "updated": false}
+{"qid": "engineering-020-direct", "kind": "direct", "question": "What protocol does the scheduler pipeline expose now?", "department": "engineering", "fact": "engineering-020", "updated": true}
+{"qid": "engineering-020-paraphrase", "kind": "paraphrase", "question": "Did the scheduler pipeline migrate its interface recently, and to what?", "department": "engineering", "fact": "engineering-020", "updated": true}
+{"qid": "engineering-021-direct", "kind": "direct", "question": "How do I rotate secrets for the notification worker?", "department": "engineering", "fact": "engineering-021", "updated": true}
+{"qid": "engineering-021-paraphrase", "kind": "paraphrase", "question": "What is the credential refresh routine for the notification worker?", "department": "engineering", "fact": "engineering-021", "updated": true}
+{"qid": "engineering-022-direct", "kind": "direct", "question": "How do I rotate secrets for the search API?", "department": "engineering", "fact": "engineering-022", "updated": false}
+{"qid": "engineering-022-paraphrase", "kind": "paraphrase", "question": "What is the credential refresh routine for the search API?", "department": "engineering", "fact": "engineering-022", "updated": false}
+{"qid": "engineering-023-direct", "kind": "direct", "question": "How do I rotate secrets for the metrics cache?", "department": "engineering", "fact": "engineering-023", "updated": true}
+{"qid": "engineering-023-paraphrase", "kind": "paraphrase", "question": "What is the credential refresh routine for the metrics cache?", "department": "engineering", "fact": "engineering-023", "updated": true}
+{"qid": "engineering-024-direct", "kind": "direct", "question": "How do I rotate secrets for the metrics service?", "department": "engineering", "fact": "engineering-024", "updated": false}
+{"qid": "engineering-024-paraphrase", "kind": "paraphrase", "question": "What is the credential refresh routine for the metrics service?", "department": "engineering", "fact": "engineering-024", "updated": false}
+{"qid": "engineering-025-direct", "kind": "direct", "question": "How do I rotate secrets for the inventory API?", "department": "engineering", "fact": "engineering-025", "updated": false}
+{"qid": "engineering-025-paraphrase", "kind": "paraphrase", "question": "What is the credential refresh routine for the inventory API?", "department": "engineering", "fact": "engineering-025", "updated": false}
+{"qid": "engineering-026-direct", "kind": "direct", "question": "Who gets paged for a severity 1 incident on the identity pipeline?", "department": "engineering", "fact": "engineering-026", "updated": false}
+{"qid": "engineering-026-paraphrase", "kind": "paraphrase", "question": "How fast must an outage of the identity pipeline be acknowledged?", "department": "engineering", "fact": "engineering-026", "updated": false}
+{"qid": "engineering-027-direct", "kind": "direct", "question": "Who gets paged for a severity 1 incident on the identity cluster?", "department": "engineering", "fact": "engineering-027", "updated": false}
+{"qid": "engineering-027-paraphrase", "kind": "paraphrase", "question": "How fast must an outage of the identity cluster be acknowledged?", "department": "engineering", "fact": "engineering-027", "updated": false}
+{"qid": "engineering-028-direct", "kind": "direct", "question": "Who gets paged for a severity 2 incident on the catalog worker?", "department": "engineering", "fact": "engineering-028", "updated": false}
+{"qid": "engineering-028-paraphrase", "kind": "paraphrase", "question": "How fast must an outage of the catalog worker be acknowledged?", "department": "engineering", "fact": "engineering-028", "updated": false}
+{"qid": "engineering-029-direct", "kind": "direct", "question": "Who gets paged for a severity 2 incident on the search cluster?", "department": "engineering", "fact": "engineering-029", "updated": true}
+{"qid": "engineering-029-paraphrase", "kind": "paraphrase", "question": "How fast must an outage of the search cluster be acknowledged?", "department": "engineering", "fact": "engineering-029", "updated": true}
+{"qid": "engineering-030-direct", "kind": "direct", "question": "Who gets paged for a severity 1 incident on the routing service?", "department": "engineering", "fact": "engineering-030", "updated": false}
+{"qid": "engineering-030-paraphrase", "kind": "paraphrase", "question": "How fast must an outage of the routing service be acknowledged?", "department": "engineering", "fact": "engineering-030", "updated": false}
+{"qid": "engineering-031-direct", "kind": "direct", "question": "Who owns the export cluster?", "department": "engineering", "fact": "engineering-031", "updated": false}
+{"qid": "engineering-031-paraphrase", "kind": "paraphrase", "question": "Whom should I contact about problems with the export cluster?", "department": "engineering", "fact": "engineering-031", "updated": false}
+{"qid": "engineering-032-direct", "kind": "direct", "question": "Who owns the routing indexer?", "department": "engineering", "fact": "engineering-032", "updated": false}
+{"qid": "engineering-032-paraphrase", "kind": "paraphrase", "question": "Whom should I contact about problems with the routing indexer?", "department": "engineering", "fact": "engineering-032", "updated": false}
+{"qid": "engineering-033-direct", "kind": "direct", "question": "Who owns the gateway service?", "department": "engineering", "fact": "engineering-033", "updated": false}
+{"qid": "engineering-033-paraphrase", "kind": "paraphrase", "question": "Whom should I contact about problems with the gateway service?", "department": "engineering", "fact": "engineering-033", "updated": false}
+{"qid": "engineering-034-direct", "kind": "direct", "question": "Who owns the search service?", "department": "engineering", "fact": "engineering-034", "updated": false}
+{"qid": "engineering-034-paraphrase", "kind": "paraphrase", "question": "Whom should I contact about problems with the search service?", "department": "engineering", "fact": "engineering-034", "updated": false}
+{"qid": "engineering-035-direct", "kind": "direct", "question": "Who owns the catalog pipeline?", "department": "engineering", "fact": "engineering-035", "updated": false}
+{"qid": "engineering-035-paraphrase", "kind": "paraphrase", "question": "Whom should I contact about problems with the catalog pipeline?", "department": "engineering", "fact": "engineering-035", "updated": false}
+{"qid": "engineering-036-direct", "kind": "direct", "question": "Who answers architecture questions about the invoice indexer?", "department": "engineering", "fact": "engineering-036", "updated": false}
+{"qid": "engineering-036-paraphrase", "kind": "paraphrase", "question": "Where do I ask design questions for the invoice indexer?", "department": "engineering", "fact": "engineering-036", "updated": false}
+{"qid": "engineering-037-direct", "kind": "direct", "question": "Who answers architecture questions about the ledger worker?", "department": "engineering", "fact": "engineering-037", "updated": false}
+{"qid": "engineering-037-paraphrase", "kind": "paraphrase", "question": "Where do I ask design questions for the ledger worker?", "department": "engineering", "fact": "engineering-037", "updated": false}
+{"qid": "engineering-038-direct", "kind": "direct", "question": "Who answers architecture questions about the routing cache?", "department": "engineering", "fact": "engineering-038", "updated": false}
+{"qid": "engineering-038-paraphrase", "kind": "paraphrase", "question": "Where do I ask design questions for the routing cache?", "department": "engineering", "fact": "engineering-038", "updated": false}
+{"qid": "engineering-039-direct", "kind": "direct", "question": "Who answers architecture questions about the billing cache?", "department": "engineering", "fact": "engineering-039", "updated": false}
+{"qid": "engineering-039-paraphrase", "kind": "paraphrase", "question": "Where do I ask design questions for the billing cache?", "department": "engineering", "fact": "engineering-039", "updated": false}
+{"qid": "engineering-040-direct", "kind": "direct", "question": "Who answers architecture questions about the inventory indexer?", "department": "engineering", "fact": "engineering-040", "updated": false}
+{"qid": "engineering-040-paraphrase", "kind": "paraphrase", "question": "Where do I ask design questions for the inventory indexer?", "department": "engineering", "fact": "engineering-040", "updated": false}
+{"qid": "engineering-041-direct", "kind": "direct", "question": "What is the production vault path for the gateway API?", "department": "engineering", "fact": "engineering-041", "updated": false}
+{"qid": "engineering-041-paraphrase", "kind": "paraphrase", "question": "Where are the production secrets of the gateway API kept?", "department": "engineering", "fact": "engineering-041", "updated": false}
+{"qid": "engineering-042-direct", "kind": "direct", "question": "What is the production vault path for the gateway pipeline?", "department": "engineering", "fact": "engineering-042", "updated": false}
+{"qid": "engineering-042-paraphrase", "kind": "paraphrase", "question": "Where are the production secrets of the gateway pipeline kept?", "department": "engineering", "fact": "engineering-042", "updated": false}
+{"qid": "engineering-043-direct", "kind": "direct", "question": "What is the production vault path for the payments worker?", "department": "engineering", "fact": "engineering-043", "updated": false}
+{"qid": "engineering-043-paraphrase", "kind": "paraphrase", "question": "Where are the production secrets of the payments worker kept?", "department": "engineering", "fact": "engineering-043", "updated": false}
+{"qid": "engineering-044-direct", "kind": "direct", "question": "What is the production vault path for the billing API?", "department": "engineering", "fact": "engineering-044", "updated": false}
+{"qid": "engineering-044-paraphrase", "kind": "paraphrase", "question": "Where are the production secrets of the billing API kept?", "department": "engineering", "fact": "engineering-044", "updated": false}
+{"qid": "engineering-045-direct", "kind": "direct", "question": "What is the production vault path for the ledger indexer?", "department": "engineering", "fact": "engineering-045", "updated": true}
+{"qid": "engineering-045-paraphrase", "kind": "paraphrase", "question": "Where are the production secrets of the ledger indexer kept?", "department": "engineering", "fact": "engineering-045", "updated": true}
+{"qid": "engineering-046-direct", "kind": "direct", "question": "Is there an open vulnerability in the billing service?", "department": "engineering", "fact": "engineering-046", "updated": false}
+{"qid": "engineering-046-paraphrase", "kind": "paraphrase", "question": "Which security ticket is pending for the billing service?", "department": "engineering", "fact": "engineering-046", "updated": false}
+{"qid": "engineering-047-direct", "kind": "direct", "question": "Is there an open vulnerability in the notification indexer?", "department": "engineering", "fact": "engineering-047", "updated": false}
+{"qid": "engineering-047-paraphrase", "kind": "paraphrase", "question": "Which security ticket is pending for the notification indexer?", "department": "engineering", "fact": "engineering-047", "updated": false}
+{"qid": "engineering-048-direct", "kind": "direct", "question": "Is there an open vulnerability in the payments service?", "department": "engineering", "fact": "engineering-048", "updated": false}
+{"qid": "engineering-048-paraphrase", "kind": "paraphrase", "question": "Which security ticket is pending for the payments service?", "department": "engineering", "fact": "engineering-048", "updated": false}
+{"qid": "engineering-049-direct", "kind": "direct", "question": "Is there an open vulnerability in the routing API?", "department": "engineering", "fact": "engineering-049", "updated": true}
+{"qid": "engineering-049-paraphrase", "kind": "paraphrase", "question": "Which security ticket is pending for the routing API?", "department": "engineering", "fact": "engineering-049", "updated": true}
+{"qid": "engineering-050-direct", "kind": "direct", "question": "Is there an open vulnerability in the identity cache?", "department": "engineering", "fact": "engineering-050", "updated": false}
+{"qid": "engineering-050-paraphrase", "kind": "paraphrase", "question": "Which security ticket is pending for the identity cache?", "department": "engineering", "fact": "engineering-050", "updated": false}
+{"qid": "sales-001-direct", "kind": "direct", "question": "What discount for Quarry Retail needs director approval?", "department": "sales", "fact": "sales-001", "updated": false}
+{"qid": "sales-001-paraphrase", "kind": "paraphrase", "question": "How large a price cut can I give Quarry Retail on my own?", "department": "sales", "fact": "sales-001", "updated": false}
+{"qid": "sales-002-direct", "kind": "direct", "question": "What discount for Pinnacle Freight needs director approval?", "department": "sales", "fact": "sales-002", "updated": false}
+{"qid": "sales-002-paraphrase", "kind": "paraphrase", "question": "How large a price cut can I give Pinnacle Freight on my own?", "department": "sales", "fact": "sales-002", "updated": false}
+{"qid": "sales-003-direct", "kind": "direct", "question": "What discount for Meridian Freight needs director approval?", "department": "sales", "fact": "sales-003", "updated": false}
+{"qid": "sales-003-paraphrase", "kind": "paraphrase", "question": "How large a price cut can I give Meridian Freight on my own?", "department": "sales", "fact": "sales-003", "updated": false}
+{"qid": "sales-004-direct", "kind": "direct", "question": "What discount for Pinnacle Logistics needs director approval?", "department": "sales", "fact": "sales-004", "updated": false}
+{"qid": "sales-004-paraphrase", "kind": "paraphrase", "question": "How large a price cut can I give Pinnacle Logistics on my own?", "department": "sales", "fact": "sales-004", "updated": false}
+{"qid": "sales-005-direct", "kind": "direct", "question": "What discount for Keystone Foods needs director approval?", "department": "sales", "fact": "sales-005", "updated": false}
+{"qid": "sales-005-paraphrase", "kind": "paraphrase", "question": "How large a price cut can I give Keystone Foods on my own?", "department": "sales", "fact": "sales-005", "updated": false}
+{"qid": "sales-006-direct", "kind": "direct", "question": "How long is a quote for Bluefin Health valid?", "department": "sales", "fact": "sales-006", "updated": false}
+{"qid": "sales-006-paraphrase", "kind": "paraphrase", "question": "Which price list and validity apply to offers for Bluefin Health?", "department": "sales", "fact": "sales-006", "updated": false}
+{"qid": "sales-007-direct", "kind": "direct", "question": "How long is a quote for Bluefin Freight valid?", "department": "sales", "fact": "sales-007", "updated": false}
+{"qid": "sales-007-paraphrase", "kind": "paraphrase", "question": "Which price list and validity apply to offers for Bluefin Freight?", "department": "sales", "fact": "sales-007", "updated": false}
+{"qid": "sales-008-direct", "kind": "direct", "question": "How long is a quote for Summit Energy valid?", "department": "sales", "fact": "sales-008", "updated": false}
+{"qid": "sales-008-paraphrase", "kind": "paraphrase", "question": "Which price list and validity apply to offers for Summit Energy?", "department": "sales", "fact": "sales-008", "updated": false}
+{"qid": "sales-009-direct", "kind": "direct", "question": "How long is a quote for Bluefin Retail valid?", "department": "sales", "fact": "sales-009", "updated": false}
+{"qid": "sales-009-paraphrase", "kind": "paraphrase", "question": "Which price list and validity apply to offers for Bluefin Retail?", "department": "sales", "fact": "sales-009", "updated": false}
+{"qid": "sales-010-direct", "kind": "direct", "question": "How long is a quote for Bluefin Energy valid?", "department": "sales", "fact": "sales-010", "updated": false}
+{"qid": "sales-010-paraphrase", "kind": "paraphrase", "question": "Which price list and validity apply to offers for Bluefin Energy?", "department": "sales", "fact": "sales-010", "updated": false}
+{"qid": "sales-011-direct", "kind": "direct", "question": "Which plan did we sell to Granite Logistics?", "department": "sales", "fact": "sales-011", "updated": false}
+{"qid": "sales-011-paraphrase", "kind": "paraphrase", "question": "What subscription tier and term does Granite Logistics have?", "department": "sales", "fact": "sales-011", "updated": false}
+{"qid": "sales-012-direct", "kind": "direct", "question": "Which plan did we sell to Orchard Foods?", "department": "sales", "fact": "sales-012", "updated": true}
+{"qid": "sales-012-paraphrase", "kind": "paraphrase", "question": "What subscription tier and term does Orchard Foods have?", "department": "sales", "fact": "sales-012", "updated": true}
+{"qid": "sales-013-direct", "kind": "direct", "question": "Which plan did we sell to Keystone Retail?", "department": "sales", "fact": "sales-013", "updated": false}
+{"qid": "sales-013-paraphrase", "kind": "paraphrase", "question": "What subscription tier and term does Keystone Retail have?", "department": "sales", "fact": "sales-013", "updated": false}
+{"qid": "sales-014-direct", "kind": "direct", "question": "Which plan did we sell to Lumen Logistics?", "department": "sales", "fact": "sales-014", "updated": false}
+{"qid": "sales-014-paraphrase", "kind": "paraphrase", "question": "What subscription tier and term does Lumen Logistics have?", "department": "sales", "fact": "sales-014", "updated": false}
+{"qid": "sales-015-direct", "kind": "direct", "question": "Which plan did we sell to Pinnacle Foods?", "department": "sales", "fact": "sales-015", "updated": false}
+{"qid": "sales-015-paraphrase", "kind": "paraphrase", "question": "What subscription tier and term does Pinnacle Foods have?", "department": "sales", "fact": "sales-015", "updated": false}
+{"qid": "sales-016-direct", "kind": "direct", "question": "Which team handles the Orchard Freight renewal?", "department": "sales", "fact": "sales-016", "updated": false}
+{"qid": "sales-016-paraphrase", "kind": "paraphrase", "question": "Who takes over the renewal of Orchard Freight?", "department": "sales", "fact": "sales-016", "updated": false}
+{"qid": "sales-017-direct", "kind": "direct", "question": "Which team handles the Granite Freight renewal?", "department": "sales", "fact": "sales-017", "updated": true}
+{"qid": "sales-017-paraphrase", "kind": "paraphrase", "question": "Who takes over the renewal of Granite Freight?", "department": "sales", "fact": "sales-017", "updated": true}
+{"qid": "sales-018-direct", "kind": "direct", "question": "Which team handles the Quarry Logistics renewal?", "department": "sales", "fact": "sales-018", "updated": false}
+{"qid": "sales-018-paraphrase", "kind": "paraphrase", "question": "Who takes over the renewal of Quarry Logistics?", "department": "sales", "fact": "sales-018", "updated": false}
+{"qid": "sales-019-direct", "kind": "direct", "question": "Which team handles the Lumen Energy renewal?", "department": "sales", "fact": "sales-019", "updated": true}
+{"qid": "sales-019-paraphrase", "kind": "paraphrase", "question": "Who takes over the renewal of Lumen Energy?", "department": "sales", "fact": "sales-019", "updated": true}
+{"qid": "sales-020-direct", "kind": "direct", "question": "Which team handles the Juniper Energy renewal?", "department": "sales", "fact": "sales-020", "updated": false}
+{"qid": "sales-020-paraphrase", "kind": "paraphrase", "question": "Who takes over the renewal of Juniper Energy?", "department": "sales", "fact": "sales-020", "updated": false}
+{"qid": "sales-021-direct", "kind": "direct", "question": "How do we onboard Summit Foods?", "department": "sales", "fact": "sales-021", "updated": false}
+{"qid": "sales-021-paraphrase", "kind": "paraphrase", "question": "What are the first steps after Summit Foods signs?", "department": "sales", "fact": "sales-021", "updated": false}
+{"qid": "sales-022-direct", "kind": "direct", "question": "How do we onboard Redwood Health?", "department": "sales", "fact": "sales-022", "updated": false}
+{"qid": "sales-022-paraphrase", "kind": "paraphrase", "question": "What are the first steps after Redwood Health signs?", "department": "sales", "fact": "sales-022", "updated": false}
+{"qid": "sales-023-direct", "kind": "direct", "question": "How do we onboard Meridian Health?", "department": "sales", "fact": "sales-023", "updated": true}
+{"qid": "sales-023-paraphrase", "kind": "paraphrase", "question": "What are the first steps after Meridian Health signs?", "department": "sales", "fact": "sales-023", "updated": true}
+{"qid": "sales-024-direct", "kind": "direct", "question": "How do we onboard Keystone Health?", "department": "sales", "fact": "sales-024", "updated": false}
+{"qid": "sales-024-paraphrase", "kind": "paraphrase", "question": "What are the first steps after Keystone Health signs?", "department": "sales", "fact": "sales-024", "updated": false}
+{"qid": "sales-025-direct", "kind": "direct", "question": "How do we onboard Harbor Retail?", "department": "sales", "fact": "sales-025", "updated": false}
+{"qid": "sales-025-paraphrase", "kind": "paraphrase", "question": "What are the first steps after Harbor Retail signs?", "department": "sales", "fact": "sales-025", "updated": false}
+{"qid": "sales-026-direct", "kind": "direct", "question": "How are escalations from Harbor Energy handled?", "department": "sales", "fact": "sales-026", "updated": false}
+{"qid": "sales-026-paraphrase", "kind": "paraphrase", "question": "What is the escalation path when Harbor Energy complains?", "department": "sales", "fact": "sales-026", "updated": false}
+{"qid": "sales-027-direct", "kind": "direct", "question": "How are escalations from Granite Media handled?", "department": "sales", "fact": "sales-027", "updated": true}
+{"qid": "sales-027-paraphrase", "kind": "paraphrase", "question": "What is the escalation path when Granite Media complains?", "department": "sales", "fact": "sales-027", "updated": true}
+{"qid": "sales-028-direct", "kind": "direct", "question": "How are escalations from Meridian Logistics handled?", "department": "sales", "fact": "sales-028", "updated": false}
+{"qid": "sales-028-paraphrase", "kind": "paraphrase", "question": "What is the escalation path when Meridian Logistics complains?", "department": "sales", "fact": "sales-028", "updated": false}
+{"qid": "sales-029-direct", "kind": "direct", "question": "How are escalations from Keystone Energy handled?", "department": "sales", "fact": "sales-029", "updated": false}
+{"qid": "sales-029-paraphrase", "kind": "paraphrase", "question": "What is the escalation path when Keystone Energy complains?", "department": "sales", "fact": "sales-029", "updated": false}
+{"qid": "sales-030-direct", "kind": "direct", "question": "How are escalations from Pinnacle Health handled?", "department": "sales", "fact": "sales-030", "updated": false}
+{"qid": "sales-030-paraphrase", "kind": "paraphrase", "question": "What is the escalation path when Pinnacle Health complains?", "department": "sales", "fact": "sales-030", "updated": false}
+{"qid": "sales-031-direct", "kind": "direct", "question": "Who is the account manager for Orchard Retail?", "department": "sales", "fact": "sales-031", "updated": false}
+{"qid": "sales-031-paraphrase", "kind": "paraphrase", "question": "Whom do I talk to about the Orchard Retail account?", "department": "sales", "fact": "sales-031", "updated": false}
+{"qid": "sales-032-direct", "kind": "direct", "question": "Who is the account manager for Keystone Freight?", "department": "sales", "fact": "sales-032", "updated": false}
+{"qid": "sales-032-paraphrase", "kind": "paraphrase", "question": "Whom do I talk to about the Keystone Freight account?", "department": "sales", "fact": "sales-032", "updated": false}
+{"qid": "sales-033-direct", "kind": "direct", "question": "Who is the account manager for Summit Logistics?", "department": "sales", "fact": "sales-033", "updated": true}
+{"qid": "sales-033-paraphrase", "kind": "paraphrase", "question": "Whom do I talk to about the Summit Logistics account?", "department": "sales", "fact": "sales-033", "updated": true}
+{"qid": "sales-034-direct", "kind": "direct", "question": "Who is the account manager for Crescent Logistics?", "department": "sales", "fact": "sales-034", "updated": false}
+{"qid": "sales-034-paraphrase", "kind": "paraphrase", "question": "Whom do I talk to about the Crescent Logistics account?", "department": "sales", "fact": "sales-034", "updated": false}
+{"qid": "sales-035-direct", "kind": "direct", "question": "Who is the account manager for Summit Health?", "department": "sales", "fact": "sales-035", "updated": false}
+{"qid": "sales-035-paraphrase", "kind": "paraphrase", "question": "Whom do I talk to about the Summit Health account?", "department": "sales", "fact": "sales-035", "updated": false}
+{"qid": "sales-036-direct", "kind": "direct", "question": "Who coordinates legal redlines for Meridian Foods?", "department": "sales", "fact": "sales-036", "updated": true}
+{"qid": "sales-036-paraphrase", "kind": "paraphrase", "question": "Who on the deal desk handles contract edits for Meridian Foods?", "department": "sales", "fact": "sales-036", "updated": true}
+{"qid": "sales-037-direct", "kind": "direct", "question": "Who coordinates legal redlines for Bluefin Logistics?", "department": "sales", "fact": "sales-037", "updated": false}
+{"qid": "sales-037-paraphrase", "kind": "paraphrase", "question": "Who on the deal desk handles contract edits for Bluefin Logistics?", "department": "sales", "fact": "sales-037", "updated": false}
+{"qid": "sales-038-direct", "kind": "direct", "question": "Who coordinates legal redlines for Quarry Energy?", "department": "sales", "fact": "sales-038", "updated": false}
+{"qid": "sales-038-paraphrase", "kind": "paraphrase", "question": "Who on the deal desk handles contract edits for Quarry Energy?", "department": "sales", "fact": "sales-038", "updated": false}
+{"qid": "sales-039-direct", "kind": "direct", "question": "Who coordinates legal redlines for Granite Energy?", "department": "sales", "fact": "sales-039", "updated": false}
+{"qid": "sales-039-paraphrase", "kind": "paraphrase", "question": "Who on the deal desk handles contract edits for Granite Energy?", "department": "sales", "fact": "sales-039", "updated": false}
+{"qid": "sales-040-direct", "kind": "direct", "question": "Who coordinates legal redlines for Keystone Logistics?", "department": "sales", "fact": "sales-040", "updated": false}
+{"qid": "sales-040-paraphrase", "kind": "paraphrase", "question": "Who on the deal desk handles contract edits for Keystone Logistics?", "department": "sales", "fact": "sales-040", "updated": false}
+{"qid": "sales-041-direct", "kind": "direct", "question": "How much does Meridian Media pay per year?", "department": "sales", "fact": "sales-041", "updated": false}
+{"qid": "sales-041-paraphrase", "kind": "paraphrase", "question": "What are the commercial terms of the Meridian Media deal?", "department": "sales", "fact": "sales-041", "updated": false}
+{"qid": "sales-042-direct", "kind": "direct", "question": "How much does Lumen Retail pay per year?", "department": "sales", "fact": "sales-042", "updated": false}
+{"qid": "sales-042-paraphrase", "kind": "paraphrase", "question": "What are the commercial terms of the Lumen Retail deal?", "department": "sales", "fact": "sales-042", "updated": false}
+{"qid": "sales-043-direct", "kind": "direct", "question": "How much does Quarry Health pay per year?", "department": "sales", "fact": "sales-043", "updated": false}
+{"qid": "sales-043-paraphrase", "kind": "paraphrase", "question": "What are the commercial terms of the Quarry Health deal?", "department": "sales", "fact": "sales-043", "updated": false}
+{"qid": "sales-044-direct", "kind": "direct", "question": "How much does Meridian Retail pay per year?", "department": "sales", "fact": "sales-044", "updated": true}
+{"qid": "sales-044-paraphrase", "kind": "paraphrase", "question": "What are the commercial terms of the Meridian Retail deal?", "department": "sales", "fact": "sales-044", "updated": true}
+{"qid": "sales-045-direct", "kind": "direct", "question": "How much does Bluefin Foods pay per year?", "department": "sales", "fact": "sales-045", "updated": true}
+{"qid": "sales-045-paraphrase", "kind": "paraphrase", "question": "What are the commercial terms of the Bluefin Foods deal?", "department": "sales", "fact": "sales-045", "updated": true}
+{"qid": "sales-046-direct", "kind": "direct", "question": "Does Quarry Foods have an exit clause?", "department": "sales", "fact": "sales-046", "updated": true}
+{"qid": "sales-046-paraphrase", "kind": "paraphrase", "question": "Under which conditions can Quarry Foods leave the contract early?", "department": "sales", "fact": "sales-046", "updated": true}
+{"qid": "sales-047-direct", "kind": "direct", "question": "Does Harbor Foods have an exit clause?", "department": "sales", "fact": "sales-047", "updated": false}
+{"qid": "sales-047-paraphrase", "kind": "paraphrase", "question": "Under which conditions can Harbor Foods leave the contract early?", "department": "sales", "fact": "sales-047", "updated": false}
+{"qid": "sales-048-direct", "kind": "direct", "question": "Does Northwind Media have an exit clause?", "department": "sales", "fact": "sales-048", "updated": false}
+{"qid": "sales-048-paraphrase", "kind": "paraphrase", "question": "Under which conditions can Northwind Media leave the contract early?", "department": "sales", "fact": "sales-048", "updated": false}
+{"qid": "sales-049-direct", "kind": "direct", "question": "Does Crescent Foods have an exit clause?", "department": "sales", "fact": "sales-049", "updated": false}
+{"qid": "sales-049-paraphrase", "kind": "paraphrase", "question": "Under which conditions can Crescent Foods leave the contract early?", "department": "sales", "fact": "sales-049", "updated": false}
+{"qid": "sales-050-direct", "kind": "direct", "question": "Does Summit Media have an exit clause?", "department": "sales", "fact": "sales-050", "updated": false}
+{"qid": "sales-050-paraphrase", "kind": "paraphrase", "question": "Under which conditions can Summit Media leave the contract early?", "department": "sales", "fact": "sales-050", "updated": false}
+{"qid": "hr-001-direct", "kind": "direct", "question": "How many interview rounds does a Backend Specialist candidate have?", "department": "hr", "fact": "hr-001", "updated": true}
+{"qid": "hr-001-paraphrase", "kind": "paraphrase", "question": "What is the hiring loop for a Backend Specialist?", "department": "hr", "fact": "hr-001", "updated": true}
+{"qid": "hr-002-direct", "kind": "direct", "question": "How many interview rounds does a Finance Manager candidate have?", "department": "hr", "fact": "hr-002", "updated": false}
+{"qid": "hr-002-paraphrase", "kind": "paraphrase", "question": "What is the hiring loop for a Finance Manager?", "department": "hr", "fact": "hr-002", "updated": false}
+{"qid": "hr-003-direct", "kind": "direct", "question": "How many interview rounds does a Mobile Engineer candidate have?", "department": "hr", "fact": "hr-003", "updated": false}
+{"qid": "hr-003-paraphrase", "kind": "paraphrase", "question": "What is the hiring loop for a Mobile Engineer?", "department": "hr", "fact": "hr-003", "updated": false}
+{"qid": "hr-004-direct", "kind": "direct", "question": "How many interview rounds does a Data Manager candidate have?", "department": "hr", "fact": "hr-004", "updated": false}
+{"qid": "hr-004-paraphrase", "kind": "paraphrase", "question": "What is the hiring loop for a Data Manager?", "department": "hr", "fact": "hr-004", "updated": false}
+{"qid": "hr-005-direct", "kind": "direct", "question": "How many interview rounds does a Platform Specialist candidate have?", "department": "hr", "fact": "hr-005", "updated": false}
+{"qid": "hr-005-paraphrase", "kind": "paraphrase", "question": "What is the hiring loop for a Platform Specialist?", "department": "hr", "fact": "hr-005", "updated": false}
+{"qid": "hr-006-direct", "kind": "direct", "question": "How many remote days can a Recruiting Analyst take?", "department": "hr", "fact": "hr-006", "updated": false}
+{"qid": "hr-006-paraphrase", "kind": "paraphrase", "question": "What is the home-office allowance for a Recruiting Analyst?", "department": "hr", "fact": "hr-006", "updated": false}
+{"qid": "hr-007-direct", "kind": "direct", "question": "How many remote days can a QA Engineer take?", "department": "hr", "fact": "hr-007", "updated": false}
+{"qid": "hr-007-paraphrase", "kind": "paraphrase", "question": "What is the home-office allowance for a QA Engineer?", "department": "hr", "fact": "hr-007", "updated": false}
+{"qid": "hr-008-direct", "kind": "direct", "question": "How many remote days can a Sales Coordinator take?", "department": "hr", "fact": "hr-008", "updated": false}
+{"qid": "hr-008-paraphrase", "kind": "paraphrase", "question": "What is the home-office allowance for a Sales Coordinator?", "department": "hr", "fact": "hr-008", "updated": false}
+{"qid": "hr-009-direct", "kind": "direct", "question": "How many remote days can a Security Engineer take?", "department": "hr", "fact": "hr-009", "updated": true}
+{"qid": "hr-009-paraphrase", "kind": "paraphrase", "question": "What is the home-office allowance for a Security Engineer?", "department": "hr", "fact": "hr-009", "updated": true}
+{"qid": "hr-010-direct", "kind": "direct", "question": "How many remote days can a Recruiting Coordinator take?", "department": "hr", "fact": "hr-010", "updated": false}
+{"qid": "hr-010-paraphrase", "kind": "paraphrase", "question": "What is the home-office allowance for a Recruiting Coordinator?", "department": "hr", "fact": "hr-010", "updated": false}
+{"qid": "hr-011-direct", "kind": "direct", "question": "Which grade family does the Recruiting Manager role use?", "department": "hr", "fact": "hr-011", "updated": false}
+{"qid": "hr-011-paraphrase", "kind": "paraphrase", "question": "Was the Recruiting Manager position re-graded?", "department": "hr", "fact": "hr-011", "updated": false}
+{"qid": "hr-012-direct", "kind": "direct", "question": "Which grade family does the Finance Associate role use?", "department": "hr", "fact": "hr-012", "updated": false}
+{"qid": "hr-012-paraphrase", "kind": "paraphrase", "question": "Was the Finance Associate position re-graded?", "department": "hr", "fact": "hr-012", "updated": false}
+{"qid": "hr-013-direct", "kind": "direct", "question": "Which grade family does the Support Specialist role use?", "department": "hr", "fact": "hr-013", "updated": false}
+{"qid": "hr-013-paraphrase", "kind": "paraphrase", "question": "Was the Support Specialist position re-graded?", "department": "hr", "fact": "hr-013", "updated": false}
+{"qid": "hr-014-direct", "kind": "direct", "question": "Which grade family does the QA Coordinator role use?", "department": "hr", "fact": "hr-014", "updated": false}
+{"qid": "hr-014-paraphrase", "kind": "paraphrase", "question": "Was the QA Coordinator position re-graded?", "department": "hr", "fact": "hr-014", "updated": false}
+{"qid": "hr-015-direct", "kind": "direct", "question": "Which grade family does the Design Manager role use?", "department": "hr", "fact": "hr-015", "updated": false}
+{"qid": "hr-015-paraphrase", "kind": "paraphrase", "question": "Was the Design Manager position re-graded?", "department": "hr", "fact": "hr-015", "updated": false}
+{"qid": "hr-016-direct", "kind": "direct", "question": "How long is probation for a Frontend Associate?", "department": "hr", "fact": "hr-016", "updated": false}
+{"qid": "hr-016-paraphrase", "kind": "paraphrase", "question": "What trial period applies to new Frontend Associate staff?", "department": "hr", "fact": "hr-016", "updated": false}
+{"qid": "hr-017-direct", "kind": "direct", "question": "How long is probation for a Legal Analyst?", "department": "hr", "fact": "hr-017", "updated": false}
+{"qid": "hr-017-paraphrase", "kind": "paraphrase", "question": "What trial period applies to new Legal Analyst staff?", "department": "hr", "fact": "hr-017", "updated": false}
+{"qid": "hr-018-direct", "kind": "direct", "question": "How long is probation for a Recruiting Specialist?", "department": "hr", "fact": "hr-018", "updated": false}
+{"qid": "hr-018-paraphrase", "kind": "paraphrase", "question": "What trial period applies to new Recruiting Specialist staff?", "department": "hr", "fact": "hr-018", "updated": false}
+{"qid": "hr-019-direct", "kind": "direct", "question": "How long is probation for a Support Analyst?", "department": "hr", "fact": "hr-019", "updated": false}
+{"qid": "hr-019-paraphrase", "kind": "paraphrase", "question": "What trial period applies to new Support Analyst staff?", "department": "hr", "fact": "hr-019", "updated": false}
+{"qid": "hr-020-direct", "kind": "direct", "question": "How long is probation for a Data Lead?", "department": "hr", "fact": "hr-020", "updated": false}
+{"qid": "hr-020-paraphrase", "kind": "paraphrase", "question": "What trial period applies to new Data Lead staff?", "department": "hr", "fact": "hr-020", "updated": false}
+{"qid": "hr-021-direct", "kind": "direct", "question": "How long does onboarding a Payroll Coordinator take?", "department": "hr", "fact": "hr-021", "updated": false}
+{"qid": "hr-021-paraphrase", "kind": "paraphrase", "question": "What happens in the first days of a new Payroll Coordinator?", "department": "hr", "fact": "hr-021", "updated": false}
+{"qid": "hr-022-direct", "kind": "direct", "question": "How long does onboarding a Support Coordinator take?", "department": "hr", "fact": "hr-022", "updated": false}
+{"qid": "hr-022-paraphrase", "kind": "paraphrase", "question": "What happens in the first days of a new Support Coordinator?", "department": "hr", "fact": "hr-022", "updated": false}
+{"qid": "hr-023-direct", "kind": "direct", "question": "How long does onboarding a QA Manager take?", "department": "hr", "fact": "hr-023", "updated": true}
+{"qid": "hr-023-paraphrase", "kind": "paraphrase", "question": "What happens in the first days of a new QA Manager?", "department": "hr", "fact": "hr-023", "updated": true}
+{"qid": "hr-024-direct", "kind": "direct", "question": "How long does onboarding a Mobile Associate take?", "department": "hr", "fact": "hr-024", "updated": false}
+{"qid": "hr-024-paraphrase", "kind": "paraphrase", "question": "What happens in the first days of a new Mobile Associate?", "department": "hr", "fact": "hr-024", "updated": false}
+{"qid": "hr-025-direct", "kind": "direct", "question": "How long does onboarding a Data Analyst take?", "department": "hr", "fact": "hr-025", "updated": false}
+{"qid": "hr-025-paraphrase", "kind": "paraphrase", "question": "What happens in the first days of a new Data Analyst?", "department": "hr", "fact": "hr-025", "updated": false}
+{"qid": "hr-026-direct", "kind": "direct", "question": "How do we offboard a Recruiting Associate?", "department": "hr", "fact": "hr-026", "updated": false}
+{"qid": "hr-026-paraphrase", "kind": "paraphrase", "question": "What are the steps when a Recruiting Associate leaves?", "department": "hr", "fact": "hr-026", "updated": false}
+{"qid": "hr-027-direct", "kind": "direct", "question": "How do we offboard a Design Analyst?", "department": "hr", "fact": "hr-027", "updated": false}
+{"qid": "hr-027-paraphrase", "kind": "paraphrase", "question": "What are the steps when a Design Analyst leaves?", "department": "hr", "fact": "hr-027", "updated": false}
+{"qid": "hr-028-direct", "kind": "direct", "question": "How do we offboard a Frontend Manager?", "department": "hr", "fact": "hr-028", "updated": false}
+{"qid": "hr-028-paraphrase", "kind": "paraphrase", "question": "What are the steps when a Frontend Manager leaves?", "department": "hr", "fact": "hr-028", "updated": false}
+{"qid": "hr-029-direct", "kind": "direct", "question": "How do we offboard a Backend Manager?", "department": "hr", "fact": "hr-029", "updated": false}
+{"qid": "hr-029-paraphrase", "kind": "paraphrase", "question": "What are the steps when a Backend Manager leaves?", "department": "hr", "fact": "hr-029", "updated": false}
+{"qid": "hr-030-direct", "kind": "direct", "question": "How do we offboard a Design Coordinator?", "department": "hr", "fact": "hr-030", "updated": false}
+{"qid": "hr-030-paraphrase", "kind": "paraphrase", "question": "What are the steps when a Design Coordinator leaves?", "department": "hr", "fact": "hr-030", "updated": false}
+{"qid": "hr-031-direct", "kind": "direct", "question": "Who is the HR partner for Recruiting Lead staff?", "department": "hr", "fact": "hr-031", "updated": false}
+{"qid": "hr-031-paraphrase", "kind": "paraphrase", "question": "Whom should a Recruiting Lead contact about HR matters?", "department": "hr", "fact": "hr-031", "updated": false}
+{"qid": "hr-032-direct", "kind": "direct", "question": "Who is the HR partner for Security Coordinator staff?", "department": "hr", "fact": "hr-032", "updated": false}
+{"qid": "hr-032-paraphrase", "kind": "paraphrase", "question": "Whom should a Security Coordinator contact about HR matters?", "department": "hr", "fact": "hr-032", "updated": false}
+{"qid": "hr-033-direct", "kind": "direct", "question": "Who is the HR partner for QA Lead staff?", "department": "hr", "fact": "hr-033", "updated": false}
+{"qid": "hr-033-paraphrase", "kind": "paraphrase", "question": "Whom should a QA Lead contact about HR matters?", "department": "hr", "fact": "hr-033", "updated": false}
+{"qid": "hr-034-direct", "kind": "direct", "question": "Who is the HR partner for Data Specialist staff?", "department": "hr", "fact": "hr-034", "updated": false}
+{"qid": "hr-034-paraphrase", "kind": "paraphrase", "question": "Whom should a Data Specialist contact about HR matters?", "department": "hr", "fact": "hr-034", "updated": false}
+{"qid": "hr-035-direct", "kind": "direct", "question": "Who is the HR partner for Payroll Analyst staff?", "department": "hr", "fact": "hr-035", "updated": true}
+{"qid": "hr-035-paraphrase", "kind": "paraphrase", "question": "Whom should a Payroll Analyst contact about HR matters?", "department": "hr", "fact": "hr-035", "updated": true}
+{"qid": "hr-036-direct", "kind": "direct", "question": "Who recruits for Backend Engineer openings?", "department": "hr", "fact": "hr-036", "updated": false}
+{"qid": "hr-036-paraphrase", "kind": "paraphrase", "question": "Who runs hiring for a Backend Engineer vacancy?", "department": "hr", "fact": "hr-036", "updated": false}
+{"qid": "hr-037-direct", "kind": "direct", "question": "Who recruits for Frontend Engineer openings?", "department": "hr", "fact": "hr-037", "updated": false}
+{"qid": "hr-037-paraphrase", "kind": "paraphrase", "question": "Who runs hiring for a Frontend Engineer vacancy?", "department": "hr", "fact": "hr-037", "updated": false}
+{"qid": "hr-038-direct", "kind": "direct", "question": "Who recruits for Support Associate openings?", "department": "hr", "fact": "hr-038", "updated": false}
+{"qid": "hr-038-paraphrase", "kind": "paraphrase", "question": "Who runs hiring for a Support Associate vacancy?", "department": "hr", "fact": "hr-038", "updated": false}
+{"qid": "hr-039-direct", "kind": "direct", "question": "Who recruits for Backend Lead openings?", "department": "hr", "fact": "hr-039", "updated": true}
+{"qid": "hr-039-paraphrase", "kind": "paraphrase", "question": "Who runs hiring for a Backend Lead vacancy?", "department": "hr", "fact": "hr-039", "updated": true}
+{"qid": "hr-040-direct", "kind": "direct", "question": "Who recruits for Security Associate openings?", "department": "hr", "fact": "hr-040", "updated": true}
+{"qid": "hr-040-paraphrase", "kind": "paraphrase", "question": "Who runs hiring for a Security Associate vacancy?", "department": "hr", "fact": "hr-040", "updated": true}
+{"qid": "hr-041-direct", "kind": "direct", "question": "What is the salary band for a Platform Associate?", "department": "hr", "fact": "hr-041", "updated": true}
+{"qid": "hr-041-paraphrase", "kind": "paraphrase", "question": "How much does a Platform Associate earn?", "department": "hr", "fact": "hr-041", "updated": true}
+{"qid": "hr-042-direct", "kind": "direct", "question": "What is the salary band for a Sales Engineer?", "department": "hr", "fact": "hr-042", "updated": true}
+{"qid": "hr-042-paraphrase", "kind": "paraphrase", "question": "How much does a Sales Engineer earn?", "department": "hr", "fact": "hr-042", "updated": true}
+{"qid": "hr-043-direct", "kind": "direct", "question": "What is the salary band for a Mobile Manager?", "department": "hr", "fact": "hr-043", "updated": false}
+{"qid": "hr-043-paraphrase", "kind": "paraphrase", "question": "How much does a Mobile Manager earn?", "department": "hr", "fact": "hr-043", "updated": false}
+{"qid": "hr-044-direct", "kind": "direct", "question": "What is the salary band for a Security Manager?", "department": "hr", "fact": "hr-044", "updated": false}
+{"qid": "hr-044-paraphrase", "kind": "paraphrase", "question": "How much does a Security Manager earn?", "department": "hr", "fact": "hr-044", "updated": false}
+{"qid": "hr-045-direct", "kind": "direct", "question": "What is the salary band for a Sales Analyst?", "department": "hr", "fact": "hr-045", "updated": false}
+{"qid": "hr-045-paraphrase", "kind": "paraphrase", "question": "How much does a Sales Analyst earn?", "department": "hr", "fact": "hr-045", "updated": false}
+{"qid": "hr-046-direct", "kind": "direct", "question": "How big is the Sales Associate retention bonus pool?", "department": "hr", "fact": "hr-046", "updated": false}
+{"qid": "hr-046-paraphrase", "kind": "paraphrase", "question": "What retention money is set aside for Sales Associate staff?", "department": "hr", "fact": "hr-046", "updated": false}
+{"qid": "hr-047-direct", "kind": "direct", "question": "How big is the QA Associate retention bonus pool?", "department": "hr", "fact": "hr-047", "updated": true}
+{"qid": "hr-047-paraphrase", "kind": "paraphrase", "question": "What retention money is set aside for QA Associate staff?", "department": "hr", "fact": "hr-047", "updated": true}
+{"qid": "hr-048-direct", "kind": "direct", "question": "How big is the Frontend Analyst retention bonus pool?", "department": "hr", "fact": "hr-048", "updated": false}
+{"qid": "hr-048-paraphrase", "kind": "paraphrase", "question": "What retention money is set aside for Frontend Analyst staff?", "department": "hr", "fact": "hr-048", "updated": false}
+{"qid": "hr-049-direct", "kind": "direct", "question": "How big is the Payroll Manager retention bonus pool?", "department": "hr", "fact": "hr-049", "updated": false}
+{"qid": "hr-049-paraphrase", "kind": "paraphrase", "question": "What retention money is set aside for Payroll Manager staff?", "department": "hr", "fact": "hr-049", "updated": false}
+{"qid": "hr-050-direct", "kind": "direct", "question": "How big is the Finance Specialist retention bonus pool?", "department": "hr", "fact": "hr-050", "updated": true}
+{"qid": "hr-050-paraphrase", "kind": "paraphrase", "question": "What retention money is set aside for Finance Specialist staff?", "department": "hr", "fact": "hr-050", "updated": true}
+{"qid": "finance-001-direct", "kind": "direct", "question": "When does spending from the Office budget need CFO sign-off?", "department": "finance", "fact": "finance-001", "updated": false}
+{"qid": "finance-001-paraphrase", "kind": "paraphrase", "question": "What is the approval limit on the Office budget?", "department": "finance", "fact": "finance-001", "updated": false}
+{"qid": "finance-002-direct", "kind": "direct", "question": "When does spending from the Cloud vendor account need CFO sign-off?", "department": "finance", "fact": "finance-002", "updated": false}
+{"qid": "finance-002-paraphrase", "kind": "paraphrase", "question": "What is the approval limit on the Cloud vendor account?", "department": "finance", "fact": "finance-002", "updated": false}
+{"qid": "finance-003-direct", "kind": "direct", "question": "When does spending from the Events ledger line need CFO sign-off?", "department": "finance", "fact": "finance-003", "updated": false}
+{"qid": "finance-003-paraphrase", "kind": "paraphrase", "question": "What is the approval limit on the Events ledger line?", "department": "finance", "fact": "finance-003", "updated": false}
+{"qid": "finance-004-direct", "kind": "direct", "question": "When does spending from the Hardware reserve need CFO sign-off?", "department": "finance", "fact": "finance-004", "updated": true}
+{"qid": "finance-004-paraphrase", "kind": "paraphrase", "question": "What is the approval limit on the Hardware reserve?", "department": "finance", "fact": "finance-004", "updated": true}
+{"qid": "finance-005-direct", "kind": "direct", "question": "When does spending from the Legal fund need CFO sign-off?", "department": "finance", "fact": "finance-005", "updated": false}
+{"qid": "finance-005-paraphrase", "kind": "paraphrase", "question": "What is the approval limit on the Legal fund?", "department": "finance", "fact": "finance-005", "updated": false}
+{"qid": "finance-006-direct", "kind": "direct", "question": "What payment terms apply to the Training fund?", "department": "finance", "fact": "finance-006", "updated": false}
+{"qid": "finance-006-paraphrase", "kind": "paraphrase", "question": "How quickly are invoices on the Training fund paid?", "department": "finance", "fact": "finance-006", "updated": false}
+{"qid": "finance-007-direct", "kind": "direct", "question": "What payment terms apply to the Insurance fund?", "department": "finance", "fact": "finance-007", "updated": false}
+{"qid": "finance-007-paraphrase", "kind": "paraphrase", "question": "How quickly are invoices on the Insurance fund paid?", "department": "finance", "fact": "finance-007", "updated": false}
+{"qid": "finance-008-direct", "kind": "direct", "question": "What payment terms apply to the Training vendor account?", "department": "finance", "fact": "finance-008", "updated": false}
+{"qid": "finance-008-paraphrase", "kind": "paraphrase", "question": "How quickly are invoices on the Training vendor account paid?", "department": "finance", "fact": "finance-008", "updated": false}
+{"qid": "finance-009-direct", "kind": "direct", "question": "What payment terms apply to the Insurance accrual?", "department": "finance", "fact": "finance-009", "updated": false}
+{"qid": "finance-009-paraphrase", "kind": "paraphrase", "question": "How quickly are invoices on the Insurance accrual paid?", "department": "finance", "fact": "finance-009", "updated": false}
+{"qid": "finance-010-direct", "kind": "direct", "question": "What payment terms apply to the Marketing reserve?", "department": "finance", "fact": "finance-010", "updated": false}
+{"qid": "finance-010-paraphrase", "kind": "paraphrase", "question": "How quickly are invoices on the Marketing reserve paid?", "department": "finance", "fact": "finance-010", "updated": false}
+{"qid": "finance-011-direct", "kind": "direct", "question": "What is the cap on the Recruiting vendor account?", "department": "finance", "fact": "finance-011", "updated": false}
+{"qid": "finance-011-paraphrase", "kind": "paraphrase", "question": "How much money is in the Recruiting vendor account this quarter?", "department": "finance", "fact": "finance-011", "updated": false}
+{"qid": "finance-012-direct", "kind": "direct", "question": "What is the cap on the Training ledger line?", "department": "finance", "fact": "finance-012", "updated": false}
+{"qid": "finance-012-paraphrase", "kind": "paraphrase", "question": "How much money is in the Training ledger line this quarter?", "department": "finance", "fact": "finance-012", "updated": false}
+{"qid": "finance-013-direct", "kind": "direct", "question": "What is the cap on the Consulting budget?", "department": "finance", "fact": "finance-013", "updated": false}
+{"qid": "finance-013-paraphrase", "kind": "paraphrase", "question": "How much money is in the Consulting budget this quarter?", "department": "finance", "fact": "finance-013", "updated": false}
+{"qid": "finance-014-direct", "kind": "direct", "question": "What is the cap on the Cloud cost center?", "department": "finance", "fact": "finance-014", "updated": true}
+{"qid": "finance-014-paraphrase", "kind": "paraphrase", "question": "How much money is in the Cloud cost center this quarter?", "department": "finance", "fact": "finance-014", "updated": true}
+{"qid": "finance-015-direct", "kind": "direct", "question": "What is the cap on the Office ledger line?", "department": "finance", "fact": "finance-015", "updated": true}
+{"qid": "finance-015-paraphrase", "kind": "paraphrase", "question": "How much money is in the Office ledger line this quarter?", "department": "finance", "fact": "finance-015", "updated": true}
+{"qid": "finance-016-direct", "kind": "direct", "question": "Which bank account holds the Marketing ledger line?", "department": "finance", "fact": "finance-016", "updated": true}
+{"qid": "finance-016-paraphrase", "kind": "paraphrase", "question": "Where is the Marketing ledger line banked now?", "department": "finance", "fact": "finance-016", "updated": true}
+{"qid": "finance-017-direct", "kind": "direct", "question": "Which bank account holds the Events reserve?", "department": "finance", "fact": "finance-017", "updated": false}
+{"qid": "finance-017-paraphrase", "kind": "paraphrase", "question": "Where is the Events reserve banked now?", "department": "finance", "fact": "finance-017", "updated": false}
+{"qid": "finance-018-direct", "kind": "direct", "question": "Which bank account holds the Insurance vendor account?", "department": "finance", "fact": "finance-018", "updated": false}
+{"qid": "finance-018-paraphrase", "kind": "paraphrase", "question": "Where is the Insurance vendor account banked now?", "department": "finance", "fact": "finance-018", "updated": false}
+{"qid": "finance-019-direct", "kind": "direct", "question": "Which bank account holds the Office accrual?", "department": "finance", "fact": "finance-019", "updated": false}
+{"qid": "finance-019-paraphrase", "kind": "paraphrase", "question": "Where is the Office accrual banked now?", "department": "finance", "fact": "finance-019", "updated": false}
+{"qid": "finance-020-direct", "kind": "direct", "question": "Which bank account holds the Catering reserve?", "department": "finance", "fact": "finance-020", "updated": true}
+{"qid": "finance-020-paraphrase", "kind": "paraphrase", "question": "Where is the Catering reserve banked now?", "department": "finance", "fact": "finance-020", "updated": true}
+{"qid": "finance-021-direct", "kind": "direct", "question": "How do I get reimbursed from the Hosting vendor account?", "department": "finance", "fact": "finance-021", "updated": true}
+{"qid": "finance-021-paraphrase", "kind": "paraphrase", "question": "What is the expense claim process for the Hosting vendor account?", "department": "finance", "fact": "finance-021", "updated": true}
+{"qid": "finance-022-direct", "kind": "direct", "question": "How do I get reimbursed from the Cloud reserve?", "department": "finance", "fact": "finance-022", "updated": false}
+{"qid": "finance-022-paraphrase", "kind": "paraphrase", "question": "What is the expense claim process for the Cloud reserve?", "department": "finance", "fact": "finance-022", "updated": false}
+{"qid": "finance-023-direct", "kind": "direct", "question": "How do I get reimbursed from the Insurance ledger line?", "department": "finance", "fact": "finance-023", "updated": false}
+{"qid": "finance-023-paraphrase", "kind": "paraphrase", "question": "What is the expense claim process for the Insurance ledger line?", "department": "finance", "fact": "finance-023", "updated": false}
+{"qid": "finance-024-direct", "kind": "direct", "question": "How do I get reimbursed from the Events fund?", "department": "finance", "fact": "finance-024", "updated": false}
+{"qid": "finance-024-paraphrase", "kind": "paraphrase", "question": "What is the expense claim process for the Events fund?", "department": "finance", "fact": "finance-024", "updated": false}
+{"qid": "finance-025-direct", "kind": "direct", "question": "How do I get reimbursed from the Hosting reserve?", "department": "finance", "fact": "finance-025", "updated": false}
+{"qid": "finance-025-paraphrase", "kind": "paraphrase", "question": "What is the expense claim process for the Hosting reserve?", "department": "finance", "fact": "finance-025", "updated": false}
+{"qid": "finance-026-direct", "kind": "direct", "question": "When is month-end close for the Travel budget?", "department": "finance", "fact": "finance-026", "updated": false}
+{"qid": "finance-026-paraphrase", "kind": "paraphrase", "question": "Which day is the Travel budget closed each month?", "department": "finance", "fact": "finance-026", "updated": false}
+{"qid": "finance-027-direct", "kind": "direct", "question": "When is month-end close for the Hosting accrual?", "department": "finance", "fact": "finance-027", "updated": true}
+{"qid": "finance-027-paraphrase", "kind": "paraphrase", "question": "Which day is the Hosting accrual closed each month?", "department": "finance", "fact": "finance-027", "updated": true}
+{"qid": "finance-028-direct", "kind": "direct", "question": "When is month-end close for the Hardware cost center?", "department": "finance", "fact": "finance-028", "updated": false}
+{"qid": "finance-028-paraphrase", "kind": "paraphrase", "question": "Which day is the Hardware cost center closed each month?", "department": "finance", "fact": "finance-028", "updated": false}
+{"qid": "finance-029-direct", "kind": "direct", "question": "When is month-end close for the Training budget?", "department": "finance", "fact": "finance-029", "updated": false}
+{"qid": "finance-029-paraphrase", "kind": "paraphrase", "question": "Which day is the Training budget closed each month?", "department": "finance", "fact": "finance-029", "updated": false}
+{"qid": "finance-030-direct", "kind": "direct", "question": "When is month-end close for the Software fund?", "department": "finance", "fact": "finance-030", "updated": false}
+{"qid": "finance-030-paraphrase", "kind": "paraphrase", "question": "Which day is the Software fund closed each month?", "department": "finance", "fact": "finance-030", "updated": false}
+{"qid": "finance-031-direct", "kind": "direct", "question": "Who is the controller for the Events cost center?", "department": "finance", "fact": "finance-031", "updated": false}
+{"qid": "finance-031-paraphrase", "kind": "paraphrase", "question": "Whom do I ask about entries on the Events cost center?", "department": "finance", "fact": "finance-031", "updated": false}
+{"qid": "finance-032-direct", "kind": "direct", "question": "Who is the controller for the Catering ledger line?", "department": "finance", "fact": "finance-032", "updated": false}
+{"qid": "finance-032-paraphrase", "kind": "paraphrase", "question": "Whom do I ask about entries on the Catering ledger line?", "department": "finance", "fact": "finance-032", "updated": false}
+{"qid": "finance-033-direct", "kind": "direct", "question": "Who is the controller for the Cloud accrual?", "department": "finance", "fact": "finance-033", "updated": true}
+{"qid": "finance-033-paraphrase", "kind": "paraphrase", "question": "Whom do I ask about entries on the Cloud accrual?", "department": "finance", "fact": "finance-033", "updated": true}
+{"qid": "finance-034-direct", "kind": "direct", "question": "Who is the controller for the Insurance cost center?", "department": "finance", "fact": "finance-034", "updated": false}
+{"qid": "finance-034-paraphrase", "kind": "paraphrase", "question": "Whom do I ask about entries on the Insurance cost center?", "department": "finance", "fact": "finance-034", "updated": false}
+{"qid": "finance-035-direct", "kind": "direct", "question": "Who is the controller for the Hardware vendor account?", "department": "finance", "fact": "finance-035", "updated": false}
+{"qid": "finance-035-paraphrase", "kind": "paraphrase", "question": "Whom do I ask about entries on the Hardware vendor account?", "department": "finance", "fact": "finance-035", "updated": false}
+{"qid": "finance-036-direct", "kind": "direct", "question": "Who approves purchase orders on the Software ledger line?", "department": "finance", "fact": "finance-036", "updated": true}
+{"qid": "finance-036-paraphrase", "kind": "paraphrase", "question": "Who signs off POs for the Software ledger line?", "department": "finance", "fact": "finance-036", "updated": true}
+{"qid": "finance-037-direct", "kind": "direct", "question": "Who approves purchase orders on the Marketing fund?", "department": "finance", "fact": "finance-037", "updated": false}
+{"qid": "finance-037-paraphrase", "kind": "paraphrase", "question": "Who signs off POs for the Marketing fund?", "department": "finance", "fact": "finance-037", "updated": false}
+{"qid": "finance-038-direct", "kind": "direct", "question": "Who approves purchase orders on the Cloud ledger line?", "department": "finance", "fact": "finance-038", "updated": false}
+{"qid": "finance-038-paraphrase", "kind": "paraphrase", "question": "Who signs off POs for the Cloud ledger line?", "department": "finance", "fact": "finance-038", "updated": false}
+{"qid": "finance-039-direct", "kind": "direct", "question": "Who approves purchase orders on the Consulting reserve?", "department": "finance", "fact": "finance-039", "updated": false}
+{"qid": "finance-039-paraphrase", "kind": "paraphrase", "question": "Who signs off POs for the Consulting reserve?", "department": "finance", "fact": "finance-039", "updated": false}
+{"qid": "finance-040-direct", "kind": "direct", "question": "Who approves purchase orders on the Legal budget?", "department": "finance", "fact": "finance-040", "updated": false}
+{"qid": "finance-040-paraphrase", "kind": "paraphrase", "question": "Who signs off POs for the Legal budget?", "department": "finance", "fact": "finance-040", "updated": false}
+{"qid": "finance-041-direct", "kind": "direct", "question": "What are the last digits of the Travel vendor account IBAN?", "department": "finance", "fact": "finance-041", "updated": false}
+{"qid": "finance-041-paraphrase", "kind": "paraphrase", "question": "Which bank details belong to the Travel vendor account?", "department": "finance", "fact": "finance-041", "updated": false}
+{"qid": "finance-042-direct", "kind": "direct", "question": "What are the last digits of the Marketing vendor account IBAN?", "department": "finance", "fact": "finance-042", "updated": false}
+{"qid": "finance-042-paraphrase", "kind": "paraphrase", "question": "Which bank details belong to the Marketing vendor account?", "department": "finance", "fact": "finance-042", "updated": false}
+{"qid": "finance-043-direct", "kind": "direct", "question": "What are the last digits of the Cloud fund IBAN?", "department": "finance", "fact": "finance-043", "updated": false}
+{"qid": "finance-043-paraphrase", "kind": "paraphrase", "question": "Which bank details belong to the Cloud fund?", "department": "finance", "fact": "finance-043", "updated": false}
+{"qid": "finance-044-direct", "kind": "direct", "question": "What are the last digits of the Catering budget IBAN?", "department": "finance", "fact": "finance-044", "updated": false}
+{"qid": "finance-044-paraphrase", "kind": "paraphrase", "question": "Which bank details belong to the Catering budget?", "department": "finance", "fact": "finance-044", "updated": false}
+{"qid": "finance-045-direct", "kind": "direct", "question": "What are the last digits of the Insurance budget IBAN?", "department": "finance", "fact": "finance-045", "updated": false}
+{"qid": "finance-045-paraphrase", "kind": "paraphrase", "question": "Which bank details belong to the Insurance budget?", "department": "finance", "fact": "finance-045", "updated": false}
+{"qid": "finance-046-direct", "kind": "direct", "question": "Is there an open audit finding on the Consulting fund?", "department": "finance", "fact": "finance-046", "updated": false}
+{"qid": "finance-046-paraphrase", "kind": "paraphrase", "question": "How large is the unresolved audit issue on the Consulting fund?", "department": "finance", "fact": "finance-046", "updated": false}
+{"qid": "finance-047-direct", "kind": "direct", "question": "Is there an open audit finding on the Travel reserve?", "department": "finance", "fact": "finance-047", "updated": false}
+{"qid": "finance-047-paraphrase", "kind": "paraphrase", "question": "How large is the unresolved audit issue on the Travel reserve?", "department": "finance", "fact": "finance-047", "updated": false}
+{"qid": "finance-048-direct", "kind": "direct", "question": "Is there an open audit finding on the Hardware accrual?", "department": "finance", "fact": "finance-048", "updated": true}
+{"qid": "finance-048-paraphrase", "kind": "paraphrase", "question": "How large is the unresolved audit issue on the Hardware accrual?", "department": "finance", "fact": "finance-048", "updated": true}
+{"qid": "finance-049-direct", "kind": "direct", "question": "Is there an open audit finding on the Software vendor account?", "department": "finance", "fact": "finance-049", "updated": false}
+{"qid": "finance-049-paraphrase", "kind": "paraphrase", "question": "How large is the unresolved audit issue on the Software vendor account?", "department": "finance", "fact": "finance-049", "updated": false}
+{"qid": "finance-050-direct", "kind": "direct", "question": "Is there an open audit finding on the Events budget?", "department": "finance", "fact": "finance-050", "updated": false}
+{"qid": "finance-050-paraphrase", "kind": "paraphrase", "question": "How large is the unresolved audit issue on the Events budget?", "department": "finance", "fact": "finance-050", "updated": false}

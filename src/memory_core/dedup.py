@@ -22,6 +22,8 @@ import re
 import unicodedata
 from typing import Any, Optional
 
+from tam_db.contracts import Backend
+
 _RE_WS = re.compile(r"\s+")
 _RE_TOKEN = re.compile(r"\w+(?:[./:-]\w+)*", re.UNICODE)
 
@@ -46,12 +48,21 @@ def _tokens(text: str) -> list[str]:
 
 # updates_value: a value is the differing tail of two statements that share a
 # prefix ("... is Argentina" / "... is Armenia"). At most one shared word may
-# follow it ("любит [красный] цвет"); a longer shared tail means the subject
-# differed and the value was the same ("The company that produced [X] is GM").
+# follow it ("любит [красный] цвет"), unless the shared tail is a modifier that
+# opens with a preposition ("at [9:30] on Mondays", "в [14:00] по пятницам").
+# Any other longer shared tail means the subject differed and the value was the
+# same ("The company that produced [X] is GM").
 MIN_SHARED_PREFIX = 2
 MAX_VALUE_WORDS = 8
 MAX_SHARED_SUFFIX = 1
+MAX_MODIFIER_SUFFIX = 6
 MIN_SHARED_FRACTION = 0.5
+MODIFIER_OPENERS = frozenset({
+    "on", "in", "at", "for", "from", "since", "until", "till", "every", "each", "during", "after",
+    "before", "per", "with", "without", "via", "within", "near", "starting",
+    "в", "во", "на", "по", "с", "со", "до", "после", "перед", "для", "из", "у", "при", "через",
+    "около", "каждый", "каждую", "каждое", "каждого", "каждые", "начиная",
+})
 
 
 def updates_value(new: str, stored: str) -> bool:
@@ -84,7 +95,8 @@ def tokens_update_value(a: list[str], b: list[str]) -> bool:
     value_a, value_b = a[prefix:len(a) - suffix], b[prefix:len(b) - suffix]
     return (
         prefix >= MIN_SHARED_PREFIX
-        and suffix <= MAX_SHARED_SUFFIX
+        and (suffix <= MAX_SHARED_SUFFIX
+             or (suffix <= MAX_MODIFIER_SUFFIX and a[len(a) - suffix] in MODIFIER_OPENERS))
         and 1 <= len(value_a) <= MAX_VALUE_WORDS
         and 1 <= len(value_b) <= MAX_VALUE_WORDS
         and not set(value_a) & set(value_b)
@@ -162,6 +174,20 @@ def find_duplicate(
         fts_q = " OR ".join(
             re.sub(r'[^a-zA-Z0-9_]+', "", w) or w for w in words
         )
+        if getattr(db_or_store, "backend", None) is Backend.POSTGRES:
+            from memory_core.pg_fts import match_source
+
+            source, source_params = match_source("knowledge_fts", f"content : ({fts_q})")
+            rows = db_or_store.execute(
+                f"""
+                SELECT k.id FROM ({source}) f
+                JOIN knowledge k ON k.id = f.id
+                WHERE k.status='active' AND k.project=? AND k.type=?
+                ORDER BY f.rank, k.id LIMIT 1
+                """,
+                (*source_params, project, ktype),
+            ).fetchall()
+            return int(rows[0][0]) if rows else None
         rows = db_or_store.execute(
             """
             SELECT k.id FROM knowledge_fts f

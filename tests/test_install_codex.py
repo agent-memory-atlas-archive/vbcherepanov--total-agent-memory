@@ -9,13 +9,14 @@ SHIM = ROOT / "install-codex.sh"
 
 
 def test_install_codex_declares_cpu_friendly_llm_overrides():
-    # Codex env overrides now live inside install.sh -> register_mcp_codex()
+    # install.sh passes the Codex env overrides to setup_wizard.register, which writes the TOML.
     script = SCRIPT.read_text(encoding="utf-8")
 
-    assert 'MEMORY_TRIPLE_TIMEOUT_SEC = "120"' in script
-    assert 'MEMORY_ENRICH_TIMEOUT_SEC = "90"' in script
-    assert 'MEMORY_REPR_TIMEOUT_SEC = "120"' in script
-    assert 'MEMORY_TRIPLE_MAX_PREDICT = "512"' in script
+    assert "--env MEMORY_TRIPLE_TIMEOUT_SEC=120" in script
+    assert "--env MEMORY_ENRICH_TIMEOUT_SEC=90" in script
+    assert "--env MEMORY_REPR_TIMEOUT_SEC=120" in script
+    assert "--env MEMORY_TRIPLE_MAX_PREDICT=512" in script
+    assert "-m setup_wizard.register" in script
 
 
 def test_install_codex_shim_delegates_to_install_sh():

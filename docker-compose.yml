@@ -110,6 +110,9 @@ services:
       # a time; raise this for several concurrent clients (sessions become
       # stateless). See docs/benchmarks/scale-v14/RESULTS.md.
       MCP_HTTP_WORKERS: ${TAM_MCP_WORKERS:-1}
+      # Host names other than localhost/127.0.0.1 that clients use to reach
+      # this container (DNS-rebinding protection answers 421 otherwise).
+      MCP_HTTP_ALLOWED_HOSTS: ${MCP_HTTP_ALLOWED_HOSTS:-}
     ports:
       - "127.0.0.1:3737:3737"
     volumes:
@@ -136,6 +139,7 @@ services:
       <<: *memory-env
       DASHBOARD_PORT: "37737"
       DASHBOARD_BIND: 0.0.0.0
+      DASHBOARD_ALLOWED_HOSTS: ${DASHBOARD_ALLOWED_HOSTS:-}
     ports:
       - "127.0.0.1:37737:37737"
     volumes:

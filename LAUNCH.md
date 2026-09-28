@@ -80,7 +80,7 @@ memory_rebuild_embeddings(space="code")
 Run the full bench:
 
 ```bash
-./bin/memory-bench --warmup --rounds 200
+./scripts/memory-bench --warmup --rounds 200
 ```
 
 Output goes to `docs/v11/benchmark.md`. Expected fast-mode shape:
@@ -96,11 +96,11 @@ Output goes to `docs/v11/benchmark.md`. Expected fast-mode shape:
 regresses by more than 25 %):
 
 ```bash
-./bin/memory-perf-gate
+./scripts/memory-perf-gate
 ```
 
 The gate reads the previous artifact in `docs/v11/benchmark.md` and the
-current `bin/memory-bench` run, then compares per-metric p95.
+current `scripts/memory-bench` run, then compares per-metric p95.
 
 To inspect a single search verdict:
 

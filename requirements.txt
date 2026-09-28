@@ -22,6 +22,9 @@ fastembed
 # Russian stemming for the lexical recall tier (FTS5 matches exact word forms).
 snowballstemmer>=2.2
 
+# Team dashboard: provider API keys are stored Fernet-encrypted at rest.
+cryptography>=42
+
 # Optional (guarded import with a working fallback: apscheduler -> manual
 # drain, watchdog -> polling)
 apscheduler

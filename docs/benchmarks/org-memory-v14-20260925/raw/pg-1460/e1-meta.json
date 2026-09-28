@@ -1,0 +1,86 @@
+{
+ "integrity": {
+  "engineering": {
+   "records_before": 63,
+   "records_after": 63,
+   "unchanged": true
+  },
+  "sales": {
+   "records_before": 63,
+   "records_after": 63,
+   "unchanged": true
+  },
+  "hr": {
+   "records_before": 63,
+   "records_after": 63,
+   "unchanged": true
+  },
+  "finance": {
+   "records_before": 63,
+   "records_after": 63,
+   "unchanged": true
+  }
+ },
+ "twin_saves": {
+  "twin-1": {
+   "engineering": {
+    "id": 61,
+    "deduplicated": false
+   },
+   "sales": {
+    "id": 61,
+    "deduplicated": false
+   }
+  },
+  "twin-2": {
+   "hr": {
+    "id": 61,
+    "deduplicated": false
+   },
+   "finance": {
+    "id": 61,
+    "deduplicated": false
+   }
+  },
+  "twin-3": {
+   "sales": {
+    "id": 62,
+    "deduplicated": false
+   },
+   "hr": {
+    "id": 62,
+    "deduplicated": false
+   }
+  },
+  "twin-4": {
+   "finance": {
+    "id": 62,
+    "deduplicated": false
+   },
+   "engineering": {
+    "id": 62,
+    "deduplicated": false
+   }
+  },
+  "twin-5": {
+   "engineering": {
+    "id": 63,
+    "deduplicated": false
+   },
+   "hr": {
+    "id": 63,
+    "deduplicated": false
+   }
+  },
+  "twin-6": {
+   "sales": {
+    "id": 63,
+    "deduplicated": false
+   },
+   "finance": {
+    "id": 63,
+    "deduplicated": false
+   }
+  }
+ }
+}

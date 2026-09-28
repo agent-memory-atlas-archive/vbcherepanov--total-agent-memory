@@ -1,13 +1,13 @@
 COMPOSE ?= docker compose
-DEV_IMAGE ?= tam-development:14.5.1
-BROWSER_IMAGE ?= tam-browser-check:14.5.1
+DEV_IMAGE ?= tam-development:14.6.0
+BROWSER_IMAGE ?= tam-browser-check:14.6.0
 SERVICE ?= mcp
-RERANK_IMAGE ?= tam-rerank-check:14.5.1
+RERANK_IMAGE ?= tam-rerank-check:14.6.0
 TORCH_INDEX_URL ?=
 
-.PHONY: help up down restart logs shell test test-browser browser-image lint build dev-image rerank-image clean ps
+.PHONY: help up down restart logs shell test test-browser browser-image lint build dev-image rerank-image clean ps sql-corpus
 help:
-	@echo 'up down restart logs shell ps | dev-image test lint build clean | browser-image test-browser'
+	@echo 'up down restart logs shell ps | dev-image test lint build clean sql-corpus | browser-image test-browser'
 up:
 	$(COMPOSE) up -d
 down:
@@ -30,6 +30,8 @@ test-browser:
 	docker run --rm --init --shm-size=1g -v "$(CURDIR):/workspace" -w /workspace $(BROWSER_IMAGE) sh -c 'python -m pip install --no-deps -e . && python -m pytest tests/browser -q'
 test:
 	docker run --rm -v "$(CURDIR):/workspace" -w /workspace -e TAM_MEMORY_DIR=/tmp/tam-tests -e MCP_TRANSPORT=stdio $(DEV_IMAGE) python -m pytest tests -q
+sql-corpus:
+	docker run --rm -v "$(CURDIR):/workspace" -w /workspace -e TAM_MEMORY_DIR=/tmp/tam-tests -e MCP_TRANSPORT=stdio $(DEV_IMAGE) python scripts/pg_sql_corpus.py
 lint:
 	docker run --rm -v "$(CURDIR):/workspace" -w /workspace $(DEV_IMAGE) python -m ruff check src tests
 build:

@@ -8,6 +8,7 @@ from memory_core.event_time import normalize_event_time
 from memory_core.query_terms import lexical_terms
 from memory_core.retrieval import MemoryHit, SearchScope
 from memory_core.telemetry import counters, op_timer
+from tam_db.contracts import Backend
 
 HISTORY_RECORDS = 6
 
@@ -188,14 +189,26 @@ class FactRepository:
             return []
         expression = " OR ".join('"' + term.replace('"', '""') + '"' for term in terms)
         predicates, scope_params = scope.sql()
-        predicates.insert(0, "atomic_facts_fts MATCH ?")
-        rows = self.db.execute(
-            "SELECT f.id FROM atomic_facts_fts JOIN atomic_facts f ON f.id=atomic_facts_fts.rowid "
-            "JOIN knowledge k ON k.id=f.knowledge_id WHERE "
-            + " AND ".join(predicates)
-            + " ORDER BY bm25(atomic_facts_fts) LIMIT ?",
-            [expression, *scope_params, limit],
-        ).fetchall()
+        if getattr(self.db, "backend", None) is Backend.POSTGRES:
+            from memory_core.pg_fts import match_source
+
+            source, source_params = match_source("atomic_facts_fts", expression)
+            rows = self.db.execute(
+                f"SELECT f.id FROM ({source}) m JOIN atomic_facts f ON f.id=m.id "
+                "JOIN knowledge k ON k.id=f.knowledge_id WHERE "
+                + " AND ".join(predicates)
+                + " ORDER BY m.rank, f.id LIMIT ?",
+                [*source_params, *scope_params, limit],
+            ).fetchall()
+        else:
+            predicates.insert(0, "atomic_facts_fts MATCH ?")
+            rows = self.db.execute(
+                "SELECT f.id FROM atomic_facts_fts JOIN atomic_facts f ON f.id=atomic_facts_fts.rowid "
+                "JOIN knowledge k ON k.id=f.knowledge_id WHERE "
+                + " AND ".join(predicates)
+                + " ORDER BY bm25(atomic_facts_fts) LIMIT ?",
+                [expression, *scope_params, limit],
+            ).fetchall()
         if not rows:
             return []
         fact_ids = [row[0] for row in rows]

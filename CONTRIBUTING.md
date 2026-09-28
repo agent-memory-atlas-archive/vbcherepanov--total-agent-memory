@@ -28,10 +28,22 @@ The default `MEMORY_MODE=fast` cannot reach that stack anyway — it sets
 `MEMORY_RERANK_ENABLED=false` and `MEMORY_ALLOW_OLLAMA_IN_HOT_PATH=false`.
 Set `MEMORY_MODE=deep` if you need the synchronous LLM path locally.
 
+The team server also runs on PostgreSQL. Its driver lives behind an extra, and
+tests that need it skip without it:
+
+```bash
+.venv/bin/pip install -e ".[postgres]"
+.venv/bin/python -m pytest tests/ --backend=both   # starts a pgvector container via Docker
+```
+
+Set `TAM_TEST_PG_URL` to an admin URI instead to use a server you already
+run. When you change SQL the team server issues, re-record the translation
+corpus with `make dev-image sql-corpus` and commit `tests/fixtures/pg_sql_corpus.jsonl`;
+`tests/test_pg_sql_corpus.py` prepares every statement on PostgreSQL.
+
 ## Ground rules for a PR
 
-- **`pytest tests/` stays green.** The suite is 1881 tests and runs in a
-  couple of minutes. A PR that leaves it red will not be merged.
+- **`pytest tests/` stays green.** The suite is about 3,600 tests. A PR that leaves it red will not be merged.
 - **New tool means new tests.** Every MCP tool has coverage; a tool without
   it is an untested public API.
 - **Tests must not read gitignored artifacts.** If a test needs a corpus
@@ -59,7 +71,7 @@ whichever side its dependencies put it.
 
 ## Performance
 
-`bin/memory-bench` measures the hot path; `bin/memory-perf-gate` exits
+`scripts/memory-bench` measures the hot path; `scripts/memory-perf-gate` exits
 non-zero on a p95 regression or on any LLM/network call leaking into
 `fast` mode. Run both before submitting anything that touches saving or
 searching.

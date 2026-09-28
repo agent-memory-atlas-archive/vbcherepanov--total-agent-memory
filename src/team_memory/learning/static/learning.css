@@ -1,0 +1,99 @@
+/* Onboarding section. Uses the dashboard's design tokens from app.css (both themes). */
+.tl-hero{align-items:center}
+.tl-tabs{min-width:260px}
+.tl-tabs-1{display:none}
+.tl-tabs-2{grid-template-columns:repeat(2,1fr)}
+.tl-heading{font-size:var(--t-lg);margin-top:var(--s-2)}
+
+.tl-ring{position:relative;display:inline-grid;place-items:center;flex:none}
+.tl-ring svg{display:block}
+.tl-ring .track{fill:none;stroke:var(--soft)}
+.tl-ring .value{fill:none;stroke:var(--accent);stroke-linecap:round}
+.tl-ring .num{position:absolute;font:600 var(--t-sm)/1 var(--font-mono)}
+
+.tl-bar{display:flex;align-items:center;gap:var(--s-2);min-width:110px}
+.tl-bar svg{flex:1;height:8px;min-width:60px;display:block}
+.tl-bar .track{fill:var(--soft)}
+.tl-bar .fill{fill:var(--accent)}
+.tl-bar .num{font-size:var(--t-xs);color:var(--dim);min-width:3.5ch;text-align:right}
+
+.tl-course-head{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1.2fr);gap:var(--s-5);align-items:center;margin-bottom:var(--s-4)}
+.tl-course-stats{display:grid;gap:6px;justify-items:start}
+.tl-next{display:grid;gap:6px;padding:var(--s-3) var(--s-4);border:1px solid var(--accent-line);border-radius:var(--r-md);background:var(--accent-soft);min-width:0}
+.tl-next strong{overflow-wrap:anywhere}
+.tl-command{font:500 var(--t-sm) var(--font-mono);padding:4px 8px;border-radius:var(--r-sm);background:var(--card);border:1px solid var(--line)}
+
+.tl-modules{display:grid;gap:var(--s-2)}
+.tl-module{border:1px solid var(--line);border-radius:var(--r-md);background:var(--bg-elev)}
+.tl-module>summary{display:flex;justify-content:space-between;align-items:center;gap:var(--s-3);padding:var(--s-3) var(--s-4);cursor:pointer;list-style:none}
+.tl-module>summary::-webkit-details-marker{display:none}
+.tl-module>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--r-md)}
+.tl-module-title{display:grid;gap:2px;min-width:0}
+.tl-module-body{display:grid;gap:var(--s-3);padding:0 var(--s-4) var(--s-4)}
+.tl-lessons{display:grid;gap:var(--s-2);margin:0;padding:0;list-style:none}
+.tl-lesson-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--s-3);align-items:center;padding:var(--s-2) 0;border-top:1px solid var(--line)}
+.tl-lesson-text{display:grid;gap:2px;min-width:0}
+.tl-lesson-text strong{font-weight:560;overflow-wrap:anywhere}
+.tl-mark{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--muted)}
+.tl-mark.completed{background:var(--good-soft);color:var(--good)}
+.tl-mark.opened{background:var(--violet-soft);color:var(--violet)}
+.tl-quiz{display:flex;flex-wrap:wrap;gap:var(--s-2);align-items:center;padding-top:var(--s-2);border-top:1px solid var(--line);font-size:var(--t-sm)}
+.tl-history{margin-top:var(--s-3)}
+.tl-log .what p{-webkit-line-clamp:3}
+.tl-history>summary{cursor:pointer;color:var(--dim);font-size:var(--t-sm)}
+
+.tl-cell-body{display:grid;gap:4px;justify-items:start}
+td.tl-cell{min-width:150px}
+
+.tl-grade{display:grid;gap:var(--s-3);padding:var(--s-4);border:1px solid var(--line);border-radius:var(--r-md);background:var(--bg-elev)}
+.tl-prompt{font-weight:560}
+.tl-answer{margin:0;padding:var(--s-3) var(--s-4);border-radius:var(--r-sm);background:var(--soft);color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+
+.tl-errors{padding:var(--s-3) var(--s-4);border:1px solid color-mix(in oklab,var(--bad) 45%,transparent);border-radius:var(--r-md);background:var(--bad-soft);color:var(--text)}
+.tl-errors{margin-bottom:var(--s-4)}
+.tl-errors ul{margin:var(--s-2) 0 0;padding-left:1.2em}
+[aria-invalid=true]{border-color:var(--bad)!important;box-shadow:0 0 0 1px var(--bad)}
+
+.tl-block{display:grid;gap:var(--s-3);margin:0;padding:var(--s-4);border:1px solid var(--line);border-radius:var(--r-md);background:var(--bg-elev);min-width:0}
+.tl-lesson-edit{background:var(--card)}
+.tl-block-head{display:flex;align-items:center;gap:var(--s-2);flex-wrap:wrap}
+.tl-block-head .row-actions{margin-left:auto}
+.tl-step{font-size:var(--t-xs);font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}
+.tl-step.accent{color:var(--accent)}
+.tl-lesson-list{display:grid;gap:var(--s-3)}
+.tl-sources{display:grid;gap:var(--s-2);justify-items:start}
+.tl-source-list{display:grid;gap:6px;margin:0;padding:0;list-style:none;width:100%}
+.tl-source{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--s-2);align-items:center;padding:4px 4px 4px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg-elev);font-size:var(--t-sm)}
+.tl-source .num{color:var(--violet)}
+.tl-source-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+.tl-source.missing .tl-source-text{color:var(--bad)}
+
+.tl-quiz-info{margin-bottom:var(--s-3)}
+.tl-options{display:grid;gap:var(--s-2)}
+.tl-option{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--s-2);align-items:center}
+.tl-correct-label{font-size:var(--t-xs)}
+.tl-option input[type=radio],.tl-option input[type=checkbox],.tl-pick input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:auto;accent-color:var(--accent);cursor:pointer}
+.tl-pick input[type=checkbox]{margin-top:2px}
+
+.tl-picker{display:grid;gap:var(--s-2);max-height:min(52vh,460px);overflow-y:auto;margin-top:var(--s-3);padding-right:2px}
+.tl-pick{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s-3);align-items:start;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer}
+.tl-pick:hover{border-color:var(--line-strong)}
+.tl-pick-text{display:grid;gap:4px;font-size:var(--t-sm);color:var(--dim);overflow-wrap:anywhere}
+.tl-grow{flex:1 1 220px}
+dialog:has(.tl-picker){width:min(720px,calc(100vw - 32px))}
+.tl-picker-bar{display:flex;gap:var(--s-2);align-items:center}
+.tl-picker-bar .search{flex:1;min-width:0}
+
+@media (max-width:900px){
+  .tl-course-head{grid-template-columns:auto minmax(0,1fr)}
+  .tl-next{grid-column:1/-1}
+}
+@media (max-width:640px){
+  .tl-tabs{min-width:0;width:100%}
+  .tl-hero .actions{width:100%}
+  .tl-hero select{width:100%}
+  .tl-lesson-row{grid-template-columns:auto minmax(0,1fr)}
+  .tl-lesson-row>.chip{grid-column:2;justify-self:start}
+  .tl-block{padding:var(--s-3)}
+  td.tl-cell{min-width:0}
+}

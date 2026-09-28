@@ -7,15 +7,17 @@ from pathlib import Path
 
 import pytest
 
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
+
 
 @pytest.fixture
-def store(monkeypatch, tmp_path):
+def store(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
     (tmp_path / "blobs").mkdir(exist_ok=True)
     (tmp_path / "chroma").mkdir(exist_ok=True)
     import server
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    s = server.Store()
+    s = server.Store(database=store_backend)
     yield s
     try:
         s.db.close()

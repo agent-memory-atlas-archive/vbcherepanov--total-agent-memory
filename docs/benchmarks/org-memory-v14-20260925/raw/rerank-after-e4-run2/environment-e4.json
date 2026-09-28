@@ -1,0 +1,33 @@
+{
+ "base_commit": "",
+ "package_version": "14.5.1",
+ "release_date": "2026-09-23",
+ "macos": "27.0",
+ "kernel": "27.0.0",
+ "machine": "arm64",
+ "cpu": "Apple M2 Max",
+ "logical_cpus": 12,
+ "ram_gib": 64.0,
+ "python": "3.13.5",
+ "fastembed": "0.8.0",
+ "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (FastEmbed, ONNX)",
+ "fastembed_cache": "/var/folders/ys/0_4g85rs1rjbmpp03_0hsbrr0000gn/T/fastembed_cache",
+ "memory_mode": "fast",
+ "llm": "disabled (MEMORY_LLM_ENABLED=false)",
+ "tam_team_max_workers_default": 3,
+ "src_path": "/private/tmp/claude-501/-Users-vitalii-macpro-PROJECT-claude-memory/f7d28575-4acf-466d-bd6c-d420683474a4/scratchpad/mainwork2/src",
+ "team_memory_sha256": "2227f2faa5589a5bc239b7665b165f4dd668fd117cbbfe1235443a6cba040232",
+ "worktree_src_diff_stat": "",
+ "seed": 20260925,
+ "label": "rerank-after-e4-run2",
+ "started": "2026-09-25T16:08:50+0200",
+ "load_at_start": [
+  5.7,
+  5.16,
+  5.18
+ ],
+ "experiments": [
+  "e4"
+ ],
+ "cross_rerank": "default (auto)"
+}

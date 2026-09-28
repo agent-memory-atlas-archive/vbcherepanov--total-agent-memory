@@ -1,0 +1,41 @@
+{
+ "personal_after_offboarding": {
+  "workspace_exists": true,
+  "active_records_on_disk": 3,
+  "users.active": 1,
+  "unrevoked_tokens": 0,
+  "admin_events": [
+   [
+    "user_created",
+    "sales-editor1"
+   ],
+   [
+    "membership:editor",
+    "sales-editor1:sales"
+   ],
+   [
+    "token_created",
+    "sales-editor1:orgbench"
+   ],
+   [
+    "membership:None",
+    "sales-editor1:sales"
+   ]
+  ]
+ },
+ "personal_after_token_reissue": {
+  "http_status": 200,
+  "own_note_found": true
+ },
+ "user_disable": {
+  "available": true,
+  "leaver_http_statuses": [
+   401,
+   401,
+   401
+  ],
+  "token_reissue_exit_code": 1
+ },
+ "backup_contains_leaver_personal": true,
+ "cli_commands": "user-add,team-add,member,bootstrap-admin,user-role,invite,user-disable,user-enable,user-export,user-purge,setup-token,token-create,token-revoke,backup,restore,db-check,db-migrate,replication,serve"
+}

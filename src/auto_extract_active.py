@@ -174,6 +174,8 @@ def capture_tool_observation(
 
     # Truncate oversized tool outputs (10KB is plenty for post-hoc analysis).
     MAX_CHARS = 10_000
+    # Redact before truncating so a cut cannot leave half a key unrecognised.
+    output = sanitize(output)
     truncated = output if len(output) <= MAX_CHARS else output[:MAX_CHARS] + "\n... [truncated]"
 
     payload = {

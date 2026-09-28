@@ -19,6 +19,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from secret_redaction import redact_secrets
+
 # 5-minute dedup window (per-session same-prompt duplicates get collapsed).
 DEDUP_WINDOW_SECONDS = 5 * 60
 
@@ -82,6 +84,7 @@ def save_intent(
     """
     if not prompt or not prompt.strip():
         return 0
+    prompt, _ = redact_secrets(prompt)
 
     phash = _sha256(prompt)
     now = _utc_now_iso()

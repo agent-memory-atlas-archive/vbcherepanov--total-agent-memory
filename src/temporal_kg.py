@@ -86,13 +86,17 @@ class TemporalKG:
         try:
             # Dedup: if a currently-valid assertion with EXACT same (s,p,o) exists,
             # just return its id (idempotent).
+            # Without valid_from: the same open assertion. With it: the same assertion at that time.
             existing = cur.execute(
                 """SELECT id FROM fact_assertions
-                   WHERE subject = ? AND predicate = ? AND object = ?
-                   AND (valid_to IS NULL OR ? IS NOT NULL) AND project = ?
-                   AND (? IS NULL OR julianday(valid_from)=julianday(?))
-                   LIMIT 1""",
-                (subject, predicate, object, valid_from, project, valid_from, now),
+                   WHERE subject = ? AND predicate = ? AND object = ? AND project = ?
+                   AND julianday(valid_from) = julianday(?) LIMIT 1""",
+                (subject, predicate, object, project, now),
+            ).fetchone() if valid_from else cur.execute(
+                """SELECT id FROM fact_assertions
+                   WHERE subject = ? AND predicate = ? AND object = ? AND project = ?
+                   AND valid_to IS NULL LIMIT 1""",
+                (subject, predicate, object, project),
             ).fetchone()
             if existing:
                 return existing[0]

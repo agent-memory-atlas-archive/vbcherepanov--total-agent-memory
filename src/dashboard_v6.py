@@ -620,8 +620,8 @@ GRAPH_LIVE_HTML = r"""<!DOCTYPE html>
   kbd { font-family:Menlo,monospace; background:#1a1a1a; border:1px solid #333;
         padding:1px 4px; border-radius:3px; font-size:10px; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+<script src="/static/vendor/three-0.155.0/three.min.js"></script>
+<script src="/static/vendor/3d-force-graph-1.73.0/3d-force-graph.min.js"></script>
 </head>
 <body>
 
@@ -1147,7 +1147,7 @@ GRAPH_HIVE_HTML = r"""<!DOCTYPE html>
   .node:hover { stroke:#fff; stroke-width:2; }
   .edge { fill:none; stroke-opacity:.6; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="/static/vendor/d3-7.9.0/d3.min.js"></script>
 </head><body>
 <div id="vmain">
   <div id="toolbar">

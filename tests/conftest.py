@@ -24,6 +24,9 @@ os.environ.setdefault("MEMORY_CROSS_RERANK", "off")
 # Ensure src/ is importable
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+# PostgreSQL fixtures and the --backend option (default sqlite: no containers).
+pytest_plugins = ("tests.pg_support",)
+
 # macOS ships a 256-descriptor soft limit in interactive shells. This suite
 # opens a lot of sqlite connections, subprocess pipes and tokenizer handles,
 # and blows past it — the symptom is a wall of

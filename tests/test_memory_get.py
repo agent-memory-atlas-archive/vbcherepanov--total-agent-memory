@@ -14,17 +14,19 @@ from pathlib import Path
 
 import pytest
 
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 @pytest.fixture
-def live_store(monkeypatch, tmp_path):
+def live_store(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     (tmp_path / "blobs").mkdir(exist_ok=True)
     (tmp_path / "chroma").mkdir(exist_ok=True)
 
     import server
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    s = server.Store()
+    s = server.Store(database=store_backend)
     server.store = s
     server.recall = server.Recall(s)
     server.SID = "sess-get-1"

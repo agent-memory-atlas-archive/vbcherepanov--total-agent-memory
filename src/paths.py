@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import stat
 import sys
 import warnings
 from pathlib import Path
@@ -94,6 +95,43 @@ def pin_model_cache() -> Path | None:
     cache = Path(override).expanduser()
     os.environ.setdefault("FASTEMBED_CACHE_PATH", str(cache))
     return cache
+
+
+PRIVATE_DIR_MODE = 0o700
+PRIVATE_FILE_MODE = 0o600
+PRIVATE_FILES = ("memory.db", "memory.db-wal", "memory.db-shm", "settings.json", "master.key")
+
+
+POSIX = os.name == "posix"
+
+
+def exposed_to_others(path: Path) -> bool:
+    """Group or others can read `path`. POSIX only: Windows reports 0o666 for every file and
+    protects the user's profile with ACLs instead, so there the answer is always False."""
+    return POSIX and bool(stat.S_IMODE(path.stat().st_mode) & 0o077)
+
+
+def restrict_permissions(root: Path) -> list[str]:
+    """Make the memory dir owner-only (0700, database and settings 0600) on POSIX.
+
+    Returns one message per path it could not change; a store shared on purpose keeps working.
+    """
+    if not POSIX:
+        return []
+    problems = []
+    targets = [(root, PRIVATE_DIR_MODE)] + [(root / name, PRIVATE_FILE_MODE) for name in PRIVATE_FILES]
+    for path, mode in targets:
+        try:
+            if path.exists() and stat.S_IMODE(path.stat().st_mode) & 0o077:
+                path.chmod(mode)
+        except OSError as error:
+            problems.append(f"Could not restrict {path} to {oct(mode)}: {error}")
+    return problems
+
+
+def memory_dir_unpinned() -> Path:
+    """The memory dir without pinning the model cache: for reading settings that may set TAM_MODEL_CACHE."""
+    return _resolve_memory_dir()
 
 
 def _resolve_memory_dir() -> Path:

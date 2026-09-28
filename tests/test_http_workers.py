@@ -17,6 +17,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER = ROOT / "src" / "server.py"
+sys.path.insert(0, str(ROOT / "src"))
+from version import VERSION
+
 READY_TIMEOUT_S = 120
 STOP_TIMEOUT_S = 30
 
@@ -64,14 +67,15 @@ def workers(tmp_path):
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{port}"
     deadline = time.time() + READY_TIMEOUT_S
-    pids: set[int] = set()
-    while time.time() < deadline and len(pids) < 2:
+    while True:
         assert proc.poll() is None, "server exited during startup"
+        assert time.time() < deadline, "server not ready"
         try:
-            pids.add(httpx.get(f"{base}/healthz", timeout=2).json()["pid"])
+            if httpx.get(f"{base}/healthz", timeout=2).json() == {"status": "ok", "version": VERSION}:
+                break
         except httpx.HTTPError:
             time.sleep(0.5)
-    yield proc, base, pids
+    yield proc, base
     if proc.poll() is None:
         proc.terminate()
         proc.wait(timeout=STOP_TIMEOUT_S)
@@ -94,15 +98,14 @@ async def save_then_recall(base: str) -> list[str]:
 
 
 def test_two_workers_serve_and_share_the_store(workers):
-    proc, base, pids = workers
+    proc, base = workers
     assert len(children_of(proc.pid)) == 2
-    assert pids <= children_of(proc.pid)
     # Each call opens its own connection, so save and recall may reach different workers.
     assert "The backup job runs at 03:00 UTC" in asyncio.run(save_then_recall(base))
 
 
 def test_sigterm_stops_every_worker(workers):
-    proc, _, _ = workers
+    proc, _ = workers
     kids = children_of(proc.pid)
     assert len(kids) == 2
     proc.send_signal(signal.SIGTERM)

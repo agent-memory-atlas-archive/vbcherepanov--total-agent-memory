@@ -3,14 +3,19 @@ graft scripts
 graft hooks
 graft systemd
 graft skills
+graft codex-skill
 graft .claude-plugin
 graft docker
-graft bin
 graft launchagents
 graft examples
 recursive-include benchmarks *.py
 include benchmarks/data/memory-contracts-v1.json
 include *.sh *.ps1 requirements*.txt Dockerfile docker-compose*.yml Makefile server.json .env.example .gitignore .dockerignore .mcp.json
 include docs/installation.md
+recursive-include migrations/postgres *.sql
+recursive-include src/team_memory/static *.html *.js *.css *.svg *.woff2 *.txt
+recursive-include src/team_memory/reports/static *.js *.css
+recursive-include src/dashboard_static *.js *.txt
+include THIRD-PARTY-LICENSES.md
 global-exclude *.py[cod]
 prune tests/.pytest_cache

@@ -21,10 +21,15 @@ wiring into call-sites happens in a separate wave — these just expose env):
     MEMORY_LLM_PROVIDER   — ollama|openai|anthropic|auto (default ollama)
     MEMORY_LLM_API_BASE   — override provider base URL
     MEMORY_LLM_API_KEY    — bearer/auth key for the LLM provider
-    MEMORY_EMBED_PROVIDER — fastembed|openai|cohere (default fastembed)
+    MEMORY_EMBED_PROVIDER — fastembed|openai|cohere|dashscope (default fastembed)
     MEMORY_EMBED_MODEL    — embedding model name (provider-specific default)
     MEMORY_EMBED_API_BASE — override embedding provider base URL
     MEMORY_EMBED_API_KEY  — key for embedding provider
+    MEMORY_EMBED_DIMENSIONS      — requested output dimensions (dashscope default 1024)
+    MEMORY_EMBED_BATCH_SIZE      — texts per request (openai 64, dashscope 10)
+    MEMORY_EMBED_MAX_RETRIES     — retries on 408/425/429/5xx/network errors (default 6)
+    MEMORY_EMBED_TIMEOUT_SEC     — per-request timeout (default 60)
+    MEMORY_EMBED_MAX_BACKOFF_SEC — cap for a single retry delay (default 30)
     MEMORY_{TRIPLE|ENRICH|REPR}_PROVIDER — per-phase provider override
     MEMORY_{TRIPLE|ENRICH|REPR}_MODEL    — per-phase model override
 """
@@ -301,8 +306,13 @@ def has_model(name: str) -> bool:
     matches `qwen2.5-coder:7b`)."""
     if not name:
         return False
-    installed = list_ollama_models()
-    if not installed:
+    return model_matches(name, list_ollama_models())
+
+
+def model_matches(name: str, installed: list[str]) -> bool:
+    """True if ``name`` is among ``installed`` Ollama model names, by exact
+    name or by base name without the ``:tag``."""
+    if not name or not installed:
         return False
     if name in installed:
         return True
@@ -400,11 +410,11 @@ def get_status() -> dict:
 #
 # Provider names are canonical, lowercase:
 #   LLM:   ollama | openai | anthropic | auto
-#   EMBED: fastembed | openai | cohere
+#   EMBED: fastembed | openai | cohere | dashscope
 
 
 _SUPPORTED_LLM_PROVIDERS = ("ollama", "openai", "openai-compatible", "anthropic", "auto")
-_SUPPORTED_EMBED_PROVIDERS = ("fastembed", "openai", "cohere")
+_SUPPORTED_EMBED_PROVIDERS = ("fastembed", "openai", "cohere", "dashscope")
 _SUPPORTED_PHASES = ("triple", "enrich", "repr", "reason")
 
 # Default model name per provider when MEMORY_LLM_MODEL isn't set.
@@ -424,12 +434,17 @@ _DEFAULT_EMBED_MODEL_BY_PROVIDER = {
     "fastembed": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "openai": "text-embedding-3-small",
     "cohere": "embed-multilingual-v3.0",
+    "dashscope": "text-embedding-v4",
 }
 
 _DEFAULT_EMBED_API_BASE_BY_PROVIDER = {
     "fastembed": "",  # local, no HTTP
     "openai": "https://api.openai.com/v1",
     "cohere": "https://api.cohere.com/v2",
+    # Alibaba Cloud Model Studio, OpenAI-compatible mode, Singapore region.
+    # Keys are region-bound: a Beijing key needs
+    # https://dashscope.aliyuncs.com/compatible-mode/v1 via MEMORY_EMBED_API_BASE.
+    "dashscope": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
 }
 
 # Env var that carries the key for a given provider, in fallback order.
@@ -442,8 +457,15 @@ _LLM_KEY_ENV_BY_PROVIDER = {
 _EMBED_KEY_ENV_BY_PROVIDER = {
     "openai": ("OPENAI_API_KEY",),
     "cohere": ("COHERE_API_KEY",),
+    "dashscope": ("DASHSCOPE_API_KEY",),
     "fastembed": (),  # local
 }
+
+_DEFAULT_EMBED_DIMENSIONS_BY_PROVIDER = {"dashscope": 1024}
+_DEFAULT_EMBED_BATCH_BY_PROVIDER = {"openai": 64, "dashscope": 10}
+DEFAULT_EMBED_MAX_RETRIES = 6
+DEFAULT_EMBED_TIMEOUT_SEC = 60.0
+DEFAULT_EMBED_MAX_BACKOFF_SEC = 30.0
 
 
 def _normalize_provider(name: str, allowed: tuple[str, ...], default: str) -> str:
@@ -559,6 +581,66 @@ def get_embed_model(provider: str | None = None) -> str:
         # The local provider embeds the text space, so it follows that space's model.
         return get_text_embed_model()
     return _DEFAULT_EMBED_MODEL_BY_PROVIDER.get(p, "")
+
+
+def _strict_int_env(name: str, minimum: int) -> int | None:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return None
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer, got {raw!r}") from exc
+    if value < minimum:
+        raise ValueError(f"{name} must be >= {minimum}, got {value}")
+    return value
+
+
+def _strict_positive_float_env(name: str) -> float | None:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return None
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a number, got {raw!r}") from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be positive, got {value}")
+    return value
+
+
+def get_embed_dimensions(provider: str | None = None) -> int | None:
+    """Requested embedding dimensions, or None for the model's native size.
+
+    Invalid values raise instead of falling back: a silently different
+    dimension makes every stored vector incomparable with the next one.
+    """
+    value = _strict_int_env("MEMORY_EMBED_DIMENSIONS", 1)
+    if value is not None:
+        return value
+    return _DEFAULT_EMBED_DIMENSIONS_BY_PROVIDER.get(provider or get_embed_provider())
+
+
+def get_embed_batch_size(provider: str | None = None) -> int:
+    value = _strict_int_env("MEMORY_EMBED_BATCH_SIZE", 1)
+    if value is not None:
+        return value
+    return _DEFAULT_EMBED_BATCH_BY_PROVIDER.get(provider or get_embed_provider(), 64)
+
+
+def get_embed_max_retries() -> int:
+    value = _strict_int_env("MEMORY_EMBED_MAX_RETRIES", 0)
+    return DEFAULT_EMBED_MAX_RETRIES if value is None else value
+
+
+def get_embed_timeout_sec() -> float:
+    value = _strict_positive_float_env("MEMORY_EMBED_TIMEOUT_SEC")
+    return DEFAULT_EMBED_TIMEOUT_SEC if value is None else value
+
+
+def get_embed_max_backoff_sec() -> float:
+    value = _strict_positive_float_env("MEMORY_EMBED_MAX_BACKOFF_SEC")
+    return DEFAULT_EMBED_MAX_BACKOFF_SEC if value is None else value
 
 
 def _normalize_phase(phase: str) -> str:

@@ -1,0 +1,12 @@
+interface:
+  display_name: "Department onboarding"
+  short_description: "Study your department's curriculum, take quizzes, track progress"
+
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "total-agent-memory"
+      description: "total-agent-memory team server with onboarding_* tools"

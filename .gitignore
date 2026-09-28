@@ -128,3 +128,12 @@ docs/benchmarks/release-final-v14-20260915/*
 !docs/benchmarks/qa-v14/raw/
 !docs/benchmarks/head-to-head-v14/
 !docs/benchmarks/head-to-head-v14/raw/
+!docs/benchmarks/org-memory-v14-20260925/
+!docs/benchmarks/org-memory-v14-20260925/raw/
+!docs/benchmarks/aml-cycle2/
+docs/benchmarks/aml-cycle2/*
+!docs/benchmarks/aml-cycle2/README.md
+!docs/benchmarks/aml-cycle2/FROZEN.md
+
+# uv lockfile: dependencies live in pyproject.toml and requirements*.txt
+uv.lock

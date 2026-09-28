@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from memory_core.timestamps import format_utc, normalize_timestamp, utc_now
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
 
 CANONICAL = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$")
 MIGRATION = Path(__file__).parents[1] / "migrations/034_canonical_timestamps.sql"
@@ -90,11 +91,11 @@ def test_migration_canonicalizes_knowledge_without_rebuilding_atomic_facts(tmp_p
     store.db.close()
 
 
-def test_saved_knowledge_uses_the_canonical_format(tmp_path, monkeypatch):
+def test_saved_knowledge_uses_the_canonical_format(store_backend, tmp_path, monkeypatch):  # noqa: F811 — pytest fixture injection
     import server
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
     monkeypatch.setattr(server.Store, "embed", lambda self, texts: [[1.0] + [0.0] * 383 for _ in texts])
-    store = server.Store()
+    store = server.Store(database=store_backend)
     store.session_start("s", project="p")
     kid, *_ = store.save_knowledge("s", "Маша любит зелёный цвет.", "fact", project="p", skip_quality=True)
     created, confirmed = store.db.execute("SELECT created_at, last_confirmed FROM knowledge WHERE id=?", (kid,)).fetchone()

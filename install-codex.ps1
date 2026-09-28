@@ -24,8 +24,6 @@ Write-Host ""
 $InstallDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $MemoryDir = if ($env:CLAUDE_MEMORY_DIR) { $env:CLAUDE_MEMORY_DIR } else { Join-Path $env:USERPROFILE ".claude-memory" }
 $VenvDir = Join-Path $InstallDir ".venv"
-$CodexDir = Join-Path $env:USERPROFILE ".codex"
-$CodexConfig = Join-Path $CodexDir "config.toml"
 $SkillTarget = Join-Path $env:USERPROFILE ".agents" "skills" "memory"
 
 # -- 1. Create memory directories --
@@ -95,89 +93,19 @@ print(f'  OK: Model ready ({name})')
     Write-Host "  WARNING: Will download on first use" -ForegroundColor DarkYellow
 }
 
-# -- 4. Configure Codex CLI MCP --
-Write-Host "-> Step 4: Configuring Codex CLI MCP server..." -ForegroundColor Yellow
-
-if (-not (Test-Path $CodexDir)) {
-    New-Item -ItemType Directory -Path $CodexDir -Force | Out-Null
-}
-
+# -- 4. Register with Codex CLI (+ memory and onboarding skills) --
+# src/setup_wizard/register.py is the single implementation shared with install.sh and install.ps1.
+Write-Host "-> Step 4: Registering the MCP server with Codex CLI..." -ForegroundColor Yellow
 $SrvPath = Join-Path $InstallDir "src" "server.py"
-
-# Use forward slashes for TOML (works on Windows for Python/MCP)
-$PyPathToml = $VenvPython.Replace("\", "/")
-$SrvPathToml = $SrvPath.Replace("\", "/")
-$MemoryDirToml = $MemoryDir.Replace("\", "/")
-
-$env:_CTM_CONFIG = $CodexConfig
-$env:_CTM_PY = $PyPathToml
-$env:_CTM_SRV = $SrvPathToml
-$env:_CTM_MEM = $MemoryDirToml
-
-& $VenvPython -c @"
-import os, re
-
-config_path = os.environ['_CTM_CONFIG']
-# Escape backslashes and double quotes for safe TOML embedding
-def toml_escape(s):
-    return s.replace('\\', '/').replace('"', '\\"')
-py_path = toml_escape(os.environ['_CTM_PY'])
-srv_path = toml_escape(os.environ['_CTM_SRV'])
-memory_dir = toml_escape(os.environ['_CTM_MEM'])
-
-toml_block = f'''
-# --- Claude Total Memory MCP Server ---
-[mcp_servers.memory]
-command = "{py_path}"
-args = ["{srv_path}"]
-required = true
-startup_timeout_sec = 15.0
-tool_timeout_sec = 120.0
-
-[mcp_servers.memory.env]
-CLAUDE_MEMORY_DIR = "{memory_dir}"
-# --- End Claude Total Memory ---
-'''
-
-content = ''
-if os.path.exists(config_path):
-    with open(config_path, 'r') as f:
-        content = f.read()
-
-if '[mcp_servers.memory]' in content:
-    pattern = r'# --- Claude Total Memory MCP Server ---.*?# --- End Claude Total Memory ---'
-    if re.search(pattern, content, re.DOTALL):
-        content = re.sub(pattern, toml_block.strip(), content, flags=re.DOTALL)
-    else:
-        content = re.sub(r'\[mcp_servers\.memory\].*?(?=\n\[|\Z)', toml_block.strip(), content, flags=re.DOTALL)
-    print('  OK: Updated existing memory config in ' + config_path)
-else:
-    content = content.rstrip() + '\n' + toml_block
-    print('  OK: Added memory config to ' + config_path)
-
-content = content.lstrip('\n')
-with open(config_path, 'w') as f:
-    f.write(content)
-"@
-
-# Clean up temp env vars
-Remove-Item Env:\_CTM_CONFIG -ErrorAction SilentlyContinue
-Remove-Item Env:\_CTM_PY -ErrorAction SilentlyContinue
-Remove-Item Env:\_CTM_SRV -ErrorAction SilentlyContinue
-Remove-Item Env:\_CTM_MEM -ErrorAction SilentlyContinue
-
-# -- 5. Install Codex Skill --
-Write-Host "-> Step 5: Installing memory skill..." -ForegroundColor Yellow
-$SkillSrc = Join-Path $InstallDir "codex-skill"
-
-if (Test-Path $SkillSrc) {
-    if (-not (Test-Path $SkillTarget)) {
-        New-Item -ItemType Directory -Path $SkillTarget -Force | Out-Null
-    }
-    Copy-Item -Path "$SkillSrc\*" -Destination $SkillTarget -Recurse -Force
-    Write-Host "  OK: Skill installed to $SkillTarget" -ForegroundColor Green
-} else {
-    Write-Host "  SKIP: codex-skill/ directory not found" -ForegroundColor DarkYellow
+$previousPythonPath = $env:PYTHONPATH
+$env:PYTHONPATH = Join-Path $InstallDir "src"
+try {
+    & $VenvPython -m setup_wizard.register --client codex --memory-dir $MemoryDir --command $VenvPython --arg $SrvPath `
+        --env "CLAUDE_MEMORY_DIR=$MemoryDir" --env "MEMORY_TRIPLE_TIMEOUT_SEC=120" --env "MEMORY_ENRICH_TIMEOUT_SEC=90" `
+        --env "MEMORY_REPR_TIMEOUT_SEC=120" --env "MEMORY_TRIPLE_MAX_PREDICT=512"
+    if ($LASTEXITCODE -ne 0) { throw "Codex registration failed (see the message above)" }
+} finally {
+    $env:PYTHONPATH = $previousPythonPath
 }
 
 # -- 6. Dashboard service (Windows Scheduled Task) --
@@ -238,17 +166,6 @@ if (Test-Path $SrvPath) {
     Write-Host "  OK: Server: $SrvPath" -ForegroundColor Green
 } else {
     Write-Host "  FAIL: Server not found at $SrvPath" -ForegroundColor Red
-}
-
-if (Test-Path $CodexConfig) {
-    $configContent = Get-Content $CodexConfig -Raw
-    if ($configContent -match "mcp_servers\.memory") {
-        Write-Host "  OK: MCP server configured in $CodexConfig" -ForegroundColor Green
-    } else {
-        Write-Host "  FAIL: MCP config missing in $CodexConfig" -ForegroundColor Red
-    }
-} else {
-    Write-Host "  FAIL: Config file not created: $CodexConfig" -ForegroundColor Red
 }
 
 if (Test-Path $MemoryDir) {

@@ -1,0 +1,71 @@
+name: postgres
+
+# Team server on PostgreSQL: every test marked `postgres` plus the team suite on both backends,
+# against the same pgvector image the compose file and tests/pg_support.py use.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.1-pg18
+        env:
+          POSTGRES_USER: tam_ci
+          POSTGRES_PASSWORD: tam_ci_password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U tam_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # An admin URI allowed to create databases and roles: tests/pg_support.py creates a fresh
+      # database per test (template0, UTF8, builtin C.UTF-8) and drops it afterwards.
+      TAM_TEST_PG_URL: postgresql://tam_ci:tam_ci_password@127.0.0.1:5432/postgres?sslmode=disable
+      FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.tam-models
+      TAM_MEMORY_DIR: ${{ github.workspace }}/.tam-test-memory
+      MEMORY_LLM_ENABLED: 'false'
+      MEMORY_MODE: fast
+      MEMORY_EMBED_THREADS: '1'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.FASTEMBED_CACHE_PATH }}
+          key: tam-minilm-v14-${{ runner.os }}-${{ runner.arch }}
+      - name: PostgreSQL 18 client tools (pg_dump, pg_restore)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-18
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
+      - name: Install package with the postgres extra
+        run: python -m pip install -e ".[postgres]" pytest
+      - name: Warm the embedding model
+        run: python tests/smoke/prewarm_models.py
+      - name: PostgreSQL-marked tests
+        run: python -m pytest tests -q -m postgres --backend=postgres --junitxml=postgres-results.xml
+      - name: Team suite on SQLite and PostgreSQL
+        run: python -m pytest tests/test_team_*.py -q --backend=both --junitxml=team-both-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postgres-test-results
+          path: '*-results.xml'

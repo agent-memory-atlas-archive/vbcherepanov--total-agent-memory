@@ -267,7 +267,7 @@ memory_forget(filter="status='quality_dropped'", dry_run=true)
 
 ### Bench numbers below 1ms are dominated by import overhead
 
-If `bin/memory-bench` shows p50 = 0.05 ms on `cached_search`, that's
+If `scripts/memory-bench` shows p50 = 0.05 ms on `cached_search`, that's
 the cache hit path, not steady-state retrieval. The `cached_search`
 metric is included so you can tell whether your client cache is doing
 its job; for ranking changes, look at `search_fast` instead.
@@ -298,7 +298,7 @@ Existing v10 code reads the new columns as NULL safely.
 - [ ] Pick a mode: keep default `fast` for new installs; set `deep` if
       you depended on sync LLM; set `balanced` if you want LLM
       enrichment but not on the critical path.
-- [ ] Run `./bin/memory-bench --warmup` once after upgrade to confirm
+- [ ] Run `./scripts/memory-bench --warmup` once after upgrade to confirm
       your numbers match the artifact in
       [`benchmark.md`](benchmark.md).
 - [ ] If you swap `MEMORY_CODE_EMBED_MODEL` / `MEMORY_LOG_EMBED_MODEL`

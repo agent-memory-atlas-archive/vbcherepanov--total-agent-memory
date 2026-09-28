@@ -33,7 +33,7 @@
     <key>ProgramArguments</key>
     <array>
       <string>{{PYTHON}}</string>
-      <string>{{REPO}}/bin/consolidation-daemon</string>
+      <string>{{REPO}}/scripts/consolidation-daemon</string>
     </array>
 
     <key>EnvironmentVariables</key>

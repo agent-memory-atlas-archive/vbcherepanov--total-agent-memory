@@ -1,0 +1,36 @@
+{
+ "base_commit": "95ea2b881f507cc303eda32fc1d9849c8cf228aa",
+ "package_version": "14.6.0",
+ "release_date": "2026-09-25",
+ "macos": "27.0",
+ "kernel": "27.0.0",
+ "machine": "arm64",
+ "cpu": "Apple M2 Max",
+ "logical_cpus": 12,
+ "ram_gib": 64.0,
+ "python": "3.13.5",
+ "fastembed": "0.8.0",
+ "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (FastEmbed, ONNX)",
+ "fastembed_cache": "/var/folders/ys/0_4g85rs1rjbmpp03_0hsbrr0000gn/T/fastembed_cache",
+ "memory_mode": "fast",
+ "llm": "disabled (MEMORY_LLM_ENABLED=false)",
+ "tam_team_max_workers_default": 3,
+ "src_path": "/Users/vitalii-macpro/PROJECT/claude-memory/src",
+ "team_memory_sha256": "80a1fc7b50191e0bfde2fd334f7dd45e7646eac93ac1a060b5a110de3c7081b5",
+ "worktree_src_diff_stat": "src/server.py                | 373 ++++++++++++++++++++++++++++++--------\n src/team_memory/app.py       | 118 ++++++++++--\n src/team_memory/audit.py     | 154 ++++++++++++++++\n src/team_memory/cli.py       | 382 ++++++++++++++++++++++++++++++++++++---\n src/team_memory/contracts.py | 134 ++++++++++++++\n src/team_memory/lifecycle.py | 109 ++++++++++-\n src/team_memory/registry.py  | 420 ++++++++++++++++++++++++++++++++++++++-----\n src/team_memory/service.py   | 116 +++++++++---\n src/team_memory/ui.py        |   4 +-\n src/team_memory/worker.py    | 296 +++++++++++++++++++++++++-----\n 10 files changed, 1873 insertions(+), 233 deletions(-)",
+ "seed": 20260925,
+ "label": "pg-1460-final",
+ "started": "2026-09-26T12:09:29+0200",
+ "load_at_start": [
+  3.1,
+  3.24,
+  4.19
+ ],
+ "experiments": [
+  "e1",
+  "e2",
+  "e3"
+ ],
+ "cross_rerank": "default (auto)",
+ "backend": "postgres"
+}

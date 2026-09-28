@@ -1,4 +1,9 @@
-# total-agent-memory
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vbcherepanov/total-agent-memory/main/docs/assets/tam-logo-dark.svg">
+    <img src="https://raw.githubusercontent.com/vbcherepanov/total-agent-memory/main/docs/assets/tam-logo-light.svg" alt="total-agent-memory" width="440">
+  </picture>
+</h1>
 
 <!-- mcp-name: io.github.vbcherepanov/total-agent-memory -->
 
@@ -6,8 +11,8 @@
 > Persistent, local memory for AI coding agents: Claude Code, Codex CLI, Cursor, any MCP client.
 > Temporal knowledge graph · procedural memory · AST codebase ingest · cross-project analogy · 3D WebGL visualization.
 
-[![Version](https://img.shields.io/badge/version-14.5.1-8ad.svg)](https://pypi.org/project/total-agent-memory/)
-[![Tests](https://img.shields.io/badge/tests-2162%20passing-4a9.svg)](docs/benchmarks/release-final-v14-20260915/RESULTS.md)
+[![Version](https://img.shields.io/badge/version-14.6.0-8ad.svg)](https://pypi.org/project/total-agent-memory/)
+[![Tests](https://img.shields.io/badge/tests-3873%20passing-4a9.svg)](docs/benchmarks/org-memory-v14-20260925/RESULTS.md#test-suite)
 [![IDEs](https://img.shields.io/badge/IDEs-9%20supported-4a9.svg)]()
 [![LongMemEval R@5](https://img.shields.io/badge/LongMemEval%20R@5-95.1%25-4a9.svg)](evals/longmemeval-2026-08-27-v13-store.json)
 [![LoCoMo R@5](https://img.shields.io/badge/LoCoMo%20R@5-0.607-4a9.svg)](benchmarks/results/v13-locomo-retrieval.json)
@@ -20,8 +25,37 @@
 [![Docker GHCR](https://img.shields.io/badge/docker-ghcr.io-2496ED.svg)](https://github.com/vbcherepanov/total-agent-memory/pkgs/container/total-agent-memory)
 [![Homebrew](https://img.shields.io/badge/brew-vbcherepanov%2Ftap-FBB040.svg)](https://github.com/vbcherepanov/homebrew-tap)
 [![Donate](https://img.shields.io/badge/PayPal-Donate-00457C.svg?logo=paypal&logoColor=white)](https://PayPal.Me/vbcherepanov)
+[![Total Agent Memory on AI Agents Listing](https://aiagentslisting.com/total-agent-memory/badge.svg?claim=49e89e0b2d7435d8e74f62e5eef920ab)](https://aiagentslisting.com/mcp/total-agent-memory)
 
 **Why this, not mem0 / Letta / Zep / Supermemory / Cognee?** → [docs/vs-competitors.md](docs/vs-competitors.md)
+
+---
+
+## Version 14.6.0 — a company memory server you can run: dashboard, roles, onboarding, PostgreSQL
+
+**Release date: 2026-09-27.**
+
+The team server grows from a token-only endpoint into something a company can run and administer.
+All of it is MIT, like the rest of TAM. Upgrades stay single-user; personal installs gain a settings page and
+stricter privacy.
+
+| Change | How you use it |
+|---|---|
+| **Setup wizard** | `tam setup` asks "Just me" or "Company server"; a new team server shows a one-time setup code and a web wizard at `/dashboard/`. |
+| **Team dashboard with roles** | Invite codes, passwords, member / manager / company viewer / superadmin. Provider keys are entered in the browser and stored encrypted. |
+| **Department onboarding** | `/onboard` in the agent: lessons built from the team's records, quizzes, results visible to the department head. |
+| **PostgreSQL backend** | `TAM_TEAM_DATABASE_URL` or **Settings → Database**; `tam-team db-migrate` moves an existing server. Same top 10 as SQLite on the parity benchmark, recall p50 485 vs 492 ms at 10k records ([E5](docs/benchmarks/org-memory-v14-20260925/RESULTS.md#e5-postgresql-backend-1460)). |
+| **Continuous backup** | `TAM_TEAM_REPLICA_URL` turns on Litestream replication to S3-compatible storage or a directory; restore to any moment in the retention window. |
+| **Offboarding** | `tam-team user-disable` revokes every token and blocks sign-in without the user's token files; `user-export` and `user-purge` handle the personal area. Team and shared records keep their author. |
+| **Corrections rank above what they correct** | Automatic, in English and Russian, with or without the cross-encoder ("the stand-up moved to 9:30 on Mondays" now outranks the old time). |
+| **`memory_report`** | Activity report for a day, week, month or custom range, with record ids for every item. |
+| **Settings in the browser** | The local dashboard's **Settings** page sets the language model, embeddings, search-answer size and log retention. API keys are stored encrypted; the setup wizard no longer writes them into client configs ([LOCAL_SETTINGS.md](docs/LOCAL_SETTINGS.md)). |
+| **Privacy** | Credentials are redacted from every write path, including the raw call log and the prompt hook. `tam redact-existing` cleans what older versions stored, and `memory_delete(hard=true)` erases a record with every copy of it. |
+| **Security** | The local dashboard no longer sends `Access-Control-Allow-Origin: *`; the dashboard and the MCP HTTP transport check `Host` and `Origin` against DNS rebinding. Records that address the agent ("ignore previous instructions") are flagged in search results. |
+
+Measured on the organisational-memory benchmark: 0 foreign-department records returned in 2,532 attack calls on SQLite
+and 2,544 on PostgreSQL, and 0 lost updates in 400 concurrent rounds on each. Details and every other
+change: [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -193,7 +227,7 @@ Use the prepared wheel or this source checkout for v14. The general package-mana
 
 | Mode | Install and use |
 |---|---|
-| **Local, one person** | Follow [native or Docker installation](#install), then [Quick start](#quick-start). Memory and models run on your machine; the local MCP catalogue has 74 tools. |
+| **Local, one person** | Follow [native or Docker installation](#install), then [Quick start](#quick-start). Memory and models run on your machine; the local MCP catalogue has 77 tools. |
 | **Server, multiple people** | Follow the setup below. Memory and models run on the server; clients need only Python and their token. The remote catalogue exposes eight core tools. |
 
 The server instructions work with the prepared v14 wheel on Linux, macOS and Windows. Run commands in a directory where you can create the data folder and token files.
@@ -205,14 +239,14 @@ Install the candidate wheel in a dedicated environment. Linux/macOS:
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install ./dist/total_agent_memory-14.5.1-py3-none-any.whl
+python -m pip install ./dist/total_agent_memory-14.6.0-py3-none-any.whl
 ```
 
 Windows PowerShell, using the environment directly without changing the execution policy:
 
 ```powershell
 py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install .\dist\total_agent_memory-14.5.1-py3-none-any.whl
+.\.venv\Scripts\python.exe -m pip install .\dist\total_agent_memory-14.6.0-py3-none-any.whl
 $env:PATH = "$PWD\.venv\Scripts;$env:PATH"
 ```
 
@@ -246,6 +280,8 @@ docker compose -f docker-compose.team.yml cp team-memory:/team-data/vasya.token 
 The web interface is at `http://127.0.0.1:3738/`. The token copied to the host is a credential: restrict file access to its owner. To add Petya, a team and membership, use the same CLI subcommands shown above through `docker compose -f docker-compose.team.yml run --rm team-memory python /app/src/team_memory/cli.py`.
 
 Compose keeps data and model caches in persistent volumes. Set `TAM_TEAM_PORT`, `TAM_TEAM_MAX_WORKERS` and LLM settings in `.env` as needed; see [.env.example](.env.example). Plan at least 4 GiB RAM for three warm MiniLM workers and measure your own workload. [Docker server details](docs/TEAM_SERVER_V14.md#docker).
+
+Continuous backup is optional: set `TAM_TEAM_REPLICA_URL=s3://bucket/path` and the bucket credentials, then add `--profile litestream`. A Litestream sidecar streams every transaction of the server's SQLite files to the bucket while the server runs, and `tam-team replication restore --to DIR [--timestamp ...]` rebuilds the server on any machine. [Backup, point-in-time restore and data deletion](docs/TEAM_BACKUP.md).
 
 ### Connect a remote IDE
 
@@ -326,7 +362,8 @@ Optional remote LLM providers receive the content used in those tasks. Keep Olla
 - [Install](#install)
 - [Quick start](#quick-start)
 - [CLI: `lookup-memory` for sub-agents](#cli-lookup-memory-for-sub-agents)
-- [MCP tools reference](#mcp-tools-reference-74-tools)
+- [Activity reports: `/report` and `tam report`](#activity-reports-report-and-tam-report)
+- [MCP tools reference](#mcp-tools-reference-77-tools)
 - [TypeScript SDK](#typescript-sdk)
 - [Dashboard](#dashboard-localhost37737)
 - [Update](#update)
@@ -651,7 +688,7 @@ We're not replacing chatbot memory — we're occupying the **coding-agent + MCP 
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | Funding / status | $24M YC | $10M seed | $12M seed | $2.6M seed | $7.5M seed | in LangChain | self-funded OSS |
 | Runs 100% local | 🟡 | ✅ | 🟡 | ❌ | 🟡 | 🟡 | **✅** |
-| MCP-native | via SDK | ❌ | 🟡 Graphiti | 🟡 | ❌ | ❌ | **✅ 74 tools, MCP 2026-07-28** |
+| MCP-native | via SDK | ❌ | 🟡 Graphiti | 🟡 | ❌ | ❌ | **✅ 77 tools, MCP 2026-07-28** |
 | Knowledge graph | 🔒 $249/mo | ❌ | ✅ | ✅ | ✅ | ❌ | **✅** |
 | **Temporal facts** (`kg_at`) | ❌ | ❌ | ✅ | ❌ | 🟡 | ❌ | **✅** |
 | **Procedural memory** | ❌ | ❌ | ❌ | ❌ | ❌ | 🟡 | **✅ `workflow_predict`** |
@@ -714,7 +751,7 @@ Full side-by-side with pricing, latency, accuracy, "when to pick each" → [docs
                   │   (Claude Code · Codex CLI · Cursor · any MCP)  │
                   └──────────────────────┬──────────────────────────┘
                                          │ MCP (stdio or HTTP)
-                                         │ 74 tools
+                                         │ 77 tools
                   ┌──────────────────────▼──────────────────────────┐
                   │            total-agent-memory server             │
                   │    ┌──────────────┐  ┌────────────────────┐     │
@@ -771,13 +808,20 @@ These are the published distribution channels. For the unpublished v14 candidate
 | **uvx** (Python via uv) | `uvx total-agent-memory` | One-off run with no install. Best for trying without commitment. |
 | **pipx** (Python isolated) | `pipx install total-agent-memory` | Installs the `total-agent-memory`, `tam`, `tam-lookup`, `lookup-memory` binaries on PATH in an isolated venv. |
 | **brew** (macOS / Linuxbrew) | `brew install vbcherepanov/tap/total-memory` | Bottle-style install with `tam` and legacy `claude-total-memory` symlinks. |
-| **Docker** (multi-arch) | `docker run -p 37737:37737 -v ~/.tam:/data ghcr.io/vbcherepanov/total-agent-memory:14.5.1` | Containerized (linux/amd64 + linux/arm64). Dashboard on `:37737`. |
+| **Docker** (multi-arch) | `docker run -p 37737:37737 -v ~/.tam:/data ghcr.io/vbcherepanov/total-agent-memory:14.6.0` | Containerized (linux/amd64 + linux/arm64). Dashboard on `:37737`. |
 | **Claude Code plugin** | `/plugin marketplace add vbcherepanov/total-agent-memory`<br>`/plugin install total-agent-memory@vbcherepanov` | Installs the MCP server, the `memory-protocol` skill and all seven capture hooks in one step, from inside Claude Code. The bootstrap reuses an existing install if it finds one, so nothing is downloaded twice. |
 | **Manual clone** | `git clone https://github.com/vbcherepanov/total-agent-memory ~/total-agent-memory && cd ~/total-agent-memory && ./install.sh --ide claude-code` | Full control. Lets you hack on the server, run benchmarks, and pick which background services to enable. Detailed walkthrough below. |
 
 All seven channels land at the same MCP server. The `npx` and `./install.sh` paths
 additionally configure IDE-specific MCP entries and hooks. Other channels start
 the server bare — you wire the IDE afterwards (see [`docs/installation.md`](docs/installation.md)).
+
+**First run: `tam setup`.** After a pip, pipx, uvx, brew or checkout install, run `tam setup`. A plain `tam` typed at a terminal starts the same wizard the first time. It never starts in MCP stdio sessions, in pipes, or in CI. The wizard asks one question first: **Just me** (personal memory on this machine) or **Company server** (shared memory for teams).
+
+* **Just me:** detects Claude Code, Claude Desktop, Codex, Cursor, Windsurf, Gemini CLI, Cline and OpenCode and registers the server with the ones you pick. Then it asks for the language/embedding preset and an optional LLM provider (keys are typed hidden). From a checkout it also offers the hooks and skills. At the end it starts the server once on a throwaway directory to check it.
+* **Company server:** sets the data directory, address, public URL and how the server runs (service unit, Docker Compose or `tam-team serve`). Then it creates the first superadmin, departments and the encrypted provider settings, and prints the admin's invite code once.
+
+Change anything later with `tam setup --reconfigure`. Installers and containers use `tam setup --non-interactive ...` with flags. A team server started without an administrator prints a one-time setup code, and `/dashboard/` then shows the same setup as a web wizard. Details: [docs/SETUP_WIZARD.md](docs/SETUP_WIZARD.md).
 
 **The reranker is an extra, not a dependency.** A base install is 97 packages
 and ~113 MB of wheels: fastembed runs the embeddings through ONNX and no torch
@@ -799,7 +843,7 @@ compat. No manual data move required.
 
 ### Detailed paths (manual / Docker / per-IDE)
 
-Two manual paths. Same 74 tools, same dashboard, different deployment shapes.
+Two manual paths. Same 77 tools, same dashboard, different deployment shapes.
 
 ### IDE matrix (v10.5)
 
@@ -860,7 +904,7 @@ The installer:
 8. Applies all migrations to a fresh `memory.db`
 9. Starts the dashboard at `http://127.0.0.1:37737`
 
-Restart Claude Code → `/mcp` → `memory` should show **Connected** with 74 tools.
+Restart Claude Code → `/mcp` → `memory` should show **Connected** with 77 tools.
 
 ### Path A — native (Windows 10/11)
 
@@ -1020,7 +1064,21 @@ $ lookup-memory --project locomo_0 --limit 2 "adoption"
 
 ---
 
-## MCP tools reference (74 tools)
+## Activity reports: `/report` and `tam report`
+
+Ask your agent "report for this week on project X" (or type `/report week X`) and it calls `memory_report`: summary numbers with deltas against the previous period, key decisions with their WHY, solutions, errors with recurring patterns, lessons, open next steps from session summaries, most touched files, technologies and a day-by-day timeline. Every item carries the record ID for `memory_get`. The report is built from stored records without an LLM; an optional LLM paragraph is opt-in. The same report from a terminal:
+
+```bash
+tam report --project billing-api --period week             # Markdown to stdout
+tam report --period custom --since 2026-09-01 --until 2026-09-15 --format json --out sept.json
+tam report --project billing-api --period month --save     # also <memory dir>/reports/billing-api/month-2026-09-01.md
+```
+
+On the team server the same tool reports on your own memory, a department (heads, company viewers, superadmins) or the whole company, and the dashboard has a **Reports** page with a period picker and a Markdown download. Details: [docs/REPORTS.md](docs/REPORTS.md).
+
+---
+
+## MCP tools reference (77 tools)
 
 ### Tool categories
 
@@ -1048,9 +1106,11 @@ $ lookup-memory --project locomo_0 --limit 2 "adoption"
 
 **Stats / export (5):** `memory_stats`, `memory_export`, `memory_self_assess`, `memory_context_build`, `benchmark`
 
+**Reports (1):** `memory_report` — day / week / month / all-time / custom activity report, see [docs/REPORTS.md](docs/REPORTS.md)
+
 **Skills (3):** `memory_skill_get`, `memory_skill_update`, `file_context`
 
-Total: **74 tools.** Each is documented below with input schema and example.
+Total: **77 tools.** Each is documented below with input schema and example.
 
 Every tool carries MCP behaviour annotations — 38 are marked `readOnlyHint`,
 and `memory_delete` / `memory_forget` / `memory_update` / `kg_invalidate_fact`
@@ -1297,7 +1357,7 @@ Either:
 
 ### New MCP tools in v8.0
 
-Quick reference — see full docs in [MCP tools reference](#mcp-tools-reference-74-tools):
+Quick reference — see full docs in [MCP tools reference](#mcp-tools-reference-77-tools):
 
 | Tool | Purpose |
 |---|---|
@@ -1445,6 +1505,9 @@ Environment variables (all optional):
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama endpoint |
 | `MEMORY_EMBED_MODE` | `fastembed` | `fastembed\|sentence-transformers\|ollama` |
 | `DASHBOARD_PORT` | `37737` | HTTP dashboard port |
+| `DASHBOARD_BIND` | `127.0.0.1` | Dashboard listen address (Docker image: `0.0.0.0`) |
+| `DASHBOARD_ALLOWED_HOSTS` | — | Extra host names the dashboard answers to, comma-separated. Loopback names always work; any other `Host` (for example the server's LAN name when reached through Docker) gets `421` unless listed here. Protects against DNS rebinding. |
+| `MCP_HTTP_ALLOWED_HOSTS` | — | Extra host names the MCP HTTP transport (`MCP_TRANSPORT=http`) answers to, comma-separated. Loopback names and a non-wildcard `MCP_HTTP_HOST` always work; any other `Host` gets `421` and a foreign `Origin` gets `403` (DNS-rebinding protection). In Docker (`0.0.0.0`), list the name clients use to reach the container. |
 | `MEMORY_MCP_PORT` | `3737` | HTTP MCP transport port (Docker path) |
 | `MEMORY_ASYNC_ENRICHMENT` | `false` | **v10.1** — move quality gate / contradiction / entity dedup / episodic / wiki to a background worker. See [Performance tuning](#performance-tuning) |
 | `MEMORY_ENRICH_TICK_SEC` | `0.1` | Worker tick interval (clamp `0.01..5`) |
@@ -1471,9 +1534,9 @@ When `MEMORY_MODE=fast` (default):
 | `search_fast`       |  3.4  |  4.7  |  6.0  |
 | `cached_search`     |  3.1  |  3.4  |  3.6  |
 
-`llm_calls=0`, `network_calls=0`. Reproduce: `./bin/memory-bench`. Regression gate: `./bin/memory-perf-gate`. Architecture rationale and per-stage audit: [`docs/v11/audit.md`](docs/v11/audit.md). Raw bench artifact: [`docs/v11/benchmark.md`](docs/v11/benchmark.md).
+`llm_calls=0`, `network_calls=0`. Reproduce: `./scripts/memory-bench`. Regression gate: `./scripts/memory-perf-gate`. Architecture rationale and per-stage audit: [`docs/v11/audit.md`](docs/v11/audit.md). Raw bench artifact: [`docs/v11/benchmark.md`](docs/v11/benchmark.md).
 
-If your numbers do not match the table, run `./bin/memory-bench --warmup` first — cold FastEmbed import dominates the first call.
+If your numbers do not match the table, run `./scripts/memory-bench --warmup` first — cold FastEmbed import dominates the first call.
 
 ### Legacy: v10.5 deep-mode `memory_save` latency
 
@@ -1558,7 +1621,7 @@ Rows stuck in `processing` longer than `MEMORY_ENRICH_STALE_AFTER_SEC` (default 
 - ✅ **Embed fallback ladder gated** — silent Ollama fallback in `Store.embed` requires `MEMORY_ALLOW_OLLAMA_IN_HOT_PATH=true`.
 - ✅ **New MCP tools**: `memory_save_fast`, `memory_search_fast`, `memory_explain_search`, `memory_warmup`, `memory_perf_report`, `memory_rebuild_fts`, `memory_rebuild_embeddings`, `memory_eval_locomo`, `memory_eval_recall`, `memory_eval_temporal`, `memory_eval_entity_consistency`, `memory_eval_contradictions`, `memory_eval_long_context`.
 - ✅ **Migrations 021 (embedding_spaces) + 022 (embedding_cache_v11)** — idempotent on next start.
-- ✅ **Benchmark suite**: `bin/memory-bench` (artifact `docs/v11/benchmark.md`) + `bin/memory-perf-gate` for CI.
+- ✅ **Benchmark suite**: `scripts/memory-bench` (artifact `docs/v11/benchmark.md`) + `scripts/memory-perf-gate` for CI.
 
 ### Shipped in v10.5 (2026-04-27)
 - ✅ **Universal `memory-protocol` skill** — single canonical SKILL.md + 4 references (tool cheatsheet for all MCP tools, workflow recipes for 15 common situations, hooks reference, per-IDE setup) + 4 templates (Claude Code settings.json, Codex config.toml, Cursor `.mdc`, Cline `.md`). Same content for every IDE; only the wiring differs.
@@ -1634,7 +1697,7 @@ better", so the roadmap names them:
 
 ### Planned
 - GitHub Actions: install smoke tests + a nightly retrieval gate, so a
-  regression in R@5 fails CI the way `bin/memory-perf-gate` already fails on
+  regression in R@5 fails CI the way `scripts/memory-perf-gate` already fails on
   latency.
 - `has_llm()` per-phase provider caching.
 

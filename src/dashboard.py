@@ -10,29 +10,131 @@ Usage:
 
 Environment:
     DASHBOARD_PORT      — HTTP port (default: 37737)
+    DASHBOARD_BIND      — listen address (default: 127.0.0.1)
+    DASHBOARD_ALLOWED_HOSTS — extra comma-separated host names accepted in the
+                          Host header (loopback names are always accepted)
     TAM_MEMORY_DIR        — Path to memory storage (default: ~/.tam). Legacy CLAUDE_MEMORY_DIR still supported with deprecation warning.
 """
 
+import hmac
 import json
 import os
+import re
+import secrets
 import socket
 import sqlite3
 import subprocess
 import sys
 import time
 import threading
+from collections.abc import Mapping
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urlsplit
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import dashboard_settings
 from paths import memory_dir
+from tam_brand import FAVICON_LINK, MARK_SVG_DARK
 from version import RELEASE_DATE, VERSION
 
 DASHBOARD_PORT = int(os.environ.get("DASHBOARD_PORT", "37737"))
 MEMORY_DIR = memory_dir()
 DB_PATH = MEMORY_DIR / "memory.db"
+
+# Inline SVG in HTML needs no namespace; the page must not contain any http:// string.
+HEADER_MARK_SVG = MARK_SVG_DARK.replace(' xmlns="http://www.w3.org/2000/svg"', "")
+
+# DNS-rebinding and cross-site protection. The dashboard has no auth, so a
+# request is served only when its Host names this machine (a rebound attacker
+# domain fails here) and any Origin is the dashboard itself. No CORS headers
+# are sent, so other sites cannot read responses.
+LOOPBACK_HOSTS = frozenset(("127.0.0.1", "localhost", "::1"))
+WILDCARD_BINDS = frozenset(("0.0.0.0", "::", ""))
+MISDIRECTED_STATUS = 421
+# Every write needs this per-process token (served only inside the settings page) and a
+# same-origin Origin header, so another site or a plain form post cannot change settings.
+CSRF_TOKEN = secrets.token_urlsafe(32)
+CSRF_HEADER = "X-TAM-CSRF"
+POST_ROUTES = ("/api/settings", "/api/privacy/redact")
+FORBIDDEN_STATUS = 403
+
+
+def normalize_host(value: str | None) -> str | None:
+    """Host name from a Host header or bind address, lowercased, no port/brackets."""
+    if not value or not value.strip():
+        return None
+    try:
+        name = urlsplit("//" + value.strip()).hostname
+    except ValueError:
+        return None
+    return name.rstrip(".") if name else None
+
+
+def allowed_hosts(environ: Mapping[str, str]) -> frozenset[str]:
+    """Loopback names, a non-wildcard DASHBOARD_BIND and DASHBOARD_ALLOWED_HOSTS."""
+    hosts = set(LOOPBACK_HOSTS)
+    bind = environ.get("DASHBOARD_BIND", "").strip()
+    if bind not in WILDCARD_BINDS:
+        name = normalize_host(bind if ":" not in bind or bind.startswith("[") else f"[{bind}]")
+        if name:
+            hosts.add(name)
+    for extra in environ.get("DASHBOARD_ALLOWED_HOSTS", "").split(","):
+        name = normalize_host(extra)
+        if name:
+            hosts.add(name)
+    return frozenset(hosts)
+
+
+ALLOWED_HOSTS = allowed_hosts(os.environ)
+
+
+def request_rejection(host: str | None, origin: str | None,
+                      allowed: frozenset[str]) -> tuple[int, str] | None:
+    """(status, reason) when a request must be refused, else None."""
+    if normalize_host(host) not in allowed:
+        return MISDIRECTED_STATUS, (
+            "Host not allowed; open the dashboard via 127.0.0.1 or localhost, "
+            "or add the name to DASHBOARD_ALLOWED_HOSTS")
+    if origin is not None:
+        parts = urlsplit(origin.strip())
+        if parts.scheme not in ("http", "https") or parts.netloc.lower() != host.strip().lower():
+            return FORBIDDEN_STATUS, "Cross-origin request denied"
+    return None
+
+# Third-party browser libraries are vendored here and served same-origin, so the
+# pages never load remote code next to the user's memory (see THIRD-PARTY-LICENSES.md).
+STATIC_DIR = (Path(__file__).resolve().parent / "dashboard_static").resolve()
+STATIC_URL_PREFIX = "/static/"
+STATIC_CONTENT_TYPES: dict[str, str] = {
+    ".js": "text/javascript; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+}
+STATIC_CACHE_CONTROL = "public, max-age=31536000, immutable"
+CSP_NONCE_BYTES = 16
+_INLINE_SCRIPT_TAG = re.compile(r"<script(?![^>]*\bsrc=)(?=[\s>])")
+
+
+def content_security_policy(nonce: str) -> str:
+    """CSP for dashboard HTML: same-origin code plus nonce-tagged inline scripts."""
+    return "; ".join((
+        "default-src 'none'",
+        f"script-src 'self' 'nonce-{nonce}'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "base-uri 'none'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "object-src 'none'",
+    ))
+
+
+def add_script_nonce(html: str, nonce: str) -> str:
+    """Tag every inline <script> with the per-response CSP nonce."""
+    return _INLINE_SCRIPT_TAG.sub(f'<script nonce="{nonce}"', html)
 
 
 def get_db() -> sqlite3.Connection | None:
@@ -1021,7 +1123,8 @@ header {
     padding-bottom: 16px;
     border-bottom: 1px solid var(--border);
 }
-header h1 { font-size: 24px; font-weight: 700; }
+header h1 { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+header h1 svg { width: 28px; height: 28px; flex: none; }
 header h1 span { color: var(--accent); }
 header .subtitle { color: var(--text-dim); font-size: 14px; }
 
@@ -1496,7 +1599,7 @@ td.date-col { white-space: nowrap; color: var(--text-dim); font-size: 13px; }
 <div class="container">
     <header>
         <div>
-            <h1>total-agent-memory</h1>
+            <h1>__TAM_MARK__total-agent-memory</h1>
             <div class="subtitle">Version __TAM_VERSION__ &middot; Released __TAM_RELEASE_DATE__</div>
             <div class="subtitle" style="display:flex;align-items:center;gap:10px;">
                 <span>Read-only dashboard &mdash; memory.db</span>
@@ -1551,6 +1654,7 @@ td.date-col { white-space: nowrap; color: var(--text-dim); font-size: 13px; }
         <button class="tab" data-tab="sessions">Sessions</button>
         <button class="tab" data-tab="graph">Graph</button>
         <a class="tab" href="/graph/live" style="text-decoration:none;">Graph Live 🔴</a>
+        <a class="tab" href="/settings" style="text-decoration:none;">Settings</a>
         <button class="tab" data-tab="self-improvement">Self-Improvement</button>
         <button class="tab" data-tab="rules">Rules (SOUL)</button>
         <button class="tab" data-tab="v5-graph">Graph v5</button>
@@ -1613,29 +1717,29 @@ td.date-col { white-space: nowrap; color: var(--text-dim); font-size: 13px; }
     <!-- Graph Tab -->
     <div class="tab-content" id="tab-graph">
         <div id="graph-controls">
-            <button onclick="graphZoom(1.3)" title="Zoom In">&#x1F50D;+ Zoom In</button>
-            <button onclick="graphZoom(0.7)" title="Zoom Out">&#x1F50D;- Zoom Out</button>
-            <button onclick="graphFitAll()" title="Fit All">Fit All</button>
-            <button onclick="graphRestart()" title="Re-layout">Re-layout</button>
-            <select id="graph-filter-project" onchange="graphFilterProject(this.value)">
+            <button id="graph-zoom-in" title="Zoom In">&#x1F50D;+ Zoom In</button>
+            <button id="graph-zoom-out" title="Zoom Out">&#x1F50D;- Zoom Out</button>
+            <button id="graph-fit-all" title="Fit All">Fit All</button>
+            <button id="graph-restart" title="Re-layout">Re-layout</button>
+            <select id="graph-filter-project">
                 <option value="">All Projects</option>
             </select>
             <label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:4px;">
-                <input type="checkbox" id="graph-show-labels" checked onchange="graphToggleLabels(this.checked)"> Labels
+                <input type="checkbox" id="graph-show-labels" checked> Labels
             </label>
             <label style="font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:4px;">
-                <input type="checkbox" id="graph-show-edges" checked onchange="graphToggleEdges(this.checked)"> Edges
+                <input type="checkbox" id="graph-show-edges" checked> Edges
             </label>
             <span class="graph-info" id="graph-info">Loading...</span>
         </div>
         <div id="graph-controls-row2">
             <span style="font-size:12px;color:var(--text-dim);font-weight:600;">Cluster:</span>
-            <button class="cluster-active" onclick="graphSetCluster('none')" id="cluster-btn-none">No Clustering</button>
-            <button onclick="graphSetCluster('project')" id="cluster-btn-project">By Project</button>
-            <button onclick="graphSetCluster('type')" id="cluster-btn-type">By Type</button>
+            <button class="cluster-active" id="cluster-btn-none">No Clustering</button>
+            <button id="cluster-btn-project">By Project</button>
+            <button id="cluster-btn-type">By Type</button>
             <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>
-            <input type="text" id="graph-search" placeholder="Search nodes..." oninput="graphSearch(this.value)">
-            <select id="graph-filter-type" onchange="graphFilterType(this.value)">
+            <input type="text" id="graph-search" placeholder="Search nodes...">
+            <select id="graph-filter-type">
                 <option value="">All Types</option>
                 <option value="fact">fact</option>
                 <option value="solution">solution</option>
@@ -1644,7 +1748,7 @@ td.date-col { white-space: nowrap; color: var(--text-dim); font-size: 13px; }
                 <option value="convention">convention</option>
             </select>
             <label style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:4px;">
-                <input type="checkbox" id="graph-show-hulls" checked onchange="graphToggleHulls(this.checked)"> Cluster Hulls
+                <input type="checkbox" id="graph-show-hulls" checked> Cluster Hulls
             </label>
         </div>
         <div id="graph-cluster-legend"></div>
@@ -2423,12 +2527,19 @@ function graphSetCluster(mode) {
 
 function graphUpdateLegend(items) {
     const el = document.getElementById('graph-cluster-legend');
-    if (!items || !items.length) { el.innerHTML = ''; return; }
-    el.innerHTML = items.map(it =>
-        '<div class="cl-item" onclick="graphFocusCluster(\'' + it.key.replace(/'/g, "\\'") + '\')">' +
-        '<span class="cl-dot" style="background:' + it.color + '"></span>' +
-        '<span>' + it.key + ' (' + it.count + ')</span></div>'
-    ).join('');
+    if (!items || !items.length) { el.replaceChildren(); return; }
+    el.replaceChildren(...items.map(it => {
+        const item = document.createElement('div');
+        item.className = 'cl-item';
+        item.dataset.key = it.key;
+        const dot = document.createElement('span');
+        dot.className = 'cl-dot';
+        dot.style.background = it.color;
+        const label = document.createElement('span');
+        label.textContent = it.key + ' (' + it.count + ')';
+        item.append(dot, label);
+        return item;
+    }));
 }
 
 function graphFocusCluster(key) {
@@ -3677,6 +3788,28 @@ async function loadV5Reflection() {
     }
 }
 
+// Event wiring lives here, not in on* attributes: the CSP blocks inline handlers.
+(function bindGraphControls() {
+    const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
+    on('graph-zoom-in', 'click', () => graphZoom(1.3));
+    on('graph-zoom-out', 'click', () => graphZoom(0.7));
+    on('graph-fit-all', 'click', graphFitAll);
+    on('graph-restart', 'click', graphRestart);
+    on('graph-filter-project', 'change', e => graphFilterProject(e.target.value));
+    on('graph-filter-type', 'change', e => graphFilterType(e.target.value));
+    on('graph-show-labels', 'change', e => graphToggleLabels(e.target.checked));
+    on('graph-show-edges', 'change', e => graphToggleEdges(e.target.checked));
+    on('graph-show-hulls', 'change', e => graphToggleHulls(e.target.checked));
+    on('graph-search', 'input', e => graphSearch(e.target.value));
+    for (const mode of ['none', 'project', 'type']) {
+        on('cluster-btn-' + mode, 'click', () => graphSetCluster(mode));
+    }
+    on('graph-cluster-legend', 'click', e => {
+        const item = e.target.closest('.cl-item');
+        if (item) graphFocusCluster(item.dataset.key);
+    });
+})();
+
 </script>
 </body>
 </html>
@@ -3689,7 +3822,7 @@ GRAPH_PAGE = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Knowledge Graph — total-agent-memory</title>
-<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+<script src="/static/vendor/vis-network-9.1.6/vis-network.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -3755,7 +3888,7 @@ body {
     <h1>Knowledge Graph</h1>
     <a href="/">&larr; Dashboard</a>
     <label>Limit:
-        <select id="node-limit" onchange="loadGraph()">
+        <select id="node-limit">
             <option value="50">50</option>
             <option value="100" selected>100</option>
             <option value="200">200</option>
@@ -3763,11 +3896,11 @@ body {
         </select>
     </label>
     <label>Filter type:
-        <select id="type-filter" onchange="filterGraph()">
+        <select id="type-filter">
             <option value="">All</option>
         </select>
     </label>
-    <label>Search: <input id="search-input" type="text" placeholder="node name..." onkeyup="searchNode()" /></label>
+    <label>Search: <input id="search-input" type="text" placeholder="node name..." /></label>
     <div class="stats-bar">
         <span id="stat-nodes">Nodes: ...</span>
         <span id="stat-edges">Edges: ...</span>
@@ -3780,7 +3913,7 @@ body {
 <div class="legend" id="legend"></div>
 
 <div id="detail-panel">
-    <button class="close-btn" onclick="closeDetail()">&times;</button>
+    <button class="close-btn" id="detail-close">&times;</button>
     <div id="detail-content"></div>
 </div>
 
@@ -3987,6 +4120,10 @@ function escHtml(s) {
     return d.innerHTML;
 }
 
+document.getElementById('node-limit').addEventListener('change', loadGraph);
+document.getElementById('type-filter').addEventListener('change', filterGraph);
+document.getElementById('search-input').addEventListener('keyup', searchNode);
+document.getElementById('detail-close').addEventListener('click', closeDetail);
 loadGraph();
 </script>
 </body>
@@ -4159,13 +4296,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
 
     def _send_html(self, html: str, status: int = 200) -> None:
         """Send an HTML response, injecting v6 panels when the marker is present."""
         html = html.replace("__TAM_VERSION__", VERSION).replace("__TAM_RELEASE_DATE__", RELEASE_DATE)
+        html = html.replace("__TAM_MARK__", HEADER_MARK_SVG).replace("</title>", "</title>\n" + FAVICON_LINK, 1)
         if "<!-- V6_PANELS_HERE -->" in html:
             try:
                 from dashboard_v6 import V6_PANELS_HTML
@@ -4173,10 +4310,30 @@ class DashboardHandler(BaseHTTPRequestHandler):
             except Exception:
                 # Marker left in place if import fails — harmless
                 pass
-        body = html.encode("utf-8")
+        nonce = secrets.token_urlsafe(CSP_NONCE_BYTES)
+        body = add_script_nonce(html, nonce).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Security-Policy", content_security_policy(nonce))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_static(self, rel_path: str) -> None:
+        """Serve a vendored asset from STATIC_DIR; anything outside it is a 404."""
+        target = (STATIC_DIR / rel_path).resolve()
+        content_type = STATIC_CONTENT_TYPES.get(target.suffix)
+        if content_type is None or not target.is_relative_to(STATIC_DIR) or not target.is_file():
+            self._send_error(404, "Not found")
+            return
+        body = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", STATIC_CACHE_CONTROL)
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(body)
 
@@ -4202,7 +4359,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Connection", "keep-alive")
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
 
         db = get_db()
@@ -4285,8 +4441,67 @@ class DashboardHandler(BaseHTTPRequestHandler):
         finally:
             db.close()
 
+    def _refused(self) -> bool:
+        """Answer and return True when Host/Origin checks reject the request."""
+        rejection = request_rejection(self.headers.get("Host"), self.headers.get("Origin"), ALLOWED_HOSTS)
+        if rejection is None:
+            return False
+        self._send_error(*rejection)
+        return True
+
+    def _reject_method(self) -> None:
+        """Memory pages are read-only: every non-GET method except the settings writes is refused."""
+        if not self._refused():
+            self._send_error(405, "Method not allowed")
+
+    do_PUT = do_PATCH = do_DELETE = do_OPTIONS = _reject_method
+
+    def _write_rejection(self) -> tuple[int, str] | None:
+        """A settings write needs a same-origin Origin, the page's CSRF token and a small JSON body."""
+        if not self.headers.get("Origin"):
+            return FORBIDDEN_STATUS, "Origin header required"
+        if not hmac.compare_digest(self.headers.get(CSRF_HEADER, ""), CSRF_TOKEN):
+            return FORBIDDEN_STATUS, "Missing or stale CSRF token; reload the settings page"
+        if (self.headers.get("Content-Type") or "").split(";")[0].strip().lower() != "application/json":
+            return 415, "Content-Type must be application/json"
+        length = self.headers.get("Content-Length", "")
+        if not length.isdigit() or int(length) > dashboard_settings.MAX_BODY_BYTES:
+            return 413, "Request body missing or too large"
+        return None
+
+    def do_POST(self) -> None:
+        """Settings writes and stored-credential redaction; everything else is read-only."""
+        if self._refused():
+            return
+        path = urlparse(self.path).path.rstrip("/")
+        if path not in POST_ROUTES:
+            self._send_error(405, "Method not allowed")
+            return
+        rejection = self._write_rejection()
+        if rejection is not None:
+            self._send_error(*rejection)
+            return
+        try:
+            body = json.loads(self.rfile.read(int(self.headers["Content-Length"])) or b"{}")
+        except ValueError:
+            self._send_error(400, "Body is not valid JSON")
+            return
+        root = DB_PATH.parent
+        try:
+            if path == "/api/settings":
+                self._send_json(dashboard_settings.save(root, body))
+            else:
+                self._send_json(dashboard_settings.redact(root))
+        except ValueError as error:
+            self._send_error(400, str(error))
+        except (OSError, sqlite3.Error) as error:
+            sys.stderr.write(f"[dashboard] {path} failed: {error}\n")
+            self._send_error(500, str(error))
+
     def do_GET(self) -> None:
         """Route GET requests."""
+        if self._refused():
+            return
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
         params = parse_qs(parsed.query)
@@ -4299,6 +4514,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
         def p(key: str, default: str = "") -> str:
             vals = params.get(key, [default])
             return vals[0] if vals else default
+
+        if path.startswith(STATIC_URL_PREFIX):
+            self._send_static(path[len(STATIC_URL_PREFIX):])
+            return
 
         # --- Main page ---
         if path in ("", "/"):
@@ -4352,6 +4571,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._send_html(_SESSION_VIEW_HTML.replace("__SID__", sid_html))
                 return
             self._send_error(404, "not_found")
+            return
+
+        if path == "/settings":
+            self._send_html(dashboard_settings.page(CSRF_TOKEN))
+            return
+        if path == "/api/settings":
+            self._send_json(dashboard_settings.payload(DB_PATH.parent))
+            return
+        if path == "/api/privacy/scan":
+            if not DB_PATH.exists():
+                self._send_error(404, "No memory.db yet")
+                return
+            self._send_json(dashboard_settings.scan(DB_PATH.parent))
             return
 
         # --- System status (no DB required) ---

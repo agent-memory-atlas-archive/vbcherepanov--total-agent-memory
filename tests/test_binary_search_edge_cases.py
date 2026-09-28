@@ -24,11 +24,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 @pytest.fixture
-def store(monkeypatch, tmp_path):
+def store(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     """Spin up a real Store on a tmp SQLite, no MCP/outbox side effects."""
     monkeypatch.setenv("MEMORY_QUALITY_GATE_ENABLED", "false")
     monkeypatch.setenv("MEMORY_CONTRADICTION_DETECT_ENABLED", "false")
@@ -38,7 +40,7 @@ def store(monkeypatch, tmp_path):
     import server as srv
     # MEMORY_DIR is resolved at import time, so patch the module attribute.
     monkeypatch.setattr(srv, "MEMORY_DIR", tmp_path)
-    s = srv.Store()
+    s = srv.Store(database=store_backend)
     yield s
     try:
         s.db.close()
@@ -61,6 +63,13 @@ def _seed_embeddings(store, vectors: dict[int, np.ndarray], project: str = "p"):
 
 def _rand_vec(rng: np.random.Generator, dim: int = 32) -> np.ndarray:
     return rng.standard_normal(dim).astype(np.float32)
+
+
+def _exact_order(vectors: dict[int, np.ndarray], query: np.ndarray) -> list[int]:
+    def cosine(vector):
+        return float(vector @ query / (np.linalg.norm(vector) * np.linalg.norm(query)))
+
+    return sorted(vectors, key=lambda kid: (-cosine(vectors[kid]), kid))
 
 
 def test_binary_search_pool_smaller_than_n_candidates(store):
@@ -103,6 +112,11 @@ def test_binary_search_pool_larger_than_n_candidates_truncates(store):
     query = _rand_vec(rng)
     results = store._binary_search(query.tolist(), n_candidates=3, project="p")
 
+    if store.is_postgres:
+        # PostgreSQL ranks every row in scope by exact cosine: there is no binary
+        # prefilter for n_candidates to bound.
+        assert [kid for kid, _ in results] == _exact_order(vecs, query)
+        return
     assert len(results) <= 3
     seen_kids = {kid for kid, _score in results}
     assert seen_kids.issubset({20, 21, 22, 23, 24})
@@ -125,6 +139,10 @@ def test_exact_small_pool_recovers_best_cosine_despite_sign_difference(store):
     exact = store._binary_search(
         query, n_candidates=1, n_results=1, project="p", exact_small_pool=True,
     )
+    if store.is_postgres:
+        # Exact cosine on both calls: the sign-bit approximation never applies.
+        assert approximate == exact and exact[0][0] == 2
+        return
     assert approximate[0][0] == 1
     assert exact[0][0] == 2
     assert exact[0][1] > approximate[0][1]
@@ -135,10 +153,15 @@ def test_large_pool_still_uses_bounded_candidates(store, monkeypatch):
 
     monkeypatch.setattr(vectors, "EXACT_VECTOR_SCAN_LIMIT", 2)
     rng = np.random.default_rng(5)
-    _seed_embeddings(store, {kid: _rand_vec(rng) for kid in range(1, 5)})
+    vecs = {kid: _rand_vec(rng) for kid in range(1, 5)}
+    _seed_embeddings(store, vecs)
+    query = _rand_vec(rng)
     result = store._binary_search(
-        _rand_vec(rng).tolist(), n_candidates=1, project="p", exact_small_pool=True,
+        query.tolist(), n_candidates=1, project="p", exact_small_pool=True,
     )
+    if store.is_postgres:
+        assert [kid for kid, _ in result] == _exact_order(vecs, query)
+        return
     assert len(result) == 1
 
 

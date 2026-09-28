@@ -303,7 +303,7 @@ can't see (decisions, deadlines, who-owns-what).
 2. benchmark(scenarios=['recall', 'save'])  # baseline numbers
 
 If save > 1s on macOS or > 5s on WSL2:
-3. Set MEMORY_ASYNC_ENRICHMENT=true (see Performance tuning in README)
+3. Set MEMORY_ASYNC_ENRICHMENT=true (see Performance tuning in docs/configuration.md)
 4. Restart MCP server
 5. benchmark again
 ```

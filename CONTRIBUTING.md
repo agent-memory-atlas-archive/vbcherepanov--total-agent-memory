@@ -43,7 +43,7 @@ corpus with `make dev-image sql-corpus` and commit `tests/fixtures/pg_sql_corpus
 
 ## Ground rules for a PR
 
-- **`pytest tests/` stays green.** The suite is about 3,600 tests. A PR that leaves it red will not be merged.
+- **`pytest tests/` stays green.** The suite is about 3,700 tests. A PR that leaves it red will not be merged.
 - **New tool means new tests.** Every MCP tool has coverage; a tool without
   it is an untested public API.
 - **Tests must not read gitignored artifacts.** If a test needs a corpus

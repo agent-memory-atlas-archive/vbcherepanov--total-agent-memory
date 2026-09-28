@@ -234,6 +234,8 @@ def test_cli_checks_migrates_backs_up_and_serves_on_postgres(tmp_path, monkeypat
 
 
 def test_cli_rejects_missing_dsn_variables(tmp_path, monkeypatch, capsys):
+    # Without the [postgres] extra the CLI answers "PostgreSQL support is not installed" first.
+    pytest.importorskip("psycopg")
     monkeypatch.delenv(PG_DSN_VAR, raising=False)
     code, _, err = run_cli(monkeypatch, capsys, tmp_path / 'server', 'db-check', '--dsn-env', PG_DSN_VAR)
     assert code == 2 and PG_DSN_VAR in err
@@ -242,7 +244,27 @@ def test_cli_rejects_missing_dsn_variables(tmp_path, monkeypatch, capsys):
     assert code == 2 and 'key=value' in err
 
 
+def test_serve_runs_without_the_postgres_extra(tmp_path, monkeypatch, capsys):
+    import uvicorn
+
+    from team_memory import app as team_app
+    from team_memory import cli as team_cli
+    from team_memory.database_contracts import DATABASE_URL_ENV
+
+    monkeypatch.delenv(DATABASE_URL_ENV, raising=False)
+    monkeypatch.setattr(team_cli, 'postgres_available', lambda: False)
+    captured = {}
+    monkeypatch.setattr(uvicorn, 'run', lambda app, **kwargs: captured.update(kwargs))
+    monkeypatch.setattr(team_app, 'create_app', lambda service, dashboard, **kwargs: captured.update(wiring=kwargs))
+    code, _, err = run_cli(monkeypatch, capsys, tmp_path / 'server', 'serve', '--port', '0')
+    assert code == 0, err
+    wiring = captured['wiring']
+    assert wiring['maintenance'] is None and wiring['migration'] is None and wiring['database'] is None
+
+
 def test_serve_wires_one_maintenance_gate_on_sqlite(tmp_path, monkeypatch, capsys):
+    # The gate belongs to database settings and migration, which need the [postgres] extra.
+    pytest.importorskip("psycopg")
     import uvicorn
 
     from team_memory import app as team_app

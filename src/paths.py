@@ -102,12 +102,21 @@ PRIVATE_FILE_MODE = 0o600
 PRIVATE_FILES = ("memory.db", "memory.db-wal", "memory.db-shm", "settings.json", "master.key")
 
 
+POSIX = os.name == "posix"
+
+
+def exposed_to_others(path: Path) -> bool:
+    """Group or others can read `path`. POSIX only: Windows reports 0o666 for every file and
+    protects the user's profile with ACLs instead, so there the answer is always False."""
+    return POSIX and bool(stat.S_IMODE(path.stat().st_mode) & 0o077)
+
+
 def restrict_permissions(root: Path) -> list[str]:
     """Make the memory dir owner-only (0700, database and settings 0600) on POSIX.
 
     Returns one message per path it could not change; a store shared on purpose keeps working.
     """
-    if os.name != "posix":
+    if not POSIX:
         return []
     problems = []
     targets = [(root, PRIVATE_DIR_MODE)] + [(root / name, PRIVATE_FILE_MODE) for name in PRIVATE_FILES]

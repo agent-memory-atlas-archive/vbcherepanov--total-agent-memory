@@ -18,6 +18,7 @@ from uuid import UUID
 from cryptography.fernet import InvalidToken
 from pydantic import ValidationError
 
+from paths import exposed_to_others
 from tam_db.contracts import ActiveDatabase, Backend, ControlKind, DatabaseSettings
 from team_memory.contracts import Conflict
 from team_memory.database import (
@@ -82,10 +83,10 @@ class FileDatabaseConfigStore:
 
     def load(self) -> DatabaseConfig | None:
         try:
-            mode = self.path.stat().st_mode
+            exposed = exposed_to_others(self.path)
         except FileNotFoundError:
             return None
-        if mode & 0o077:
+        if exposed:
             raise DatabaseStartupRefused(StartupRefusal.CONFIG_UNREADABLE,
                                          f"{DATABASE_CONFIG_FILE} must not be readable by group or others (chmod 600)")
         try:

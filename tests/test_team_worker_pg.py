@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pytest
 
+# These scenarios run with a PostgreSQL control plane active, where spawning a worker imports psycopg.
+pytest.importorskip("psycopg")
+
 from tam_db.contracts import ActiveDatabase, Backend, StoreDatabase
 from team_memory.contracts import Save, Unavailable, Work
 from team_memory.registry import Registry

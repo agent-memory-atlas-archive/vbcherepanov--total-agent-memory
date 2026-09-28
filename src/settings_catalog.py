@@ -16,6 +16,8 @@ from urllib.parse import urlsplit
 from cryptography.fernet import Fernet
 from pydantic import BaseModel, ConfigDict
 
+from paths import exposed_to_others
+
 LOGGER = logging.getLogger(__name__)
 MAX_VALUE_CHARS = 4096
 MASK_VISIBLE_CHARS = 4
@@ -170,13 +172,13 @@ def load_master_key(root: Path, env_name: str, environ: Mapping[str, str] | None
         return key
     path = root / "master.key"
     if not create:
-        if path.is_file() and path.stat().st_mode & 0o077:
+        if path.is_file() and exposed_to_others(path):
             raise PermissionError(f"{path} must not be readable by group or others (chmod 600)")
         return path.read_bytes().strip()
     try:
         fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     except FileExistsError:
-        if path.stat().st_mode & 0o077:
+        if exposed_to_others(path):
             raise PermissionError(f"{path} must not be readable by group or others (chmod 600)") from None
         return path.read_bytes().strip()
     with os.fdopen(fd, "wb") as destination:

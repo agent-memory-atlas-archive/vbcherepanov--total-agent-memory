@@ -49,9 +49,13 @@ MODIFIERS = [
     ("bogus",), ("+1 fortnight",), ("1 day",), ("+1 DAYS",), (" +1 day",), ("+1 day ",), ("unixepoch", "start of day"),
     ("start of day", "unixepoch"), ("+1e1 days",), ("+5",), ("-15000 years",), ("+176545 months",),
 ]
+# %V %G %g %u arrived in SQLite 3.46; older builds (the Python on some CI images) return NULL for any
+# format that uses them, so they are compared only against a SQLite that has them.
+ISO_WEEK_FORMAT = "%j %W %U %V %G %g %u %w"
 STRFTIME_FORMATS = [
-    "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%fZ", "%s", "%J", "%j %W %U %V %G %g %u %w", "%e|%k|%I|%l|%p|%P",
+    "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%fZ", "%s", "%J", "%j %W %U %w", "%e|%k|%I|%l|%p|%P",
     "%R %T %F", "%% literal", "%Q", "", "%",
+    *([ISO_WEEK_FORMAT] if sqlite3.sqlite_version_info >= (3, 46, 0) else []),
 ]
 
 

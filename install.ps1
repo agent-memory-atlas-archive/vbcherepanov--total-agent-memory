@@ -62,6 +62,10 @@ Write-Host ""
 
 # -- Config --
 $HomeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }
+# The registration module resolves the home directory with Python's Path.home(): USERPROFILE on
+# Windows, HOME elsewhere (pwsh on macOS/Linux). It must see the same home as this script, or the
+# entry lands in another user's configs.
+$env:HOME = $HomeDir
 $MemoryDir = if ($env:TAM_MEMORY_DIR) {
     $env:TAM_MEMORY_DIR
 } elseif ($env:CLAUDE_MEMORY_DIR) {

@@ -97,7 +97,8 @@ def test_personal_interactive_registers_clients_hides_key_and_writes_record(tmp_
     assert SECRET not in (world.home / '.tam' / 'settings.json').read_text()
     saved = saved_settings(world)
     assert saved['OPENAI_API_KEY'] == SECRET and saved['MEMORY_LLM_PROVIDER'] == 'openai'
-    assert stat.S_IMODE((world.home / '.tam' / 'master.key').stat().st_mode) == 0o600
+    if os.name == 'posix':
+        assert stat.S_IMODE((world.home / '.tam' / 'master.key').stat().st_mode) == 0o600
     record = json.loads(world.record.read_text())
     assert record['mode'] == 'personal' and record['personal']['clients'] == ['claude-code', 'codex']
     assert record['personal']['llm_key_set'] is True and record['personal']['hooks'] is True

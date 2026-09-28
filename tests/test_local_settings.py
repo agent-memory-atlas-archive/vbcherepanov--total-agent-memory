@@ -27,8 +27,9 @@ def test_secret_is_encrypted_at_rest_and_masked_in_the_view(tmp_path):
         ["ANTHROPIC_API_KEY", "MEMORY_LLM_PROVIDER"]
     raw = (tmp_path / "settings.json").read_text()
     assert KEY not in raw
-    assert stat.S_IMODE((tmp_path / "settings.json").stat().st_mode) == 0o600
-    assert stat.S_IMODE((tmp_path / "master.key").stat().st_mode) == 0o600
+    if os.name == "posix":
+        assert stat.S_IMODE((tmp_path / "settings.json").stat().st_mode) == 0o600
+        assert stat.S_IMODE((tmp_path / "master.key").stat().st_mode) == 0o600
     views = {v.key: v for v in store.view()}
     assert views["ANTHROPIC_API_KEY"].value is None
     assert views["ANTHROPIC_API_KEY"].hint == "••••6789"
@@ -65,6 +66,7 @@ def test_invalid_changes_are_refused_and_nothing_is_written(tmp_path, key, value
     assert not (tmp_path / "settings.json").exists()
 
 
+@pytest.mark.skipif(os.name != "posix", reason="Windows protects the profile with ACLs, not mode bits")
 def test_a_readable_master_key_is_refused(tmp_path):
     store = local_settings.LocalSettings(tmp_path, {})
     store.update({"OPENAI_API_KEY": KEY})
@@ -146,3 +148,14 @@ def test_master_key_can_come_from_the_environment(tmp_path):
     assert not (tmp_path / "master.key").exists()
     assert local_settings.LocalSettings(tmp_path, env).overrides() == {"OPENAI_API_KEY": KEY}
     assert local_settings.LocalSettings(tmp_path, {}).overrides() == {}
+
+
+def test_mode_bits_are_ignored_off_posix(tmp_path, monkeypatch):
+    """Windows reports 0o666 for every file; the master key must still load there (CI regression)."""
+    import paths
+    key = tmp_path / "master.key"
+    local_settings.LocalSettings(tmp_path, {}).update({"OPENAI_API_KEY": KEY})
+    os.chmod(key, 0o666)
+    monkeypatch.setattr(paths, "POSIX", False)
+    assert paths.exposed_to_others(key) is False
+    assert local_settings.LocalSettings(tmp_path, {}).overrides() == {"OPENAI_API_KEY": KEY}

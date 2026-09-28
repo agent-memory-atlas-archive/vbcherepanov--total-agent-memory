@@ -765,3 +765,10 @@ def test_web_origin_plane_applies_the_overrides_to_every_connection(tmp_path, pg
     assert seen and all(set(options) == WEB_OPTION_KEYS and all(options.values()) for options in seen), seen
     assert {options["passfile"] for options in seen} == {str(root / ".empty-pgpass")}
     assert {options["require_auth"] for options in seen} == {"password,md5,scram-sha-256"}
+
+
+def test_missing_config_is_none_where_mode_bits_are_not_checked(tmp_path, monkeypatch):
+    """Windows CI regression: without the POSIX check a missing file must still mean "no config"."""
+    import paths
+    monkeypatch.setattr(paths, "POSIX", False)
+    assert FileDatabaseConfigStore(tmp_path, {}).load() is None

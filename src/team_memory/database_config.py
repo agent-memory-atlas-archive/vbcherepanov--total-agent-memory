@@ -82,11 +82,9 @@ class FileDatabaseConfigStore:
         self.environ = _environ(environ)
 
     def load(self) -> DatabaseConfig | None:
-        try:
-            exposed = exposed_to_others(self.path)
-        except FileNotFoundError:
+        if not self.path.is_file():
             return None
-        if exposed:
+        if exposed_to_others(self.path):
             raise DatabaseStartupRefused(StartupRefusal.CONFIG_UNREADABLE,
                                          f"{DATABASE_CONFIG_FILE} must not be readable by group or others (chmod 600)")
         try:

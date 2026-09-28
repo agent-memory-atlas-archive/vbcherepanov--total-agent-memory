@@ -13,9 +13,10 @@ pytestmark = pytest.mark.skipif(POWERSHELL is None, reason='Requires PowerShell 
 
 
 def run_installer(home, *arguments):
-    # HOME as well: with pwsh on macOS/Linux, anything that resolves the home without USERPROFILE must
-    # still land in the test home, never in the developer's real client configs.
-    env = {**os.environ, 'USERPROFILE': str(home), 'HOME': str(home), 'INSTALL_TEST_MODE': '1',
+    # HOME and XDG_CONFIG_HOME as well: with pwsh on macOS/Linux, anything that resolves the home or
+    # the config dir without USERPROFILE must still land in the test home, never in real client configs.
+    env = {**os.environ, 'USERPROFILE': str(home), 'HOME': str(home), 'XDG_CONFIG_HOME': str(home / '.config'),
+           'INSTALL_TEST_MODE': '1',
            'TAM_MEMORY_DIR': str(home / 'current memory'),
            'CLAUDE_MEMORY_DIR': str(home / 'legacy memory')}
     return subprocess.run([POWERSHELL, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
@@ -106,7 +107,8 @@ with open(sys.argv[1], encoding="utf-8") as source:
 
 def test_windows_background_launcher_keeps_memory_and_arguments(tmp_path):
     home = tmp_path / 'Вася & Петя'
-    env = {**os.environ, 'USERPROFILE': str(home), 'HOME': str(home), 'TAM_MEMORY_DIR': str(home / 'memory'),
+    env = {**os.environ, 'USERPROFILE': str(home), 'HOME': str(home), 'XDG_CONFIG_HOME': str(home / '.config'),
+           'TAM_MEMORY_DIR': str(home / 'memory'),
            'INSTALL_TEST_MODE': '1', 'TAM_CHECK_INSTALLER': str(ROOT / 'install.ps1')}
     command = (
         '. $env:TAM_CHECK_INSTALLER -TestMode -Ide cursor; '

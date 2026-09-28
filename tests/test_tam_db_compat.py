@@ -49,13 +49,34 @@ MODIFIERS = [
     ("bogus",), ("+1 fortnight",), ("1 day",), ("+1 DAYS",), (" +1 day",), ("+1 day ",), ("unixepoch", "start of day"),
     ("start of day", "unixepoch"), ("+1e1 days",), ("+5",), ("-15000 years",), ("+176545 months",),
 ]
-# %V %G %g %u arrived in SQLite 3.46; older builds (the Python on some CI images) return NULL for any
-# format that uses them, so they are compared only against a SQLite that has them.
-ISO_WEEK_FORMAT = "%j %W %U %V %G %g %u %w"
+# The translator reproduces current SQLite semantics; SQLite before 3.45 rounds and parses dates differently
+# and is not a valid reference for it.
+if sqlite3.sqlite_version_info < (3, 45, 0):
+    pytest.skip(f"compat is checked against SQLite 3.45+, this Python has {sqlite3.sqlite_version}",
+                allow_module_level=True)
+
+
+def _sqlite_knows(format_: str) -> bool:
+    """Older SQLite builds (the Python on some CI images) return NULL for any format with a newer specifier."""
+    with sqlite3.connect(":memory:") as db:
+        return db.execute("SELECT strftime(?, '2024-01-01 10:20:30')", (format_,)).fetchone()[0] is not None
+
+
+def _sqlite_takes_modifier(modifier: str) -> bool:
+    with sqlite3.connect(":memory:") as db:
+        return db.execute("SELECT date('2024-01-31', '+1 month', ?)", (modifier,)).fetchone()[0] is not None
+
+
+# The ceiling/floor modifiers arrived after 3.45.1; compare them only against a SQLite that has them.
+NEWER_MODIFIERS = tuple(m for m in ("ceiling", "floor") if not _sqlite_takes_modifier(m))
+MODIFIERS = [modifiers for modifiers in MODIFIERS if not set(modifiers) & set(NEWER_MODIFIERS)]
+
+# Formats every supported SQLite answers ("%Q" and "%" are NULL on purpose), then specifiers added in
+# later SQLite releases, compared only where this SQLite knows them (3.40 lacks all of them).
+NEWER_FORMATS = ("%e|%k|%I|%l|%p|%P", "%R %T %F", "%U", "%V", "%G", "%g", "%u")
 STRFTIME_FORMATS = [
-    "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%fZ", "%s", "%J", "%j %W %U %w", "%e|%k|%I|%l|%p|%P",
-    "%R %T %F", "%% literal", "%Q", "", "%",
-    *([ISO_WEEK_FORMAT] if sqlite3.sqlite_version_info >= (3, 46, 0) else []),
+    "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%fZ", "%s", "%J", "%j %W %w", "%% literal", "%Q", "", "%",
+    *(f for f in NEWER_FORMATS if _sqlite_knows(f)),
 ]
 
 

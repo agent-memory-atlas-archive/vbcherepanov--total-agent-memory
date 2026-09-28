@@ -8,13 +8,34 @@ reaches `memory.db`, the raw call log or the extract queue.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from typing import Any
 
 REDACTED = "[REDACTED]"
 
+
+def _luhn_valid(digits: str) -> bool:
+    total = 0
+    for index, char in enumerate(reversed(digits)):
+        value = int(char)
+        if index % 2:
+            value *= 2
+            if value > 9:
+                value -= 9
+        total += value
+    return total % 10 == 0
+
+
+def _redact_card(match: re.Match[str]) -> str:
+    # Only numbers that pass the Luhn check are card numbers; order ids,
+    # timestamps and other 16-digit values stay readable.
+    digits = re.sub(r"\D", "", match.group(0))
+    return REDACTED if _luhn_valid(digits) else match.group(0)
+
+
 # (pattern, replacement). Order matters: specific key formats run before the
 # generic `name = value` rules so a key is replaced whole, not half.
-SECRET_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+SECRET_PATTERNS: tuple[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]], ...] = (
     # PEM private key blocks, including a header whose END line is missing.
     (re.compile(r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----(?:.*?-----END [A-Z0-9 ]*PRIVATE KEY-----|.*\Z)",
                 re.DOTALL), REDACTED),
@@ -41,7 +62,9 @@ SECRET_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
                 re.IGNORECASE), REDACTED),
     (re.compile(r"\b(?:token|api[_-]?key|access[_-]?key|private[_-]?key)\s*[:=]\s*\S+", re.IGNORECASE), REDACTED),
     (re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"), REDACTED),  # e-mail addresses
-    (re.compile(r"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b"), REDACTED),       # payment card numbers
+    # Payment card numbers: a standalone run of 16 digits, not a piece of a
+    # UUID or another hyphenated or alphanumeric identifier.
+    (re.compile(r"(?<![\w-])\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}(?![\w-])"), _redact_card),
 )
 
 # Argument keys that carry filesystem locations, never user prose. A path may

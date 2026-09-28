@@ -156,5 +156,6 @@ def test_readme_links_to_installation_md():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "docs/installation.md" in readme, \
         "README.md Install section must link to docs/installation.md"
-    assert "Platform matrix" in readme, \
-        "README.md must include a Platform matrix subsection"
+    installation = (ROOT / "docs" / "installation.md").read_text(encoding="utf-8")
+    assert "## Platform matrix" in installation, \
+        "docs/installation.md must include a Platform matrix section"

@@ -4,6 +4,12 @@ All notable changes to total-agent-memory are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and versions use [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Credential redaction broke some request IDs.** The payment-card rule matched a UUID whose first three groups happen to be all digits (about one UUID in a thousand), so a team-server `memory_save` could fail with "request_id: Input should be a valid UUID". A card number now has to stand alone (not inside a hyphenated or alphanumeric identifier) and pass the Luhn check, so UUIDs, order numbers and other 16-digit identifiers are kept.
+
 ## [14.6.0] - 2026-09-27
 
 ### Added

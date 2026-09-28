@@ -1,6 +1,6 @@
-# Organisational memory on the team server, v14.5.1, 2026-09-25
+# Organisational memory on the team server, measured on 14.5.1, fixes released in 14.6.0 (tag v14.6.0, 7482d8a), 2026-09-25
 
-**Status: DONE_WITH_CONCERNS.** All four experiments ran. E2b (LLM answer accuracy) was skipped. Two bugs were found and fixed as separate patches with regression tests. The fixes are uncommitted; the owner commits them. Timing numbers were taken on a shared machine with other jobs running (load is shown next to every timing table). The synthetic data is easy for retrieval (see E2a), so retrieval quality numbers are an upper bound, not a field result.
+**Status: DONE_WITH_CONCERNS.** All four experiments ran. E2b (LLM answer accuracy) was skipped. Two bugs were found and fixed as separate patches with regression tests. The fixes were released in 14.6.0. Timing numbers were taken on a shared machine with other jobs running (load is shown next to every timing table). The synthetic data is easy for retrieval (see E2a), so retrieval quality numbers are an upper bound, not a field result.
 
 ## What was measured, in one table
 
@@ -151,7 +151,7 @@ Cause: the pool authorises the write under its lock and the worker commits it. T
 
 - Their requests: scopes, recall, get, save all returned 401.
 - Colleagues: `sales-editor2` and `sales-reader` could read 25 of 25 of their records. `created_by` still names `sales-editor1` in 25 of 25.
-- Personal area: see the answer to question 1 below. Release 14.5.2 adds `user-export` and `user-purge` for it.
+- Personal area: see the answer to question 1 below. Release 14.6.0 adds `user-export` and `user-purge` for it.
 
 Offboarding without the token file (bug 02). `token-revoke` needs the plaintext token file (`cli.py:28-29`, `registry.py:97-100`); only a hash is stored. The `users.active` column is checked on login (`registry.py:105`) but no code at 95ea2b8 ever sets it to 0. If the admin did not keep the token file, the only step left is membership removal. In the base run, `hr-editor1` after `member ... remove` could still write to shared (HTTP 200). By the code (`registry.py:110-119`), the same token also still opens their personal area. Fix 02 adds `tam-team user-disable <id>`: it sets `active=0`, revokes all tokens of the user and logs `user_disabled`. After it (patched run): scopes, recall and a shared save by `hr-editor1` returned 401, 401, 401, and `token-create` for that user failed with exit code 1.
 
@@ -343,13 +343,13 @@ Full suite on the final 14.6.0 tree, both backends (`pytest tests --backend=both
 | # | Bug | Evidence (base) | Patch | Regression test | Proposed commit message |
 |---|---|---|---|---|---|
 | 01 | A write that was authorised and committed is reported to the client as `forbidden` if membership or the token is removed while the worker runs | 16 of 40 races (E2) | `patches/01-write-success-after-revocation.patch` (`src/team_memory/service.py`) | `tests/test_team_write_revocation.py`: fails on base (1 of 2 tests), passes after | `fix(team): report committed writes as success after revocation` |
-| 02 | Offboarding needs the user's plaintext token file; `users.active` is checked but can never be set, so without the file the user keeps shared write access and the personal area | E2 base: shared write after `member remove` returned 200 | `patches/02-user-disable.patch` (`registry.py`, `cli.py`, `docs/TEAM_SERVER_V14.md`) | `tests/test_team_user_disable.py`: 2 of 2 fail on base, pass after | `fix(team): add user-disable to offboard without token files` |
+| 02 | Offboarding needs the user's plaintext token file; `users.active` is checked but can never be set, so without the file the user keeps shared write access and the personal area | E2 base: shared write after `member remove` returned 200 | `patches/02-user-disable.patch` (`registry.py`, `cli.py`, `docs/TEAM_SERVER_V14.md`) | `tests/test_team_offboarding.py`: 2 of 2 fail on base, pass after | `fix(team): add user-disable to offboard without token files` |
 
 Verification after the patches: `tests/test_team_memory.py`, `tests/test_team_worker_reuse.py`, `tests/test_team_lifecycle.py` and the two new files: 19 passed. Ruff on the changed files and the benchmark folder: clean (two pre-existing ruff findings in `app.py` and `lifecycle.py` were not touched).
 
 Not a bug, documented: the same `request_id` in a different scope is not detected (E3).
 
-Added for release 14.5.2 (not a bug fix): `tam-team user-export` and `tam-team user-purge` for the personal area of a disabled user (see question 1), with `tests/test_team_personal_offboarding.py`, and `tests/test_team_shared_scope.py` for the shared-area rule (see question 2).
+Added for release 14.6.0 (not a bug fix): `tam-team user-export` and `tam-team user-purge` for the personal area of a disabled user (see question 1), with `tests/test_team_personal_offboarding.py`, and `tests/test_team_shared_scope.py` for the shared-area rule (see question 2).
 
 ## Answers to the three questions
 
@@ -359,7 +359,7 @@ Line numbers refer to 95ea2b8.
 
 At 95ea2b8 nothing is deleted. The area is a separate SQLite file under `workspaces/personal_<sha256(user_id)>/memory.db` (`registry.py:114`, `worker.py:195`). After token revocation and membership removal it was still on disk with its 3 active records, and it is included in `tam-team backup` (`lifecycle.py:85`; verified in E2). Through the API nobody else can reach it: a personal scope always resolves to the caller's own file (`registry.py:114`, `121-127`), and a scope with an `owner_id` is rejected as an unknown field (`contracts.py:39`, observed HTTP 400). Other users searching its text got 0 of its canaries. At 95ea2b8 there is no command that deletes or exports it, and an admin could issue a new token for the same user id (`registry.py:86-95`); the user then sees the personal area again (verified in E2).
 
-Owner's decision for release 14.5.2: offboarding gets explicit commands. `tam-team user-disable <id>` (patch 02) revokes every token and refuses new ones. `tam-team user-export <id> --out <file>` writes all personal records (every status, with authorship) and the full history as JSONL; the file is created with mode 0600 and an existing file is never overwritten. `tam-team user-purge <id> --confirm <id>` deletes the personal area. Both refuse an active user. Export reads the database read-only and works while the server runs. Purge needs the server stopped, like `backup`: a running server or a live workspace process is detected through their locks, and the command refuses (`src/team_memory/offboarding.py`). Both write an audit event (`personal_exported`, `personal_purged`) without any record content. Team and shared records written by the user live in other databases and keep `created_by`. Backups taken before the purge still contain the personal area (`docs/TEAM_SERVER_V14.md`). Tests: `tests/test_team_personal_offboarding.py`. These commands were added after the measured runs; E2 above measured 95ea2b8 and patches 01 and 02.
+Owner's decision for release 14.6.0: offboarding gets explicit commands. `tam-team user-disable <id>` (patch 02) revokes every token and refuses new ones. `tam-team user-export <id> --out <file>` writes all personal records (every status, with authorship) and the full history as JSONL; the file is created with mode 0600 and an existing file is never overwritten. `tam-team user-purge <id> --confirm <id>` deletes the personal area. Both refuse an active user. Export reads the database read-only and works while the server runs. Purge needs the server stopped, like `backup`: a running server or a live workspace process is detected through their locks, and the command refuses (`src/team_memory/offboarding.py`). Both write an audit event (`personal_exported`, `personal_purged`) without any record content. Team and shared records written by the user live in other databases and keep `created_by`. Backups taken before the purge still contain the personal area (`docs/TEAM_SERVER_V14.md`). Tests: `tests/test_team_personal_offboarding.py`. These commands were added after the measured runs; E2 above measured 95ea2b8 and patches 01 and 02.
 
 **2. Can every user edit shared, and how is that recorded?**
 

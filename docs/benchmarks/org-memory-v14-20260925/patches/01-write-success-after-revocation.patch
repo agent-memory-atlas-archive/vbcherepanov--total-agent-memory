@@ -1,0 +1,85 @@
+diff --git a/src/team_memory/service.py b/src/team_memory/service.py
+index f31ac08..a41b080 100644
+--- a/src/team_memory/service.py
++++ b/src/team_memory/service.py
+@@ -82,10 +82,15 @@ class MemoryService:
+             work = Work(actor=actor, workspace=workspace, operation=name,
+                         arguments=request.model_dump(mode="json", exclude={"scope"}))
+             data = await asyncio.to_thread(self.pool.invoke, work, token)
+-            current_actor = self.registry.authenticate(token)
+-            self.registry.authorize(current_actor, workspace.scope, False)
++            if name not in WRITES:
++                current_actor = self.registry.authenticate(token)
++                self.registry.authorize(current_actor, workspace.scope, False)
+             output.append({"scope": workspace.scope.model_dump(mode="json"),
+                            "scope_tags": workspace.scope.system_tags(), "data": data})
++        if name in WRITES:
++            # The pool authorised the write under its lock and the worker committed it;
++            # a later revocation must not turn a committed write into a reported failure.
++            return output[0]
+         current_actor = self.registry.authenticate(token)
+         for workspace in scopes:
+             self.registry.authorize(current_actor, workspace.scope, False)
+diff --git a/tests/test_team_write_revocation.py b/tests/test_team_write_revocation.py
+new file mode 100644
+index 0000000..7bf6282
+--- /dev/null
++++ b/tests/test_team_write_revocation.py
+@@ -0,0 +1,57 @@
++import pytest
++
++from team_memory.contracts import Forbidden
++from team_memory.registry import Registry
++from team_memory.service import MemoryService
++
++TEAM = {'kind': 'team', 'team_id': 'finance'}
++
++
++@pytest.fixture
++def anyio_backend():
++    return 'asyncio'
++
++
++@pytest.fixture
++def registry(tmp_path):
++    result = Registry(tmp_path)
++    result.add_user('anna', 'Anna')
++    result.add_team('finance', 'Finance')
++    result.membership('anna', 'finance', 'editor')
++    return result
++
++
++class RemovedDuringOperation:
++    """Pool double: the membership is removed while the worker is executing, after authorisation."""
++
++    def __init__(self, registry):
++        self.registry = registry
++        self.calls = 0
++
++    def search_order(self, scopes):
++        return scopes
++
++    def invoke(self, work, token):
++        self.calls += 1
++        self.registry.membership('anna', 'finance', None)
++        return {'id': 7, 'content': work.arguments.get('content', ''), 'saved': True}
++
++
++@pytest.mark.anyio
++async def test_committed_write_is_not_reported_as_forbidden_after_membership_removal(registry):
++    token = registry.issue_token('anna', 'test')
++    pool = RemovedDuringOperation(registry)
++    result = await MemoryService(registry, pool).call(token, 'memory_save', {'scope': TEAM, 'content': 'Close on day 3.'})
++    assert pool.calls == 1
++    assert result['data']['id'] == 7
++    assert result['scope'] == TEAM
++    with pytest.raises(Forbidden):
++        await MemoryService(registry, pool).call(token, 'memory_save', {'scope': TEAM, 'content': 'Second write.'})
++    assert pool.calls == 1
++
++
++@pytest.mark.anyio
++async def test_read_is_still_withheld_when_membership_is_removed_mid_operation(registry):
++    token = registry.issue_token('anna', 'test')
++    with pytest.raises(Forbidden):
++        await MemoryService(registry, RemovedDuringOperation(registry)).call(token, 'memory_get', {'scope': TEAM, 'id': 7})

@@ -25,6 +25,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from memory_core.timestamps import utc_now
 from paths import memory_dir
+from secret_redaction import redact_secrets
 
 MAX_OUTPUT_KB = 200
 MAX_USER_TEXT = 2000
@@ -33,19 +34,16 @@ MAX_TOOL_INPUT_TEXT = 200
 HEAD_MESSAGES = 20
 TAIL_MESSAGES = 30
 
-SENSITIVE_PATTERNS = [
+# Transcript-only rule on top of the shared list: credential/auth names with a quoted value.
+TRANSCRIPT_PATTERNS = [
     re.compile(r'(?:api[_-]?key|password|secret|token|credential|auth)\s*[:=]\s*["\']?[\w\-\.]{8,}', re.IGNORECASE),
-    re.compile(r'sk-[a-zA-Z0-9]{20,}'),
-    re.compile(r'ghp_[a-zA-Z0-9]{36}'),
-    re.compile(r'gho_[a-zA-Z0-9]{36}'),
-    re.compile(r'-----BEGIN (?:RSA |EC |DSA )?PRIVATE KEY-----'),
-    re.compile(r'Bearer\s+[a-zA-Z0-9\-._~+/]+=*', re.IGNORECASE),
 ]
 
 
 def sanitize(text: str) -> str:
     """Remove sensitive data from text."""
-    for pattern in SENSITIVE_PATTERNS:
+    text, _ = redact_secrets(text)
+    for pattern in TRANSCRIPT_PATTERNS:
         text = pattern.sub('[REDACTED]', text)
     return text
 

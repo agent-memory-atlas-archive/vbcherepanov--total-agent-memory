@@ -227,8 +227,8 @@ def test_linux_hooks_and_mcp_config_created_same_as_macos(sandbox_home: Path, tm
 
     import json
     data = json.loads(settings.read_text())
-    # MCP server registered
-    assert "memory" in data["mcpServers"]
+    # MCP server registered where Claude Code reads it (~/.claude.json), hooks in settings.json
+    assert "memory" in json.loads((sandbox_home / ".claude.json").read_text())["mcpServers"]
     # Hooks registered — same set as macOS
     assert "hooks" in data
     assert "SessionStart" in data["hooks"]

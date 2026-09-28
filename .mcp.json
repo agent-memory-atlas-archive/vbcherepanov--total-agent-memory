@@ -3,7 +3,7 @@
     "memory": {
       "command": "python3",
       "args": [
-        "${CLAUDE_PLUGIN_ROOT}/bin/tam_plugin_bootstrap.py"
+        "${CLAUDE_PLUGIN_ROOT}/scripts/tam_plugin_bootstrap.py"
       ],
       "env": {
         "MEMORY_MODE": "fast",

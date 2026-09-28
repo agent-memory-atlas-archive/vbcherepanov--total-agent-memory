@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
@@ -93,7 +95,7 @@ def test_mode_index_respects_limit_via_caller():
     assert scores == sorted(scores, reverse=True)
 
 
-def test_mode_index_skips_cognitive_expansion(monkeypatch, tmp_path):
+def test_mode_index_skips_cognitive_expansion(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     """Dispatcher must not attach cognitive/expansion blocks for index mode."""
     # Use a real Store so recall.search works, but intercept cognitive.
     sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -103,7 +105,7 @@ def test_mode_index_skips_cognitive_expansion(monkeypatch, tmp_path):
     import server
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
 
-    s = server.Store()
+    s = server.Store(database=store_backend)
     server.store = s
     server.recall = server.Recall(s)
     server.SID = "sess-index-1"
@@ -311,7 +313,7 @@ def test_mode_timeline_falls_back_when_no_session_neighbors():
 # ── integration: backward compat ─────────────────────────────
 
 
-def test_mode_search_backward_compat(monkeypatch, tmp_path):
+def test_mode_search_backward_compat(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     """Default call (no ``mode=``) must return the legacy ``results`` dict
     shape grouped by type — existing callers break otherwise.
     """
@@ -320,7 +322,7 @@ def test_mode_search_backward_compat(monkeypatch, tmp_path):
 
     import server
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    s = server.Store()
+    s = server.Store(database=store_backend)
     server.store = s
     server.recall = server.Recall(s)
     server.SID = "sess-compat-1"

@@ -1,0 +1,323 @@
+diff --git a/docs/TEAM_SERVER_V14.md b/docs/TEAM_SERVER_V14.md
+--- a/docs/TEAM_SERVER_V14.md
++++ b/docs/TEAM_SERVER_V14.md
+@@ -5,7 +5,7 @@
+ ## Возможности и права
+ 
+ - По умолчанию запись личная; поиск охватывает все доступные области. Область передаётся структурой `scope`, например `{"kind":"team","team_id":"engineering"}`. Тематические теги не расширяют доступ.
+-- Участник команды имеет роль `reader` или `editor`. Общую память читают и редактируют все аутентифицированные пользователи этого сервера. Административные изменения выполняются через локальную CLI.
++- Участник команды имеет роль `reader` или `editor`. Общую память читают и редактируют все аутентифицированные пользователи этого сервера, включая тех, у кого в командах роль `reader`: общая область открыта всей компании, а роли `reader`/`editor` ограничивают только командные области. Каждая правка пишется в историю с автором. Административные изменения выполняются через локальную CLI.
+ - Автор и название клиента берутся из личного токена. Хранятся только хеши токенов; токен можно отозвать. Членство и токен проверяются на каждом запросе и перед отправкой работы в процесс.
+ - Правка создаёт новую версию записи; возвращённый новый ID использовать дальше. Исходный автор сохраняется. `expected_revision` защищает от затирания чужих правок. История включает предыдущие версии, автора, время UTC, причину и состояния до/после.
+ - Изменение записи и аудит выполняются в одной транзакции. История сохраняется после мягкого удаления. Для прежних записей без автора используется `Legacy / unknown`.
+@@ -31,6 +31,8 @@
+ ```
+ 
+ Токен записывается в новый файл с правами0600; существующий файл не перезаписывается. Для второго пользователя создать отдельный токен. Отзыв: `tam-team --root /path/to/team-data token-revoke --file /path/to/vasya.token`. Удаление членства: `tam-team --root /path/to/team-data member petya engineering remove`. Увольнение без файлов токенов: `tam-team --root /path/to/team-data user-disable petya` отзывает все токены пользователя и запрещает выпуск новых; его командные записи и авторство остаются, личная область остаётся на диске и в резервной копии, но через API недоступна никому.
++
++Личная область отключённого пользователя. `tam-team --root /path/to/team-data user-export petya --out /path/to/petya.jsonl` выгружает все его личные записи (включая заменённые и удалённые) с авторством и полной историей в JSONL. Файл создаётся с правами 0600, существующий файл не перезаписывается. Выгрузка читает базу только на чтение и работает при запущенном сервере. `tam-team --root /path/to/team-data user-purge petya --confirm petya` удаляет каталог личной области. Обе команды работают только для пользователя после `user-disable`. Удаление, как и `backup`, требует остановленного сервера: запущенный сервер или оставшийся процесс области обнаруживается по блокировке, и команда отказывает. В журнал администратора пишутся события `personal_exported` и `personal_purged` без содержимого записей. Командные и общие записи этого пользователя хранятся в других базах и остаются с прежним автором. Резервные копии, сделанные до удаления, по-прежнему содержат личную область; их нужно удалять или хранить отдельно по правилам компании.
+ 
+ Из checkout та же CLI: `PYTHONPATH=src python -m team_memory.cli ...`. В PowerShell сначала `$env:PYTHONPATH='src'`, затем `python -m team_memory.cli ...`. Эти команды не запускались против рабочей установки.
+ 
+diff --git a/src/team_memory/cli.py b/src/team_memory/cli.py
+--- a/src/team_memory/cli.py
++++ b/src/team_memory/cli.py
+@@ -1,6 +1,7 @@
+ import argparse
+ import logging
+ import os
++import sys
+ from pathlib import Path
+ 
+ from team_memory.registry import Registry
+@@ -27,6 +28,12 @@
+     token.add_argument("--out", type=Path, required=True)
+     disable = commands.add_parser("user-disable")
+     disable.add_argument("id")
++    export = commands.add_parser("user-export", help="Write a disabled user's personal records and history as JSONL")
++    export.add_argument("id")
++    export.add_argument("--out", type=Path, required=True)
++    purge = commands.add_parser("user-purge", help="Delete a disabled user's personal area (server stopped)")
++    purge.add_argument("id")
++    purge.add_argument("--confirm", required=True, help="Repeat the user ID")
+     revoke = commands.add_parser("token-revoke")
+     revoke.add_argument("--file", type=Path, required=True)
+     snapshot = commands.add_parser("backup")
+@@ -45,6 +52,20 @@
+             restore(args.snapshot, args.root)
+         return
+     registry = Registry(args.root)
++    if args.command in ("user-export", "user-purge"):
++        from team_memory.contracts import DomainError
++        from team_memory.offboarding import export_personal, purge_personal
++        try:
++            if args.command == "user-export":
++                done = export_personal(registry, args.id, args.out)
++                sys.stdout.write(f"Exported {done['records']} records and {done['history']} history events to {args.out}\n")
++            else:
++                done = purge_personal(registry, args.id, args.confirm)
++                sys.stdout.write(f"Deleted the personal area of {args.id} ({done['records']} records). "
++                                 "Backups taken earlier still contain it.\n")
++        except (DomainError, FileExistsError) as exc:
++            parser.exit(1, f"{exc}\n")
++        return
+     if args.command == "user-add":
+         registry.add_user(args.id, args.name)
+     elif args.command == "team-add":
+diff --git a/src/team_memory/offboarding.py b/src/team_memory/offboarding.py
+new file mode 100644
+--- /dev/null
++++ b/src/team_memory/offboarding.py
+@@ -0,0 +1,101 @@
++"""Export or purge the personal area of a disabled user (`tam-team user-export`, `tam-team user-purge`).
++
++Personal memory is private to its owner, so both commands refuse an active user: run `user-disable` first.
++Export reads the workspace database read-only and is safe while the server runs; a disabled user cannot
++write to it any more. Purge deletes files, so, like `backup`, it needs the server stopped and detects a
++running server or a live workspace process through their leases. Team and shared records the user
++wrote live in other databases and keep their author. Backups taken earlier still contain the personal
++area.
++"""
++import json
++import os
++import shutil
++import sqlite3
++from contextlib import closing
++from datetime import UTC, datetime
++from pathlib import Path
++
++from team_memory.contracts import Conflict, DomainError, Forbidden
++from team_memory.lifecycle import ServerLease
++from team_memory.registry import Registry
++from version import VERSION
++
++JSON_COLUMNS = ("created_by", "updated_by", "actor", "before_state", "after_state")
++
++
++def personal_workspace(registry: Registry, user_id: str) -> Path:
++    return registry.root / "workspaces" / ("personal_" + registry.digest(user_id))
++
++
++def _require_disabled(registry: Registry, user_id: str) -> None:
++    with registry.connect() as db:
++        row = db.execute("SELECT active FROM users WHERE id=?", (user_id,)).fetchone()
++    if row is None:
++        raise DomainError("Unknown user")
++    if row["active"]:
++        raise Forbidden("Personal memory is private; run user-disable first")
++
++
++def _database(registry: Registry, user_id: str) -> Path:
++    path = personal_workspace(registry, user_id) / "memory.db"
++    if not path.is_file():
++        raise Conflict("No personal memory is stored for this user")
++    return path
++
++
++def _rows(db: sqlite3.Connection, query: str) -> list[dict]:
++    db.row_factory = sqlite3.Row
++    out = []
++    for row in db.execute(query):
++        item = dict(row)
++        for column in JSON_COLUMNS:
++            if isinstance(item.get(column), str):
++                item[column] = json.loads(item[column])
++        out.append(item)
++    return out
++
++
++def _json(value):
++    if isinstance(value, bytes):
++        return {"hex": value.hex()}
++    raise TypeError(f"Unsupported value in export: {type(value).__name__}")
++
++
++def export_personal(registry: Registry, user_id: str, out: Path) -> dict[str, int]:
++    """Write every personal record (all statuses, with authorship) and its full history as JSONL (mode 0600)."""
++    _require_disabled(registry, user_id)
++    source = _database(registry, user_id)
++    with closing(sqlite3.connect(source.as_uri() + "?mode=ro", uri=True)) as db:
++        records = _rows(db, "SELECT k.*, a.created_by, a.updated_by, a.revision FROM knowledge k "
++                            "LEFT JOIN tam_authorship a ON a.record_id=k.id ORDER BY k.id")
++        history = _rows(db, "SELECT * FROM tam_history ORDER BY sequence")
++    header = {"type": "export", "user_id": user_id, "package_version": VERSION,
++              "exported_at": datetime.now(UTC).isoformat(), "records": len(records), "history": len(history)}
++    descriptor = os.open(out, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
++    try:
++        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
++            for line in (header, *({"type": "record", "record": r} for r in records),
++                         *({"type": "history", "event": h} for h in history)):
++                handle.write(json.dumps(line, ensure_ascii=False, default=_json) + "\n")
++    except BaseException:
++        out.unlink(missing_ok=True)
++        raise
++    with registry.connect() as db:
++        registry._event(db, "personal_exported", user_id)
++    return {"records": len(records), "history": len(history)}
++
++
++def purge_personal(registry: Registry, user_id: str, confirm: str) -> dict[str, int]:
++    """Delete the personal workspace of a disabled user. Needs the server stopped."""
++    if confirm != user_id:
++        raise DomainError("--confirm must repeat the user ID")
++    _require_disabled(registry, user_id)
++    workspace = personal_workspace(registry, user_id)
++    with ServerLease(registry.root):
++        source = _database(registry, user_id)
++        with ServerLease(workspace), closing(sqlite3.connect(source.as_uri() + "?mode=ro", uri=True)) as db:
++            records = db.execute("SELECT COUNT(*) FROM knowledge").fetchone()[0]
++        shutil.rmtree(workspace)
++        with registry.connect() as db:
++            registry._event(db, "personal_purged", user_id)
++    return {"records": records}
+diff --git a/tests/test_team_personal_offboarding.py b/tests/test_team_personal_offboarding.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_team_personal_offboarding.py
+@@ -0,0 +1,122 @@
++import json
++import os
++import stat
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++from team_memory.contracts import Conflict, DomainError, Forbidden
++from team_memory.lifecycle import ServerLease
++from team_memory.offboarding import export_personal, personal_workspace, purge_personal
++from team_memory.registry import Registry
++from team_memory.service import MemoryService
++from team_memory.worker import WorkerPool
++
++SRC = Path(__file__).resolve().parents[1] / 'src'
++TEAM = {'kind': 'team', 'team_id': 'sales'}
++
++
++@pytest.fixture
++def anyio_backend():
++    return 'asyncio'
++
++
++def cli(root: Path, *args: str) -> subprocess.CompletedProcess:
++    return subprocess.run([sys.executable, '-m', 'team_memory.cli', '--root', str(root), *args],
++                          env={**os.environ, 'PYTHONPATH': str(SRC)}, capture_output=True, text=True, timeout=120,
++                          check=False)
++
++
++@pytest.fixture
++async def company(tmp_path, monkeypatch):
++    monkeypatch.setenv('MEMORY_LLM_ENABLED', 'false')
++    monkeypatch.setenv('MEMORY_QUALITY_GATE_ENABLED', 'false')
++    registry = Registry(tmp_path / 'server')
++    for user in ('leaver', 'colleague'):
++        registry.add_user(user, user.title())
++    registry.add_team('sales', 'Sales')
++    registry.membership('leaver', 'sales', 'editor')
++    registry.membership('colleague', 'sales', 'reader')
++    leaver, colleague = registry.issue_token('leaver', 'codex'), registry.issue_token('colleague', 'codex')
++    pool = WorkerPool(registry.root, maximum=3)
++    service = MemoryService(registry, pool)
++    ids = {}
++    try:
++        first = await service.call(leaver, 'memory_save', {'content': 'Private: my review of the Orchard deal is due Friday.'})
++        await service.call(leaver, 'memory_save', {'content': 'Private: call the dentist on Monday.'})
++        await service.call(leaver, 'memory_update', {'id': first['data']['id'], 'expected_revision': 1,
++                                                     'content': 'Private: my review of the Orchard deal is due Thursday.',
++                                                     'reason': 'moved'})
++        ids['team'] = (await service.call(leaver, 'memory_save', {'scope': TEAM, 'content': 'Orchard renews in Q3.'}))['data']['id']
++        ids['shared'] = (await service.call(leaver, 'memory_save', {'scope': {'kind': 'shared'},
++                                                                    'content': 'The cafeteria opens at 9.'}))['data']['id']
++    finally:
++        pool.close()
++    return registry, leaver, colleague, ids
++
++
++@pytest.mark.anyio
++async def test_export_writes_records_and_history_for_a_disabled_user_only(company, tmp_path):
++    registry, _, _, _ = company
++    out = tmp_path / 'leaver.jsonl'
++    with pytest.raises(Forbidden):
++        export_personal(registry, 'leaver', out)
++    assert not out.exists()
++    registry.disable_user('leaver')
++    result = cli(registry.root, 'user-export', 'leaver', '--out', str(out))
++    assert result.returncode == 0, result.stderr
++    assert stat.S_IMODE(out.stat().st_mode) == 0o600
++    lines = [json.loads(line) for line in out.read_text().splitlines()]
++    header, records = lines[0], [line['record'] for line in lines if line['type'] == 'record']
++    history = [line['event'] for line in lines if line['type'] == 'history']
++    assert header['type'] == 'export' and header['records'] == len(records) == 3 and header['history'] == len(history)
++    assert {r['status'] for r in records} == {'active', 'superseded'}
++    assert any('Thursday' in r['content'] for r in records) and any('Friday' in r['content'] for r in records)
++    assert all(r['created_by']['user_id'] == 'leaver' for r in records)
++    assert [h['operation'] for h in history].count('insert') == 3
++    assert any(h['operation'] == 'update' and h['reason'] == 'moved' for h in history)
++    again = cli(registry.root, 'user-export', 'leaver', '--out', str(out))
++    assert again.returncode == 1 and out.read_text().splitlines()[0] == json.dumps(header, ensure_ascii=False)
++    assert registry_events(registry, 'personal_exported') == [('personal_exported', 'leaver')]
++
++
++def registry_events(registry, action):
++    with registry.connect() as db:
++        return [tuple(row) for row in db.execute('SELECT action,subject FROM admin_events WHERE action=?', (action,))]
++
++
++@pytest.mark.anyio
++async def test_purge_needs_disabled_user_confirmation_and_a_stopped_server(company):
++    registry, _, colleague, ids = company
++    workspace = personal_workspace(registry, 'leaver')
++    with pytest.raises(Forbidden):
++        purge_personal(registry, 'leaver', 'leaver')
++    registry.disable_user('leaver')
++    assert cli(registry.root, 'user-purge', 'leaver', '--confirm', 'colleague').returncode == 1
++    with ServerLease(registry.root), pytest.raises(Conflict):
++        purge_personal(registry, 'leaver', 'leaver')
++    with ServerLease(workspace), pytest.raises(Conflict):
++        purge_personal(registry, 'leaver', 'leaver')
++    assert (workspace / 'memory.db').is_file()
++
++    result = cli(registry.root, 'user-purge', 'leaver', '--confirm', 'leaver')
++    assert result.returncode == 0, result.stderr
++    assert '3 records' in result.stdout and 'Backups taken earlier still contain it' in result.stdout
++    assert not workspace.exists()
++    assert registry_events(registry, 'personal_purged') == [('personal_purged', 'leaver')]
++    assert b'dentist' not in registry.path.read_bytes()
++    with pytest.raises(Conflict):
++        purge_personal(registry, 'leaver', 'leaver')
++    with pytest.raises(DomainError):
++        purge_personal(registry, 'nobody', 'nobody')
++
++    pool = WorkerPool(registry.root, maximum=3)
++    service = MemoryService(registry, pool)
++    try:
++        for scope, record_id in ((TEAM, ids['team']), ({'kind': 'shared'}, ids['shared'])):
++            record = (await service.call(colleague, 'memory_get', {'scope': scope, 'id': record_id}))['data']
++            assert record['created_by']['user_id'] == 'leaver'
++    finally:
++        pool.close()
+diff --git a/tests/test_team_shared_scope.py b/tests/test_team_shared_scope.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_team_shared_scope.py
+@@ -0,0 +1,19 @@
++"""Shared is the company-wide open area: every authenticated user may write it, team readers included."""
++import pytest
++
++from team_memory.contracts import Forbidden, Scope, ScopeKind
++from team_memory.registry import Registry
++
++
++def test_team_reader_writes_shared_but_not_the_team(tmp_path):
++    registry = Registry(tmp_path)
++    registry.add_user('reader', 'Reader')
++    registry.add_user('outsider', 'Outsider')
++    registry.add_team('hr', 'HR')
++    registry.membership('reader', 'hr', 'reader')
++    for user in ('reader', 'outsider'):
++        actor = registry.authenticate(registry.issue_token(user, 'test'))
++        assert registry.authorize(actor, Scope(kind=ScopeKind.shared), True).writable
++    reader = registry.authenticate(registry.issue_token('reader', 'test'))
++    with pytest.raises(Forbidden):
++        registry.authorize(reader, Scope(kind=ScopeKind.team, team_id='hr'), True)

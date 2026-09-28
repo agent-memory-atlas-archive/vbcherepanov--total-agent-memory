@@ -1,0 +1,44 @@
+# PostgreSQL for trying the team server's Postgres backend and for tests. NOT FOR PRODUCTION:
+# in production PostgreSQL is external and run by your DBA (docs/TEAM_POSTGRES.md). This file
+# keeps the database on the same host as the server, without TLS, replicas or backups.
+#
+#   export TAM_TEAM_PG_PASSWORD=$(openssl rand -hex 24)          # URL-safe: it goes into the DSN
+#   export TAM_POSTGRES_SUPERUSER_PASSWORD=$(openssl rand -hex 24)
+#   docker compose -f docker-compose.team.yml -f docker-compose.team.postgres.yml up -d
+#
+# The server then starts on PostgreSQL through TAM_TEAM_DATABASE_URL. To move an existing SQLite
+# server instead, start only the database (`... up -d postgres`) and migrate from the dashboard
+# (Settings, Database) or with `tam-team db-migrate --dsn-env TAM_TEAM_DATABASE_URL`.
+services:
+  postgres:
+    image: ${TAM_POSTGRES_IMAGE:-pgvector/pgvector:0.8.1-pg18}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${TAM_POSTGRES_SUPERUSER_PASSWORD:?set TAM_POSTGRES_SUPERUSER_PASSWORD}
+      POSTGRES_DB: postgres
+      # Read by docker/postgres-init/01-tam.sql for the tam role; never used by the server itself.
+      TAM_TEAM_PG_PASSWORD: ${TAM_TEAM_PG_PASSWORD:?set TAM_TEAM_PG_PASSWORD}
+    ports:
+      - "127.0.0.1:${TAM_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # PostgreSQL 18 images keep PGDATA under /var/lib/postgresql/<major>/docker.
+      - team-postgres-data:/var/lib/postgresql
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d tam"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    stop_grace_period: 60s
+
+  team-memory:
+    environment:
+      TAM_TEAM_DATABASE_URL: postgresql://tam:${TAM_TEAM_PG_PASSWORD}@postgres:5432/tam?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  team-postgres-data:
+    name: ${TAM_POSTGRES_VOLUME:-tam-team-postgres-data}

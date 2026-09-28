@@ -1,7 +1,7 @@
 services:
   team-memory:
     build: .
-    image: ${TAM_TEAM_IMAGE:-total-agent-memory:14.5.1}
+    image: ${TAM_TEAM_IMAGE:-total-agent-memory:14.6.0}
     init: true
     restart: unless-stopped
     extra_hosts:
@@ -14,6 +14,16 @@ services:
       MCP_HTTP_PORT: ${TAM_TEAM_CONTAINER_PORT:-3737}
       TAM_TEAM_MAX_WORKERS: ${TAM_TEAM_MAX_WORKERS:-3}
       TAM_TEAM_OPERATION_TIMEOUT: ${TAM_TEAM_OPERATION_TIMEOUT:-120}
+      TAM_TEAM_MASTER_KEY: ${TAM_TEAM_MASTER_KEY:-}
+      # External PostgreSQL (docs/TEAM_POSTGRES.md). Empty = SQLite in the data volume; a DSN saved in
+      # the dashboard (Settings, Database) takes precedence. docker-compose.team.postgres.yml sets it
+      # for a local evaluation database.
+      TAM_TEAM_DATABASE_URL: ${TAM_TEAM_DATABASE_URL:-}
+      TAM_TEAM_PG_STATEMENT_TIMEOUT_MS: ${TAM_TEAM_PG_STATEMENT_TIMEOUT_MS:-30000}
+      TAM_TEAM_PG_WORKSPACE_CONNECTION_LIMIT: ${TAM_TEAM_PG_WORKSPACE_CONNECTION_LIMIT:-4}
+      TAM_TEAM_PG_POOL_MAX_SIZE: ${TAM_TEAM_PG_POOL_MAX_SIZE:-8}
+      TAM_TEAM_COOKIE_SECURE: ${TAM_TEAM_COOKIE_SECURE:-auto}
+      TAM_TEAM_TRUST_PROXY: ${TAM_TEAM_TRUST_PROXY:-false}
       MEMORY_EMBED_THREADS: ${MEMORY_EMBED_THREADS:-1}
       MEMORY_TORCH_THREADS: ${MEMORY_TORCH_THREADS:-1}
       FASTEMBED_CACHE_PATH: /model-cache
@@ -26,6 +36,12 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
       MEMORY_LLM_ENABLED: ${MEMORY_LLM_ENABLED:-auto}
+      # Continuous backup (docs/TEAM_BACKUP.md). Lets `tam-team replication status|drop` run in this
+      # container; S3 credentials are passed only to the commands that need them.
+      TAM_TEAM_REPLICA_URL: ${TAM_TEAM_REPLICA_URL:-}
+      TAM_TEAM_REPLICA_ENDPOINT: ${TAM_TEAM_REPLICA_ENDPOINT:-}
+      TAM_TEAM_REPLICA_REGION: ${TAM_TEAM_REPLICA_REGION:-us-east-1}
+      TAM_TEAM_REPLICA_FORCE_PATH_STYLE: ${TAM_TEAM_REPLICA_FORCE_PATH_STYLE:-false}
     ports:
       - "${TAM_TEAM_PUBLISH_HOST:-127.0.0.1}:${TAM_TEAM_PORT:-3738}:${TAM_TEAM_CONTAINER_PORT:-3737}"
     volumes:
@@ -38,8 +54,79 @@ services:
       retries: ${TAM_TEAM_HEALTH_RETRIES:-3}
     stop_grace_period: ${TAM_TEAM_STOP_GRACE:-30s}
 
+  # Continuous backup: `docker compose --profile litestream up -d` (docs/TEAM_BACKUP.md).
+  # Streams identity.db, learning.db and every workspaces/<key>/memory.db to TAM_TEAM_REPLICA_URL.
+  litestream:
+    profiles: ["litestream"]
+    image: ${TAM_LITESTREAM_IMAGE:-litestream/litestream:0.5.17}
+    restart: unless-stopped
+    # Same UID as the server so WAL checkpoints and Litestream's metadata stay writable for both.
+    user: "${TAM_TEAM_UID:-1000}:${TAM_TEAM_GID:-1000}"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        [ -n "$$TAM_TEAM_REPLICA_URL" ] || { echo "TAM_TEAM_REPLICA_URL is not set" >&2; exit 64; };
+        umask 077 && mkdir -p /team-data/workspaces &&
+        exec /usr/local/bin/litestream replicate -config /etc/litestream.yml
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      TAM_TEAM_REPLICA_URL: ${TAM_TEAM_REPLICA_URL:-}
+      TAM_TEAM_REPLICA_ENDPOINT: ${TAM_TEAM_REPLICA_ENDPOINT:-}
+      TAM_TEAM_REPLICA_REGION: ${TAM_TEAM_REPLICA_REGION:-us-east-1}
+      TAM_TEAM_REPLICA_FORCE_PATH_STYLE: ${TAM_TEAM_REPLICA_FORCE_PATH_STYLE:-false}
+      TAM_TEAM_REPLICA_SYNC_INTERVAL: ${TAM_TEAM_REPLICA_SYNC_INTERVAL:-1s}
+      TAM_TEAM_REPLICA_SNAPSHOT_INTERVAL: ${TAM_TEAM_REPLICA_SNAPSHOT_INTERVAL:-24h}
+      TAM_TEAM_REPLICA_RETENTION: ${TAM_TEAM_REPLICA_RETENTION:-168h}
+      TAM_TEAM_REPLICA_METRICS_ADDR: ${TAM_TEAM_REPLICA_METRICS_ADDR:-}
+    volumes:
+      - team-memory-data:/team-data
+      - ./docker/litestream.team.yml:/etc/litestream.yml:ro
+    depends_on:
+      team-memory:
+        condition: service_started
+      replica-s3-init:
+        condition: service_completed_successfully
+        required: false
+    stop_grace_period: ${TAM_LITESTREAM_STOP_GRACE:-30s}
+
+  # Local S3-compatible bucket for trying continuous backup and for tests:
+  # `docker compose --profile litestream --profile s3-local up -d`. Not a production backup target:
+  # it lives on the same machine as the server. RustFS speaks the S3 API as MinIO does; MinIO no
+  # longer publishes community images on Docker Hub.
+  replica-s3:
+    profiles: ["s3-local"]
+    image: ${TAM_S3_LOCAL_IMAGE:-rustfs/rustfs:1.0.0}
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID:-}
+      RUSTFS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    ports:
+      - "127.0.0.1:${TAM_S3_LOCAL_PORT:-9000}:9000"
+    volumes:
+      - replica-s3-data:/data
+
+  replica-s3-init:
+    profiles: ["s3-local"]
+    image: ${TAM_TEAM_IMAGE:-total-agent-memory:14.6.0}
+    restart: on-failure
+    command: ["python", "/app/src/team_memory/cli.py", "--root", "/team-data", "replication", "init-bucket"]
+    environment:
+      PYTHONPATH: /app/src
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      TAM_TEAM_REPLICA_URL: ${TAM_TEAM_REPLICA_URL:-}
+      TAM_TEAM_REPLICA_ENDPOINT: ${TAM_TEAM_REPLICA_ENDPOINT:-}
+      TAM_TEAM_REPLICA_REGION: ${TAM_TEAM_REPLICA_REGION:-us-east-1}
+      TAM_TEAM_REPLICA_FORCE_PATH_STYLE: ${TAM_TEAM_REPLICA_FORCE_PATH_STYLE:-false}
+    depends_on:
+      replica-s3:
+        condition: service_started
+
 volumes:
   team-memory-data:
     name: ${TAM_TEAM_DATA_VOLUME:-tam-team-memory-data}
   team-model-cache:
     name: ${TAM_TEAM_MODEL_VOLUME:-tam-team-model-cache}
+  replica-s3-data:
+    name: ${TAM_S3_LOCAL_VOLUME:-tam-team-replica-s3}

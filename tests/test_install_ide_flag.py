@@ -72,13 +72,13 @@ def test_no_flag_defaults_to_claude_code(sandbox_home: Path):
     result = _run_install(sandbox_home)
     assert result.returncode == 0, f"stderr={result.stderr}\nstdout={result.stdout}"
 
+    # Claude Code reads MCP servers from ~/.claude.json; hooks live in ~/.claude/settings.json.
+    registered = json.loads((sandbox_home / ".claude.json").read_text())
+    assert registered["mcpServers"]["memory"]["args"][0].endswith("server.py")
     settings = sandbox_home / ".claude" / "settings.json"
     assert settings.exists(), "claude-code settings.json must be created by default"
-
     data = json.loads(settings.read_text())
-    assert "mcpServers" in data
-    assert "memory" in data["mcpServers"]
-    assert data["mcpServers"]["memory"]["args"][0].endswith("server.py")
+    assert "mcpServers" not in data
     # Hooks registered only for claude-code
     assert "hooks" in data
     assert "SessionStart" in data["hooks"]
@@ -89,8 +89,7 @@ def test_explicit_ide_claude_code(sandbox_home: Path):
     result = _run_install(sandbox_home, "--ide", "claude-code")
     assert result.returncode == 0, result.stderr
 
-    settings = sandbox_home / ".claude" / "settings.json"
-    data = json.loads(settings.read_text())
+    data = json.loads((sandbox_home / ".claude.json").read_text())
     assert "memory" in data["mcpServers"]
 
 
@@ -144,13 +143,13 @@ def test_ide_opencode_writes_opencode_config(sandbox_home: Path):
     result = _run_install(sandbox_home, "--ide", "opencode")
     assert result.returncode == 0, result.stderr
 
-    cfg = sandbox_home / ".opencode" / "config.json"
+    # OpenCode reads $XDG_CONFIG_HOME/opencode/opencode.json, with `mcp` entries of type local.
+    cfg = sandbox_home / ".config" / "opencode" / "opencode.json"
     assert cfg.exists()
-
-    data = json.loads(cfg.read_text())
-    # OpenCode uses `mcp` (not `mcpServers`) as parent key
-    assert "mcp" in data
-    assert "memory" in data["mcp"]
+    entry = json.loads(cfg.read_text())["mcp"]["memory"]
+    assert entry["type"] == "local" and entry["enabled"] is True
+    assert entry["command"][1].endswith("server.py")
+    assert not (sandbox_home / ".opencode" / "config.json").exists()
 
 
 # ---------- codex ----------

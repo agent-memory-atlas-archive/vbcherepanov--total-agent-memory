@@ -249,6 +249,13 @@ print("ok")
 PY
 fi
 
+# Installs that predate `tam setup` stay single-user: record personal mode, no prompt.
+if $DRY_RUN; then
+  say "  would record personal mode for this install if no setup record exists"
+else
+  PYTHONPATH="$ROOT/src" "$PY" -c 'import os; from setup_wizard.upgrade import adopt_existing; r = adopt_existing(os.environ); print("setup record: personal mode recorded" if r else "setup record: unchanged")' 2>&1 | sed 's/^/  /'
+fi
+
 # ────────────────────────────────────────────────
 # 6. Services (LaunchAgents + dashboard)
 # ────────────────────────────────────────────────

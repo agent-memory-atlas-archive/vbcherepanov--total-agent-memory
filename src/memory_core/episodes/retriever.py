@@ -30,6 +30,7 @@ if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
 from memory_core.episodes.schema import EpisodeHit  # noqa: E402
+from tam_db.contracts import Backend  # noqa: E402
 
 
 RRF_K: int = 60
@@ -135,6 +136,8 @@ def _bm25_fts(
     fts_query = _sanitize_fts(query)
     if not fts_query:
         return _bm25_like(conn, query, project, n)
+    if getattr(conn, "backend", None) is Backend.POSTGRES:
+        return _bm25_pg(conn, fts_query, project, n)
     sql = (
         "SELECT f.rowid AS eid, bm25(episodes_v11_fts) AS score "
         "FROM episodes_v11_fts AS f "
@@ -155,6 +158,28 @@ def _bm25_fts(
     # bm25() returns lower=better; convert to higher=better so RRF gets a
     # consistent "first row is best" ordering.
     rows = cur.fetchall()
+    return [(int(r[0]), -float(r[1])) for r in rows]
+
+
+def _bm25_pg(
+    conn: sqlite3.Connection,
+    fts_query: str,
+    project: str | None,
+    n: int,
+) -> list[tuple[int, float]]:
+    from memory_core.pg_fts import match_source
+
+    source, params = match_source("episodes_v11_fts", fts_query)
+    sql = (
+        f"SELECT f.id AS eid, f.rank AS score FROM ({source}) AS f "
+        "JOIN episodes_v11 AS e ON e.id = f.id "
+    )
+    if project:
+        sql += "WHERE e.project = ? "
+        params = [*params, project]
+    sql += "ORDER BY score ASC, eid ASC LIMIT ?"
+    rows = conn.execute(sql, [*params, int(n)]).fetchall()
+    # Same sign convention as FTS5 bm25(): lower is better, negated for RRF.
     return [(int(r[0]), -float(r[1])) for r in rows]
 
 
@@ -374,6 +399,9 @@ def _load_fact_links(
 
 
 def _fts_available(conn: sqlite3.Connection) -> bool:
+    if getattr(conn, "backend", None) is Backend.POSTGRES:
+        # The workspace baseline always carries the episodes lexical index.
+        return True
     cur = conn.execute(
         "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name = 'episodes_v11_fts'"
     )

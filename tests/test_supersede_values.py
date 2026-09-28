@@ -12,12 +12,17 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from memory_core.dedup import updates_value
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
 
 VALUE_UPDATES = [
     ("Lionel Messi's country of citizenship is Armenia", "Lionel Messi's country of citizenship is Argentina"),
     ("Сервис billing работает на PostgreSQL 18", "Сервис billing работает на PostgreSQL 16"),
     ("Маша любит зелёный цвет", "Маша любит красный цвет"),
     ("Israel was founded by Philippe, Duke of Orléans", "Israel was founded by David Ben-Gurion"),
+    # the value is followed by a shared modifier that opens with a preposition
+    ("Dana's standup meeting is at 10:15 on Mondays.", "Dana's standup meeting is at 9:30 on Mondays."),
+    ("Планёрка у Даны в 10:15 по понедельникам", "Планёрка у Даны в 9:30 по понедельникам"),
+    ("Alice works in Berlin for Acme since March", "Alice works in Paris for Acme since March"),
 ]
 
 NOT_UPDATES = [
@@ -27,6 +32,8 @@ NOT_UPDATES = [
     # the subject differs inside the prefix
     ("The capital of Tang Dynasty is Y", "The capital of Tang Empire is X"),
     ("Bob likes red", "Alice likes red"),
+    # a shared tail that opens with a verb, not a preposition
+    ("The meeting with Bob is on Monday", "The meeting with Alice is on Monday"),
     # a different relation
     ("Monk was written in the language of Hebrew", "Monk was written by Matthew Lewis"),
     # the same statement
@@ -45,13 +52,13 @@ def test_other_changes_are_not_value_updates(new, old):
 
 
 @pytest.fixture
-def srv(monkeypatch, tmp_path):
+def srv(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     (tmp_path / "blobs").mkdir(exist_ok=True)
     (tmp_path / "chroma").mkdir(exist_ok=True)
     import server
 
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    monkeypatch.setattr(server, "store", server.Store())
+    monkeypatch.setattr(server, "store", server.Store(database=store_backend))
     monkeypatch.setattr(server, "recall", server.Recall(server.store))
     monkeypatch.setattr(server, "SID", "test")
     yield server
@@ -100,3 +107,27 @@ def test_fast_path_supports_the_flag(srv):
                                                                "supersede": True})))
     assert len(out["superseded"]) == 1
     assert active(srv) == [new]
+
+
+def recall_contents(srv, query):
+    out = json.loads(asyncio.run(srv._do("memory_recall", {"query": query, "project": "p", "limit": 5})))
+    return [hit["content"] for group in out["results"].values() for hit in group]
+
+
+@pytest.mark.parametrize(("new", "old", "query"), [
+    (VALUE_UPDATES[4][0], VALUE_UPDATES[4][1], "When is Dana's standup meeting on Mondays?"),
+    (VALUE_UPDATES[5][0], VALUE_UPDATES[5][1], "Во сколько планёрка у Даны по понедельникам?"),
+])
+def test_without_flag_the_correction_ranks_above_the_value_it_corrects(srv, new, old, query):
+    """The cross-encoder is off in the suite (and never applies to Russian): the order holds without it."""
+    save(srv, old)
+    save(srv, new)
+    assert recall_contents(srv, query) == [new, old]
+
+
+def test_memory_get_reports_what_superseded_a_record(srv):
+    old, new = VALUE_UPDATES[4][1], VALUE_UPDATES[4][0]
+    old_id = save(srv, old)["id"]
+    new_id = save(srv, new, supersede=True)["id"]
+    out = json.loads(asyncio.run(srv._do("memory_get", {"ids": [old_id, new_id]})))
+    assert [(row["status"], row["superseded_by"]) for row in out["results"]] == [("superseded", new_id), ("active", None)]

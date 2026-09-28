@@ -6,5 +6,5 @@ Bumped manually on each release. Used by:
   - memory_stats
 """
 
-VERSION = "14.5.1"
-RELEASE_DATE = "2026-09-23"
+VERSION = "14.6.0"
+RELEASE_DATE = "2026-09-27"

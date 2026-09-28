@@ -1,18 +1,25 @@
 import hashlib
 import json
 import os
+import re
 import sqlite3
 from contextlib import ExitStack, closing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from pydantic import Field
 
+from tam_db.contracts import Backend
 from team_memory.contracts import DTO, Conflict
 from version import VERSION
 
 LOCK_BYTE = b'0'
+OPTIONAL_DATABASES = ('learning.db',)
+MANIFEST_FILE = 'manifest.json'
+POSTGRES_MANIFEST_BACKEND = 'postgres'
+RESTORE_ACTOR = 'cli'
+DATABASE_PATH = re.compile(r'identity\.db|learning\.db|workspaces/(shared|(?:personal|team)_[a-f0-9]{64})/memory\.db')
 
 
 class ServerLease:
@@ -75,14 +82,49 @@ def verify_database(path: Path) -> None:
             raise Conflict('Snapshot database foreign-key check failed')
 
 
-def backup(root: Path, destination: Path) -> Snapshot:
+def configured_backend(root: Path, environ=None) -> Backend:
+    """The server's storage backend without decrypting anything: database.json, else TAM_TEAM_DATABASE_URL, else SQLite."""
+    from team_memory.database_config import FileDatabaseConfigStore
+    from team_memory.database_contracts import DATABASE_URL_ENV
+
+    env = os.environ if environ is None else environ
+    config = FileDatabaseConfigStore(root, env).load()
+    if config is not None:
+        return config.backend
+    return Backend.POSTGRES if env.get(DATABASE_URL_ENV, '').strip() else Backend.SQLITE
+
+
+def is_postgres_snapshot(snapshot: Path) -> bool:
+    try:
+        raw = json.loads((snapshot / MANIFEST_FILE).read_text())
+    except (OSError, ValueError):
+        return False
+    return isinstance(raw, dict) and raw.get('backend') == POSTGRES_MANIFEST_BACKEND
+
+
+def backup(root: Path, destination: Path, environ=None):
+    """SQLite: verified copies of every database (server stopped). PostgreSQL: pg_dump of the TAM schemas (online)."""
+    root, destination = root.resolve(), destination.resolve()
+    if destination == root or root in destination.parents:
+        raise Conflict('Backup must be outside server data')
+    if configured_backend(root, environ) is Backend.POSTGRES:
+        from team_memory import pg_backup
+        from team_memory.database_config import FileDatabaseConfigStore
+
+        effective = FileDatabaseConfigStore(root, os.environ if environ is None else environ).effective()
+        return pg_backup.backup(effective.dsn, destination, environ)
+    return backup_sqlite(root, destination)
+
+
+def backup_sqlite(root: Path, destination: Path) -> Snapshot:
     root, destination = root.resolve(), destination.resolve()
     if not (root / 'identity.db').is_file():
         raise Conflict('Server identity database does not exist')
     if destination == root or root in destination.parents:
         raise Conflict('Backup must be outside server data')
     with ServerLease(root), ExitStack() as leases:
-        sources = [root / 'identity.db', *sorted((root / 'workspaces').glob('*/memory.db'))]
+        optional = [root / name for name in OPTIONAL_DATABASES if (root / name).is_file()]
+        sources = [root / 'identity.db', *optional, *sorted((root / 'workspaces').glob('*/memory.db'))]
         for directory in sorted({source.parent for source in sources if source.name == 'memory.db'}):
             leases.enter_context(ServerLease(directory))
         destination.mkdir(parents=True, exist_ok=False, mode=0o700)
@@ -98,24 +140,73 @@ def backup(root: Path, destination: Path) -> Snapshot:
             target.chmod(0o600)
             verify_database(target)
             entries.append(DatabaseSnapshot(path=relative.as_posix(), sha256=digest(target)))
-        manifest = Snapshot(package_version=VERSION, created_at=datetime.now(timezone.utc).isoformat(), databases=entries)
-        (destination / 'manifest.json').write_text(manifest.model_dump_json(indent=2))
+        manifest = Snapshot(package_version=VERSION, created_at=datetime.now(UTC).isoformat(), databases=entries)
+        (destination / MANIFEST_FILE).write_text(manifest.model_dump_json(indent=2))
         return manifest
 
 
-def restore(snapshot: Path, destination: Path) -> None:
-    import re
+def restore(snapshot: Path, destination: Path, dsn=None, environ=None):
+    """A SQLite snapshot becomes the new data directory ``destination``; a PostgreSQL backup is restored
+    into the empty database ``dsn`` and ``destination`` is configured to use it."""
+    if is_postgres_snapshot(snapshot.resolve()):
+        if dsn is None:
+            raise Conflict('A PostgreSQL backup is restored into an empty database: pass --dsn-env VAR')
+        return restore_postgres(snapshot, destination, dsn, environ)
+    if dsn is not None:
+        raise Conflict('A SQLite snapshot is restored into a new data directory; --dsn-env is for PostgreSQL backups')
+    return restore_sqlite(snapshot, destination)
+
+
+def restore_postgres(snapshot: Path, root: Path, dsn, environ=None):
+    """pg_restore into ``dsn``, re-provision every workspace role, then point ``root`` at the database.
+
+    ``root`` may exist (it holds master.key) but must hold no databases or database.json: the
+    restored installation keeps its id, and the master key must be the one the backup was taken
+    with, or the saved provider keys cannot be decrypted.
+    """
+    from uuid import UUID
+
+    from tam_db.contracts import DatabaseSettings
+    from team_memory import pg_backup
+    from team_memory.database_config import FileDatabaseConfigStore
+    from team_memory.database_contracts import DATABASE_CONFIG_FILE, DatabaseConfig
+    from team_memory.pg_provision import PgWorkspaceProvisioner
+    from team_memory.settings import load_master_key
+
+    env = os.environ if environ is None else environ
+    snapshot, root = snapshot.resolve(), root.resolve()
+    if (root / 'identity.db').exists() or (root / DATABASE_CONFIG_FILE).exists():
+        raise FileExistsError(root)
+    manifest = pg_backup.read_manifest(snapshot)
+    if manifest.instance_id is None:
+        raise Conflict('The backup names no installation id; it cannot be restored as a TAM server')
+    try:
+        master_key = load_master_key(root, env, create=False)
+    except FileNotFoundError as exc:
+        raise Conflict('Restore needs the master key of the backed-up server: set TAM_TEAM_MASTER_KEY '
+                       'or copy master.key into the data directory') from exc
+    settings = DatabaseSettings.from_environ(env)
+    restored = pg_backup.restore(snapshot, dsn, lambda: PgWorkspaceProvisioner(
+        dsn.to_uri(), manifest.instance_id, master_key, settings), env)
+    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    store = FileDatabaseConfigStore(root, env)
+    store.save(DatabaseConfig(backend=Backend.POSTGRES, dsn_token=store.seal(dsn), instance_id=UUID(manifest.instance_id),
+                              generation=1, updated_at=datetime.now(UTC), updated_by=RESTORE_ACTOR))
+    return restored
+
+
+def restore_sqlite(snapshot: Path, destination: Path) -> None:
     import shutil
 
     snapshot, destination = snapshot.resolve(), destination.resolve()
-    manifest = Snapshot.model_validate_json((snapshot / 'manifest.json').read_text())
+    manifest = Snapshot.model_validate_json((snapshot / MANIFEST_FILE).read_text())
     if manifest.format_version != 1:
         raise Conflict('Unsupported snapshot format')
     paths = [entry.path for entry in manifest.databases]
     if paths.count('identity.db') != 1 or len(paths) != len(set(paths)):
         raise Conflict('Invalid snapshot database list')
     for entry in manifest.databases:
-        if not re.fullmatch(r'identity\.db|workspaces/(shared|(?:personal|team)_[a-f0-9]{64})/memory\.db', entry.path):
+        if not DATABASE_PATH.fullmatch(entry.path):
             raise Conflict('Invalid snapshot path')
         path = snapshot / entry.path
         if path.is_symlink() or snapshot not in path.resolve().parents or digest(path) != entry.sha256:

@@ -1,0 +1,1338 @@
+{
+ "e1": {
+  "attempts": [
+   {
+    "system": "local-single-store/client-filter",
+    "attempt": "1-direct-canary",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "None:None": 360
+    },
+    "foreign_tag_results": 0
+   },
+   {
+    "system": "local-single-store/client-filter",
+    "attempt": "1-direct-text",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "None:None": 360
+    },
+    "foreign_tag_results": 0
+   },
+   {
+    "system": "local-single-store/client-filter",
+    "attempt": "2-paraphrase",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "None:None": 360
+    },
+    "foreign_tag_results": 0
+   },
+   {
+    "system": "local-single-store/client-filter",
+    "attempt": "3-twin",
+    "calls": 72,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "None:None": 72
+    },
+    "foreign_tag_results": 0
+   },
+   {
+    "system": "local-single-store/client-filter",
+    "attempt": "5-tag-query",
+    "calls": 24,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "None:None": 24
+    },
+    "foreign_tag_results": 0
+   },
+   {
+    "system": "local-single-store/client-filter",
+    "attempt": "5-tag-spoof-write",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "None:None": 12
+    },
+    "spoofed_record_visible": 3
+   },
+   {
+    "system": "local-single-store/no-filter",
+    "attempt": "1-direct-canary",
+    "calls": 360,
+    "calls_with_leak": 360,
+    "distinct_leaked_canaries": 187,
+    "responses": {
+     "None:None": 360
+    },
+    "foreign_tag_results": 3386
+   },
+   {
+    "system": "local-single-store/no-filter",
+    "attempt": "1-direct-text",
+    "calls": 360,
+    "calls_with_leak": 360,
+    "distinct_leaked_canaries": 200,
+    "responses": {
+     "None:None": 360
+    },
+    "foreign_tag_results": 3472
+   },
+   {
+    "system": "local-single-store/no-filter",
+    "attempt": "2-paraphrase",
+    "calls": 360,
+    "calls_with_leak": 360,
+    "distinct_leaked_canaries": 200,
+    "responses": {
+     "None:None": 360
+    },
+    "foreign_tag_results": 3493
+   },
+   {
+    "system": "local-single-store/no-filter",
+    "attempt": "3-twin",
+    "calls": 72,
+    "calls_with_leak": 45,
+    "distinct_leaked_canaries": 6,
+    "responses": {
+     "None:None": 72
+    },
+    "foreign_tag_results": 387
+   },
+   {
+    "system": "local-single-store/no-filter",
+    "attempt": "5-tag-query",
+    "calls": 24,
+    "calls_with_leak": 24,
+    "distinct_leaked_canaries": 76,
+    "responses": {
+     "None:None": 24
+    },
+    "foreign_tag_results": 239
+   },
+   {
+    "system": "team-server",
+    "attempt": "1-direct-canary",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 360
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "1-direct-text",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 360
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "1-personal-text",
+    "calls": 132,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 132
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "2-paraphrase",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 360
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "3-twin",
+    "calls": 72,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 72
+    },
+    "own_twin_found": 36,
+    "own_twin_expected": 36
+   },
+   {
+    "system": "team-server",
+    "attempt": "4-foreign-team-id",
+    "calls": 252,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:forbidden": 252
+    },
+    "writes_accepted": 0
+   },
+   {
+    "system": "team-server",
+    "attempt": "5-tag-field",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:invalid_request": 12
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "5-tag-query",
+    "calls": 24,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 24
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "5-tag-save",
+    "calls": 96,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:invalid_request": 96
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "6-reader-write",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:forbidden": 12
+    },
+    "writes_accepted": 0
+   },
+   {
+    "system": "team-server",
+    "attempt": "7-revoked-token",
+    "calls": 48,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "401:None": 48
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "7-revoked-token-control",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 12
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "8-removed-member",
+    "calls": 84,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 80,
+     "400:forbidden": 4
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "9-foreign-id-own-scope",
+    "calls": 720,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 562,
+     "400:conflict": 158
+    },
+    "foreign_content_returned": 0
+   }
+  ],
+  "control": {
+   "questions": 1200,
+   "gold_in_top5": 0.995,
+   "gold_at_1": 0.98,
+   "any_own_canary_in_top5": 1.0,
+   "gold_in_top5_by_role": {
+    "editor": 0.995,
+    "reader": 0.995
+   }
+  },
+  "meta": {
+   "integrity": {
+    "engineering": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    },
+    "sales": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    },
+    "hr": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    },
+    "finance": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    }
+   },
+   "twin_saves": {
+    "twin-1": {
+     "engineering": {
+      "id": 61,
+      "deduplicated": false
+     },
+     "sales": {
+      "id": 61,
+      "deduplicated": false
+     }
+    },
+    "twin-2": {
+     "hr": {
+      "id": 61,
+      "deduplicated": false
+     },
+     "finance": {
+      "id": 61,
+      "deduplicated": false
+     }
+    },
+    "twin-3": {
+     "sales": {
+      "id": 62,
+      "deduplicated": false
+     },
+     "hr": {
+      "id": 62,
+      "deduplicated": false
+     }
+    },
+    "twin-4": {
+     "finance": {
+      "id": 62,
+      "deduplicated": false
+     },
+     "engineering": {
+      "id": 62,
+      "deduplicated": false
+     }
+    },
+    "twin-5": {
+     "engineering": {
+      "id": 63,
+      "deduplicated": false
+     },
+     "hr": {
+      "id": 63,
+      "deduplicated": false
+     }
+    },
+    "twin-6": {
+     "sales": {
+      "id": 63,
+      "deduplicated": false
+     },
+     "finance": {
+      "id": 63,
+      "deduplicated": false
+     }
+    }
+   }
+  },
+  "local_meta": {
+   "twin_saves": {
+    "twin-1": [
+     {
+      "department": "engineering",
+      "id": 261,
+      "deduplicated": false
+     },
+     {
+      "department": "sales",
+      "id": 262,
+      "deduplicated": true
+     }
+    ],
+    "twin-2": [
+     {
+      "department": "hr",
+      "id": 263,
+      "deduplicated": false
+     },
+     {
+      "department": "finance",
+      "id": 264,
+      "deduplicated": true
+     }
+    ],
+    "twin-3": [
+     {
+      "department": "sales",
+      "id": 265,
+      "deduplicated": false
+     },
+     {
+      "department": "hr",
+      "id": 266,
+      "deduplicated": true
+     }
+    ],
+    "twin-4": [
+     {
+      "department": "finance",
+      "id": 267,
+      "deduplicated": false
+     },
+     {
+      "department": "engineering",
+      "id": 268,
+      "deduplicated": true
+     }
+    ],
+    "twin-5": [
+     {
+      "department": "engineering",
+      "id": 269,
+      "deduplicated": false
+     },
+     {
+      "department": "hr",
+      "id": 270,
+      "deduplicated": true
+     }
+    ],
+    "twin-6": [
+     {
+      "department": "sales",
+      "id": 271,
+      "deduplicated": false
+     },
+     {
+      "department": "finance",
+      "id": 272,
+      "deduplicated": true
+     }
+    ]
+   },
+   "spoof_id": 273
+  }
+ },
+ "e2a": [
+  {
+   "variant": "A-not-member",
+   "questions": 400,
+   "hit@1": 0.0,
+   "hit@5": 0.0,
+   "mrr@10": 0.0,
+   "updated_questions": 80,
+   "fresh@5": 0.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 0.0,
+   "by_kind_hit@5": {
+    "direct": 0.0,
+    "paraphrase": 0.0
+   },
+   "non_team_results_in_top5": 5.0,
+   "hit@5_by_department": {
+    "engineering": 0.0,
+    "finance": 0.0,
+    "hr": 0.0,
+    "sales": 0.0
+   }
+  },
+  {
+   "variant": "B-reader",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 1.0,
+   "mrr@10": 0.986,
+   "updated_questions": 80,
+   "fresh@5": 1.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 1.0
+   },
+   "non_team_results_in_top5": 2.0925,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 1.0
+   }
+  },
+  {
+   "variant": "C-team-only",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 1.0,
+   "mrr@10": 0.9891666666666667,
+   "updated_questions": 80,
+   "fresh@5": 1.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 1.0
+   },
+   "non_team_results_in_top5": 0.0,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 1.0
+   }
+  }
+ ],
+ "e2": {
+  "transfer_sequential": {
+   "requests": 50,
+   "first_request_ms_after_change": 2.7770839988079388,
+   "requests_with_engineering_data": 0,
+   "first_request_leaked": false,
+   "sales_visible_in": 50
+  },
+  "transfer_exact_tools": [
+   {
+    "op": "memory_get",
+    "scope": "engineering",
+    "status": 400,
+    "code": "forbidden"
+   },
+   {
+    "op": "memory_export",
+    "scope": "engineering",
+    "status": 400,
+    "code": "forbidden"
+   },
+   {
+    "op": "memory_save",
+    "scope": "engineering",
+    "status": 400,
+    "code": "forbidden"
+   },
+   {
+    "op": "memory_save",
+    "scope": "sales",
+    "status": 200,
+    "code": null
+   }
+  ],
+  "transfer_concurrent": {
+   "requests": 180,
+   "not_overlapping_change": 120,
+   "not_overlapping_with_old_access": 0,
+   "overlapping_change": 60,
+   "overlapping_rejected": 60,
+   "overlapping_with_team_not_held_at_send": 0,
+   "strict_leaks": 0,
+   "codes": {
+    "200:None": 120,
+    "400:forbidden": 60
+   },
+   "latency_p50_ms": 647.9676669987384
+  },
+  "write_race": {
+   "attempts": 40,
+   "committed": 16,
+   "client_error": 40,
+   "error_but_committed": 16,
+   "codes": {
+    "400:forbidden": 40
+   }
+  },
+  "offboarding": [
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_scopes"
+   },
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_recall"
+   },
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_get"
+   },
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_save"
+   },
+   {
+    "check": "colleague-access",
+    "colleague": "sales-editor2",
+    "created_by_preserved": 25,
+    "experiment": "E2-offboarding",
+    "leaver_records": 25,
+    "visible": 25
+   },
+   {
+    "check": "colleague-access",
+    "colleague": "sales-reader",
+    "created_by_preserved": 25,
+    "experiment": "E2-offboarding",
+    "leaver_records": 25,
+    "visible": 25
+   },
+   {
+    "check": "personal-search-by-other",
+    "experiment": "E2-offboarding",
+    "foreign_scopes": [],
+    "http_status": 200,
+    "leaked_canaries": [],
+    "own_canaries": [
+     "CANARY-sales-1200",
+     "CANARY-sales-9599"
+    ],
+    "user": "sales-editor2"
+   },
+   {
+    "check": "personal-owner-id-scope",
+    "error": "1 validation error for RecordRequest\nscope.owner_id\n  Extra inputs are not permitted [type=extra_forbidden, input_value='sales-editor1', input_type=str]\n    For",
+    "experiment": "E2-offboarding",
+    "http_status": 400,
+    "user": "sales-editor2"
+   },
+   {
+    "check": "personal-search-by-other",
+    "experiment": "E2-offboarding",
+    "foreign_scopes": [],
+    "http_status": 200,
+    "leaked_canaries": [],
+    "own_canaries": [
+     "CANARY-engineering-7257"
+    ],
+    "user": "engineering-editor1"
+   },
+   {
+    "check": "personal-owner-id-scope",
+    "error": "1 validation error for RecordRequest\nscope.owner_id\n  Extra inputs are not permitted [type=extra_forbidden, input_value='sales-editor1', input_type=str]\n    For",
+    "experiment": "E2-offboarding",
+    "http_status": 400,
+    "user": "engineering-editor1"
+   }
+  ],
+  "notes": {
+   "personal_after_offboarding": {
+    "workspace_dir_exists": true,
+    "active_records_on_disk": 3,
+    "users.active": 1,
+    "unrevoked_tokens": 0,
+    "admin_events": [
+     [
+      "user_created",
+      "sales-editor1"
+     ],
+     [
+      "membership:editor",
+      "sales-editor1:sales"
+     ],
+     [
+      "token_created",
+      "sales-editor1:orgbench"
+     ],
+     [
+      "membership:None",
+      "sales-editor1:sales"
+     ]
+    ]
+   },
+   "personal_after_token_reissue": {
+    "http_status": 200,
+    "own_note_found": true
+   },
+   "user_disable": {
+    "available": false,
+    "without_token_file_only_member_remove_possible": true,
+    "shared_write_after_member_remove_status": 200,
+    "control_status": 200
+   },
+   "backup_contains_leaver_personal": true,
+   "cli_commands": "user-add,team-add,member,token-create,token-revoke,backup,restore,serve"
+  }
+ },
+ "e3": {
+  "concurrency": [
+   {
+    "clients": 2,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 100,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 17.033874999469845,
+    "latency_p95_ms": 23.898542000097223,
+    "latency_max_ms": 29.647625000507105
+   },
+   {
+    "clients": 4,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 300,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 17.389208000167855,
+    "latency_p95_ms": 26.406249999126885,
+    "latency_max_ms": 29.412333000436774
+   },
+   {
+    "clients": 8,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 700,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 19.36445899991668,
+    "latency_p95_ms": 30.83274999880814,
+    "latency_max_ms": 33.532790999743156
+   },
+   {
+    "clients": 16,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 1500,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 25.549916999807465,
+    "latency_p95_ms": 37.80404099961743,
+    "latency_max_ms": 50.35604200020316
+   }
+  ],
+  "history": [
+   {
+    "clients": 2,
+    "distinct_actors": 2,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 101,
+    "final_revision_chain_length": 101,
+    "first_id": 1,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   },
+   {
+    "clients": 4,
+    "distinct_actors": 4,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 202,
+    "final_revision_chain_length": 101,
+    "first_id": 102,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   },
+   {
+    "clients": 8,
+    "distinct_actors": 8,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 303,
+    "final_revision_chain_length": 101,
+    "first_id": 203,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   },
+   {
+    "clients": 16,
+    "distinct_actors": 16,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 404,
+    "final_revision_chain_length": 101,
+    "first_id": 304,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   }
+  ],
+  "retries": [
+   {
+    "timeout": "client",
+    "op": "memory_delete",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "client",
+    "op": "memory_save",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "client",
+    "op": "memory_update",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "server",
+    "op": "memory_delete",
+    "reps": 20,
+    "first_attempt_timed_out": 0,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "server",
+    "op": "memory_save",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 1,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "server",
+    "op": "memory_update",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   }
+  ],
+  "cross_scope": [
+   {
+    "different_payload_other_scope": {
+     "accepted": true,
+     "second_id": 1
+    },
+    "experiment": "E3-retry-cross-scope",
+    "first_id": 1,
+    "same_payload_other_scope": {
+     "accepted": true,
+     "third_id": 82
+    }
+   }
+  ]
+ },
+ "e4": [
+  {
+   "system": "team-server",
+   "scopes": 1,
+   "workers": 1,
+   "passes": 2,
+   "records": 50,
+   "cold_first_query_ms": 904.0809165007886,
+   "warm_p50_ms": 525.7877920012106,
+   "warm_p95_ms": 555.6096670006809,
+   "worker_rss_sum_mib": 1309.4765625,
+   "gateway_rss_mib": 37.09375,
+   "workers_alive_end": 1,
+   "worker_processes_started": 1,
+   "worker_cpu_s_total": 91.03272499999956,
+   "worker_cpu_s_warm_batch": 90.07899750000041,
+   "load1_before": [
+    5.2,
+    4.85
+   ],
+   "load1_after": [
+    6.42,
+    5.58
+   ]
+  },
+  {
+   "system": "single-store",
+   "scopes": 1,
+   "workers": 1,
+   "passes": 2,
+   "records": 50,
+   "cold_first_query_ms": 975.0294585001029,
+   "warm_p50_ms": 539.864791000582,
+   "warm_p95_ms": 628.1869999984337,
+   "worker_rss_sum_mib": 1308.1796875,
+   "gateway_rss_mib": 37.1015625,
+   "workers_alive_end": 1,
+   "worker_processes_started": 1,
+   "worker_cpu_s_total": 93.73510850000015,
+   "worker_cpu_s_warm_batch": 92.71939100000029,
+   "load1_before": [
+    5.8,
+    5.2
+   ],
+   "load1_after": [
+    6.72,
+    6.59
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 2,
+   "workers": 1,
+   "passes": 2,
+   "records": 23,
+   "cold_first_query_ms": 1824.2690839997522,
+   "warm_p50_ms": 1107.20025000046,
+   "warm_p95_ms": 1306.7377919996943,
+   "worker_rss_sum_mib": 869.828125,
+   "gateway_rss_mib": 37.140625,
+   "workers_alive_end": 1,
+   "worker_processes_started": 31,
+   "worker_cpu_s_total": 48.96572800000047,
+   "worker_cpu_s_warm_batch": 47.058487499999785,
+   "load1_before": [
+    5.1,
+    5.39
+   ],
+   "load1_after": [
+    5.26,
+    5.2
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 2,
+   "workers": 2,
+   "passes": 2,
+   "records": 23,
+   "cold_first_query_ms": 1938.1719169987264,
+   "warm_p50_ms": 212.74600000106147,
+   "warm_p95_ms": 249.3884999967122,
+   "worker_rss_sum_mib": 1942.4140625,
+   "gateway_rss_mib": 37.140625,
+   "workers_alive_end": 2,
+   "worker_processes_started": 2,
+   "worker_cpu_s_total": 35.807470999999595,
+   "worker_cpu_s_warm_batch": 33.72480700000016,
+   "load1_before": [
+    5.26,
+    4.68
+   ],
+   "load1_after": [
+    5.8,
+    5.39
+   ]
+  },
+  {
+   "system": "single-store",
+   "scopes": 2,
+   "workers": 1,
+   "passes": 2,
+   "records": 23,
+   "cold_first_query_ms": 920.9911039997678,
+   "warm_p50_ms": 183.07458400158794,
+   "warm_p95_ms": 199.80179199774284,
+   "worker_rss_sum_mib": 999.265625,
+   "gateway_rss_mib": 37.1328125,
+   "workers_alive_end": 1,
+   "worker_processes_started": 1,
+   "worker_cpu_s_total": 31.108734999999854,
+   "worker_cpu_s_warm_batch": 30.138714500000304,
+   "load1_before": [
+    5.8,
+    5.58
+   ],
+   "load1_after": [
+    6.87,
+    6.02
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 3,
+   "workers": 1,
+   "passes": 2,
+   "records": 73,
+   "cold_first_query_ms": 2841.086792000169,
+   "warm_p50_ms": 2307.085417000053,
+   "warm_p95_ms": 2675.992291999137,
+   "worker_rss_sum_mib": 872.1796875,
+   "gateway_rss_mib": 37.15625,
+   "workers_alive_end": 1,
+   "worker_processes_started": 31,
+   "worker_cpu_s_total": 122.8991940000003,
+   "worker_cpu_s_warm_batch": 120.02338299999998,
+   "load1_before": [
+    5.4,
+    5.52
+   ],
+   "load1_after": [
+    4.9,
+    5.58
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 3,
+   "workers": 2,
+   "passes": 2,
+   "records": 73,
+   "cold_first_query_ms": 2935.2413330016134,
+   "warm_p50_ms": 1249.822249999852,
+   "warm_p95_ms": 1773.3482910007297,
+   "worker_rss_sum_mib": 1860.9140625,
+   "gateway_rss_mib": 37.15625,
+   "workers_alive_end": 2,
+   "worker_processes_started": 32,
+   "worker_cpu_s_total": 110.8656400000001,
+   "worker_cpu_s_warm_batch": 107.68158250000003,
+   "load1_before": [
+    4.9,
+    5.06
+   ],
+   "load1_after": [
+    7.41,
+    5.52
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 3,
+   "workers": 3,
+   "passes": 2,
+   "records": 73,
+   "cold_first_query_ms": 2863.793708499543,
+   "warm_p50_ms": 755.7603749992268,
+   "warm_p95_ms": 831.3362499993673,
+   "worker_rss_sum_mib": 3274.890625,
+   "gateway_rss_mib": 37.1640625,
+   "workers_alive_end": 3,
+   "worker_processes_started": 3,
+   "worker_cpu_s_total": 128.64948999999967,
+   "worker_cpu_s_warm_batch": 125.53364249999979,
+   "load1_before": [
+    5.58,
+    6.0
+   ],
+   "load1_after": [
+    7.21,
+    6.58
+   ]
+  },
+  {
+   "system": "single-store",
+   "scopes": 3,
+   "workers": 1,
+   "passes": 2,
+   "records": 73,
+   "cold_first_query_ms": 924.0448545006075,
+   "warm_p50_ms": 534.7617500010529,
+   "warm_p95_ms": 572.3282079998171,
+   "worker_rss_sum_mib": 1307.046875,
+   "gateway_rss_mib": 37.1640625,
+   "workers_alive_end": 1,
+   "worker_processes_started": 1,
+   "worker_cpu_s_total": 91.15466250000031,
+   "worker_cpu_s_warm_batch": 90.16918050000018,
+   "load1_before": [
+    4.92,
+    4.99
+   ],
+   "load1_after": [
+    5.59,
+    6.0
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 5,
+   "workers": 1,
+   "passes": 2,
+   "records": 173,
+   "cold_first_query_ms": 4711.902021000242,
+   "warm_p50_ms": 4122.607915998742,
+   "warm_p95_ms": 4379.55966699883,
+   "worker_rss_sum_mib": 871.890625,
+   "gateway_rss_mib": 37.2265625,
+   "workers_alive_end": 1,
+   "worker_processes_started": 31,
+   "worker_cpu_s_total": 171.551441,
+   "worker_cpu_s_warm_batch": 166.7856655000004,
+   "load1_before": [
+    5.59,
+    5.18
+   ],
+   "load1_after": [
+    5.35,
+    6.19
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 5,
+   "workers": 2,
+   "passes": 2,
+   "records": 173,
+   "cold_first_query_ms": 4619.89149999863,
+   "warm_p50_ms": 3661.700500000734,
+   "warm_p95_ms": 3927.3477500028093,
+   "worker_rss_sum_mib": 1857.9765625,
+   "gateway_rss_mib": 37.2421875,
+   "workers_alive_end": 2,
+   "worker_processes_started": 62,
+   "worker_cpu_s_total": 233.46232850000007,
+   "worker_cpu_s_warm_batch": 228.35067649999976,
+   "load1_before": [
+    5.35,
+    5.59
+   ],
+   "load1_after": [
+    6.54,
+    5.18
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 5,
+   "workers": 3,
+   "passes": 2,
+   "records": 173,
+   "cold_first_query_ms": 4890.514312499363,
+   "warm_p50_ms": 2714.193083000282,
+   "warm_p95_ms": 2961.0157089991844,
+   "worker_rss_sum_mib": 2857.4921875,
+   "gateway_rss_mib": 37.25,
+   "workers_alive_end": 3,
+   "worker_processes_started": 63,
+   "worker_cpu_s_total": 214.05614700000046,
+   "worker_cpu_s_warm_batch": 208.7085174999996,
+   "load1_before": [
+    5.33,
+    5.02
+   ],
+   "load1_after": [
+    5.44,
+    5.59
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 5,
+   "workers": 5,
+   "passes": 2,
+   "records": 173,
+   "cold_first_query_ms": 4508.110020999993,
+   "warm_p50_ms": 1577.0833329988818,
+   "warm_p95_ms": 1694.1156670000055,
+   "worker_rss_sum_mib": 5568.40625,
+   "gateway_rss_mib": 37.2578125,
+   "workers_alive_end": 5,
+   "worker_processes_started": 5,
+   "worker_cpu_s_total": 270.8003695,
+   "worker_cpu_s_warm_batch": 265.75391749999994,
+   "load1_before": [
+    5.44,
+    5.44
+   ],
+   "load1_after": [
+    7.53,
+    7.79
+   ]
+  },
+  {
+   "system": "single-store",
+   "scopes": 5,
+   "workers": 1,
+   "passes": 2,
+   "records": 173,
+   "cold_first_query_ms": 918.6705414995231,
+   "warm_p50_ms": 512.8717909992702,
+   "warm_p95_ms": 555.0823749981646,
+   "worker_rss_sum_mib": 1310.65625,
+   "gateway_rss_mib": 37.25,
+   "workers_alive_end": 1,
+   "worker_processes_started": 1,
+   "worker_cpu_s_total": 84.60826399999985,
+   "worker_cpu_s_warm_batch": 83.63312150000013,
+   "load1_before": [
+    5.82,
+    4.1
+   ],
+   "load1_after": [
+    5.96,
+    5.44
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 8,
+   "workers": 1,
+   "passes": 2,
+   "records": 323,
+   "cold_first_query_ms": 7382.41431249935,
+   "warm_p50_ms": 6834.882082999684,
+   "warm_p95_ms": 7245.912166999915,
+   "worker_rss_sum_mib": 884.7265625,
+   "gateway_rss_mib": 37.6484375,
+   "workers_alive_end": 1,
+   "worker_processes_started": 31,
+   "worker_cpu_s_total": 256.16654949999975,
+   "worker_cpu_s_warm_batch": 248.76764200000014,
+   "load1_before": [
+    5.96,
+    5.7
+   ],
+   "load1_after": [
+    4.38,
+    4.1
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 8,
+   "workers": 2,
+   "passes": 2,
+   "records": 323,
+   "cold_first_query_ms": 7590.413916499529,
+   "warm_p50_ms": 6414.527625000119,
+   "warm_p95_ms": 6785.699667001609,
+   "worker_rss_sum_mib": 1854.6953125,
+   "gateway_rss_mib": 37.640625,
+   "workers_alive_end": 2,
+   "worker_processes_started": 62,
+   "worker_cpu_s_total": 327.8714685,
+   "worker_cpu_s_warm_batch": 319.5291079999996,
+   "load1_before": [
+    4.38,
+    5.6
+   ],
+   "load1_after": [
+    5.15,
+    5.7
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 8,
+   "workers": 3,
+   "passes": 2,
+   "records": 323,
+   "cold_first_query_ms": 7501.724978999846,
+   "warm_p50_ms": 5849.454375000278,
+   "warm_p95_ms": 6218.130833000032,
+   "worker_rss_sum_mib": 2858.15625,
+   "gateway_rss_mib": 37.6484375,
+   "workers_alive_end": 3,
+   "worker_processes_started": 93,
+   "worker_cpu_s_total": 366.27930749999973,
+   "worker_cpu_s_warm_batch": 357.9919715000002,
+   "load1_before": [
+    5.15,
+    5.58
+   ],
+   "load1_after": [
+    5.99,
+    6.33
+   ]
+  },
+  {
+   "system": "team-server",
+   "scopes": 8,
+   "workers": 8,
+   "passes": 2,
+   "records": 323,
+   "cold_first_query_ms": 7095.666645499477,
+   "warm_p50_ms": 2938.148083001579,
+   "warm_p95_ms": 3274.2704580014106,
+   "worker_rss_sum_mib": 9035.28125,
+   "gateway_rss_mib": 37.6484375,
+   "workers_alive_end": 8,
+   "worker_processes_started": 8,
+   "worker_cpu_s_total": 506.2311474999999,
+   "worker_cpu_s_warm_batch": 498.2847119999999,
+   "load1_before": [
+    5.99,
+    5.42
+   ],
+   "load1_after": [
+    9.66,
+    9.49
+   ]
+  },
+  {
+   "system": "single-store",
+   "scopes": 8,
+   "workers": 1,
+   "passes": 2,
+   "records": 323,
+   "cold_first_query_ms": 910.0520624997444,
+   "warm_p50_ms": 459.2244169980404,
+   "warm_p95_ms": 537.7965000006952,
+   "worker_rss_sum_mib": 1289.7109375,
+   "gateway_rss_mib": 37.640625,
+   "workers_alive_end": 1,
+   "worker_processes_started": 1,
+   "worker_cpu_s_total": 81.66557999999986,
+   "worker_cpu_s_warm_batch": 80.69352100000008,
+   "load1_before": [
+    5.59,
+    4.82
+   ],
+   "load1_after": [
+    6.27,
+    6.18
+   ]
+  }
+ ]
+}

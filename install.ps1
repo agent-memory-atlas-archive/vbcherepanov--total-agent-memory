@@ -10,7 +10,8 @@
     orphan-backfill and check-updates.
 
 .PARAMETER Ide
-    Target IDE: claude-code (default), cursor, gemini-cli, opencode, codex.
+    Target IDE: claude-code (default), claude-desktop, cursor, gemini-cli, opencode, codex, cline, continue,
+    windsurf, aider. Registration is done by src/setup_wizard/register.py, shared with install.sh and the wizard.
 
 .PARAMETER Uninstall
     Remove scheduled tasks and MCP entries (leaves venv and memory.db).
@@ -26,7 +27,7 @@
 #>
 
 param(
-    [ValidateSet("claude-code", "cursor", "gemini-cli", "opencode", "codex")]
+    [ValidateSet("claude-code", "claude-desktop", "cursor", "gemini-cli", "opencode", "codex", "cline", "continue", "windsurf", "aider")]
     [string]$Ide = "claude-code",
     [switch]$Uninstall,
     [switch]$TestMode
@@ -75,8 +76,6 @@ $MemoryDir = if ($env:TAM_MEMORY_DIR) {
 $env:TAM_MEMORY_DIR = $MemoryDir
 $env:CLAUDE_MEMORY_DIR = $MemoryDir
 $VenvDir = [System.IO.Path]::Combine($InstallDir, ".venv")
-$ClaudeDir = [System.IO.Path]::Combine($HomeDir, ".claude")
-$ClaudeSettings = [System.IO.Path]::Combine($ClaudeDir, "settings.json")
 
 # Scheduled task names (used in both install + uninstall paths)
 $TaskReflection     = "total-agent-memory-reflection"
@@ -102,35 +101,21 @@ function Invoke-Uninstall {
         }
     }
 
-    # Claude Code settings.json - drop memory MCP + our hooks
-    if (Test-Path $ClaudeSettings) {
+    # MCP entry + hooks: the registration module removes exactly what it registered.
+    $uninstallPython = [System.IO.Path]::Combine($VenvDir, "Scripts", "python.exe")
+    if (Test-Path $uninstallPython) {
+        $previousPythonPath = $env:PYTHONPATH
+        $env:PYTHONPATH = [System.IO.Path]::Combine($InstallDir, "src")
         try {
-            $raw = Get-Content $ClaudeSettings -Raw -Encoding UTF8
-            $settings = $raw | ConvertFrom-Json
-            $changed = $false
-
-            if ($settings.PSObject.Properties.Match('mcpServers').Count -gt 0 -and $settings.mcpServers) {
-                if ($settings.mcpServers.PSObject.Properties.Match('memory').Count -gt 0) {
-                    $settings.mcpServers.PSObject.Properties.Remove('memory')
-                    $changed = $true
-                }
+            & $uninstallPython -m setup_wizard.register --unregister --client $Ide
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "  WARN: Could not remove the memory entry for $Ide (see the message above)" -ForegroundColor DarkYellow
             }
-            if ($settings.PSObject.Properties.Match('hooks').Count -gt 0 -and $settings.hooks) {
-                foreach ($evt in @("SessionStart", "SessionEnd", "Stop", "UserPromptSubmit", "PreToolUse", "PostToolUse")) {
-                    if ($settings.hooks.PSObject.Properties.Match($evt).Count -gt 0) {
-                        $settings.hooks.PSObject.Properties.Remove($evt)
-                        $changed = $true
-                    }
-                }
-            }
-
-            if ($changed) {
-                Write-Utf8File -Path $ClaudeSettings -Content ($settings | ConvertTo-Json -Depth 10)
-                Write-Host "  OK: Cleaned memory entries from $ClaudeSettings" -ForegroundColor Green
-            }
-        } catch {
-            Write-Host "  WARN: Could not parse $ClaudeSettings ($($_.Exception.Message))" -ForegroundColor DarkYellow
+        } finally {
+            $env:PYTHONPATH = $previousPythonPath
         }
+    } else {
+        Write-Host "  SKIP: venv not found; remove the 'memory' MCP entry from your $Ide config by hand" -ForegroundColor DarkYellow
     }
 
     Write-Host ""
@@ -237,276 +222,31 @@ print(f'  OK: Model ready ({name})')
 }
 
 # ===================================================================
-# Helper: merge a JSON MCP config (works for 4 of 5 IDEs)
+# 4. Register the MCP server (src/setup_wizard/register.py is the single
+#    implementation shared with install.sh, the wizard and the npm wrapper)
 # ===================================================================
-function Merge-JsonMcp {
-    param(
-        [Parameter(Mandatory=$true)][string]$ConfigPath,
-        [Parameter(Mandatory=$true)][string]$ParentKey   # "mcpServers" or "mcp"
-    )
-    $parentDir = Split-Path -Parent $ConfigPath
-    if (-not (Test-Path $parentDir)) {
-        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+function Register-Mcp {
+    param([Parameter(Mandatory=$true)][string]$Client)
+    Write-Host "-> Step 4: Registering the MCP server with $Client..." -ForegroundColor Yellow
+    $registerArgs = @("-m", "setup_wizard.register", "--client", $Client, "--memory-dir", $MemoryDir,
+                      "--command", $VenvPython, "--arg", $SrvPath, "--env", "CLAUDE_MEMORY_DIR=$MemoryDir")
+    if ($Client -eq "codex") {
+        $registerArgs += @("--env", "MEMORY_TRIPLE_TIMEOUT_SEC=120", "--env", "MEMORY_ENRICH_TIMEOUT_SEC=90",
+                           "--env", "MEMORY_REPR_TIMEOUT_SEC=120", "--env", "MEMORY_TRIPLE_MAX_PREDICT=512")
     }
-
-    $data = [ordered]@{}
-    if (Test-Path $ConfigPath) {
-        try {
-            $raw = Get-Content $ConfigPath -Raw -Encoding UTF8
-            if ($raw -and $raw.Trim()) {
-                # ConvertFrom-Json returns PSCustomObject; convert to hashtable for editing
-                $parsed = $raw | ConvertFrom-Json
-                if ($parsed) {
-                    $data = ConvertTo-HashtableFromPSObject $parsed
-                }
-            }
-        } catch {
-            throw "Cannot parse existing MCP config $ConfigPath : $($_.Exception.Message)"
-        }
-    }
-
-    if (-not $data.Contains($ParentKey) -or -not ($data[$ParentKey] -is [System.Collections.IDictionary])) {
-        $data[$ParentKey] = [ordered]@{}
-    }
-
-    $data[$ParentKey]["memory"] = [ordered]@{
-        command = $VenvPython
-        args    = @($SrvPath)
-        env     = [ordered]@{
-            TAM_MEMORY_DIR = $MemoryDir
-            CLAUDE_MEMORY_DIR = $MemoryDir
-        }
-    }
-
-    $json = ($data | ConvertTo-Json -Depth 10)
-    Write-Utf8File -Path $ConfigPath -Content $json
-    Write-Host "  OK: MCP memory registered in $ConfigPath (key: $ParentKey)" -ForegroundColor Green
-}
-
-function ConvertTo-HashtableFromPSObject {
-    param([Parameter(ValueFromPipeline=$true)]$InputObject)
-    process {
-        if ($null -eq $InputObject) { return $null }
-        if ($InputObject -is [System.Collections.IDictionary]) {
-            $out = [ordered]@{}
-            foreach ($k in $InputObject.Keys) { $out[$k] = ConvertTo-HashtableFromPSObject $InputObject[$k] }
-            return $out
-        }
-        if ($InputObject -is [System.Collections.IEnumerable] -and -not ($InputObject -is [string])) {
-            $items = New-Object 'System.Collections.Generic.List[object]'
-            foreach ($item in $InputObject) {
-                $items.Add((ConvertTo-HashtableFromPSObject $item))
-            }
-            return ,($items.ToArray())
-        }
-        if ($InputObject -is [System.Management.Automation.PSCustomObject]) {
-            $out = [ordered]@{}
-            foreach ($p in $InputObject.PSObject.Properties) { $out[$p.Name] = ConvertTo-HashtableFromPSObject $p.Value }
-            return $out
-        }
-        return $InputObject
+    if ($Client -eq "claude-code") { $registerArgs += "--hooks" } else { $registerArgs += "--no-hooks" }
+    if ($env:INSTALL_OVERWRITE_HOOKS -eq "1") { $registerArgs += "--overwrite-hooks" }
+    $previousPythonPath = $env:PYTHONPATH
+    $env:PYTHONPATH = [System.IO.Path]::Combine($InstallDir, "src")
+    try {
+        & $VenvPython @registerArgs
+        if ($LASTEXITCODE -ne 0) { throw "MCP registration for $Client failed (see the message above)" }
+    } finally {
+        $env:PYTHONPATH = $previousPythonPath
     }
 }
 
-# ===================================================================
-# Register-Mcp-* functions (one per IDE)
-# ===================================================================
-
-function Register-Mcp-ClaudeCode {
-    Write-Host "-> Step 4: Configuring Claude Code MCP server..." -ForegroundColor Yellow
-    Merge-JsonMcp -ConfigPath $ClaudeSettings -ParentKey "mcpServers"
-
-    # -- 4b. Register v8.0 hooks --
-    Write-Host "-> Step 4b: Registering v8.0 hooks..." -ForegroundColor Yellow
-
-    $userHookDir = [System.IO.Path]::Combine($ClaudeDir, "hooks")
-    if (-not (Test-Path $userHookDir)) {
-        New-Item -ItemType Directory -Path $userHookDir -Force | Out-Null
-    }
-
-    $srcHookDir = [System.IO.Path]::Combine($InstallDir, "hooks")
-    $hookNames = @(
-        "session-start.ps1",
-        "session-end.ps1",
-        "on-stop.ps1",
-        "memory-trigger.ps1",
-        "auto-capture.ps1",
-        "user-prompt-submit.ps1",
-        "post-tool-use.ps1",
-        "pre-edit.ps1",
-        "on-bash-error.ps1"
-    )
-    foreach ($h in $hookNames) {
-        $src = [System.IO.Path]::Combine($srcHookDir, $h)
-        $dst = [System.IO.Path]::Combine($userHookDir, $h)
-        if (Test-Path $src) {
-            if (Test-Path $dst) {
-                Write-Host "  SKIP: $h already exists in $userHookDir (preserving user copy)" -ForegroundColor DarkYellow
-            } else {
-                Copy-Item -Path $src -Destination $dst -ErrorAction SilentlyContinue
-            }
-        }
-    }
-
-    # Build command strings pointing at copied hook files
-    $pwshPrefix = "powershell -ExecutionPolicy Bypass -NoProfile -File "
-    $HookSession       = [System.IO.Path]::Combine($userHookDir, "session-start.ps1")
-    $HookSessionEnd    = [System.IO.Path]::Combine($userHookDir, "session-end.ps1")
-    $HookStop          = [System.IO.Path]::Combine($userHookDir, "on-stop.ps1")
-    $HookBash          = [System.IO.Path]::Combine($userHookDir, "memory-trigger.ps1")
-    $HookWrite         = [System.IO.Path]::Combine($userHookDir, "auto-capture.ps1")
-    $HookUserPrompt    = [System.IO.Path]::Combine($userHookDir, "user-prompt-submit.ps1")
-    $HookPreEdit       = [System.IO.Path]::Combine($userHookDir, "pre-edit.ps1")
-    $HookPostToolUse   = [System.IO.Path]::Combine($userHookDir, "post-tool-use.ps1")
-    $HookOnBashError   = [System.IO.Path]::Combine($userHookDir, "on-bash-error.ps1")
-
-    # Merge hooks block into settings.json
-    $data = [ordered]@{}
-    if (Test-Path $ClaudeSettings) {
-        try {
-            $raw = Get-Content $ClaudeSettings -Raw -Encoding UTF8
-            if ($raw -and $raw.Trim()) {
-                $data = ConvertTo-HashtableFromPSObject ($raw | ConvertFrom-Json)
-            }
-        } catch {
-            $data = [ordered]@{}
-        }
-    }
-    if (-not $data.Contains("hooks") -or -not ($data.hooks -is [System.Collections.IDictionary])) {
-        $data["hooks"] = [ordered]@{}
-    }
-
-    $data.hooks["SessionStart"] = @(
-        @{ matcher = ""; hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookSession`"" }) }
-    )
-    $data.hooks["SessionEnd"] = @(
-        @{ matcher = ""; hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookSessionEnd`"" }) }
-    )
-    $data.hooks["Stop"] = @(
-        @{ matcher = ""; hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookStop`"" }) }
-    )
-    $data.hooks["UserPromptSubmit"] = @(
-        @{ matcher = ""; hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookUserPrompt`"" }) }
-    )
-    $data.hooks["PreToolUse"] = @(
-        @{ matcher = "Write|Edit"; hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookPreEdit`"" }) }
-    )
-    $data.hooks["PostToolUse"] = @(
-        @{ matcher = "Bash";       hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookBash`"" }) },
-        @{ matcher = "Bash";       hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookOnBashError`"" }) },
-        @{ matcher = "Write|Edit"; hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookWrite`"" }) },
-        @{ matcher = "*";          hooks = @(@{ type = "command"; command = $pwshPrefix + "`"$HookPostToolUse`"" }) }
-    )
-
-    Write-Utf8File -Path $ClaudeSettings -Content ($data | ConvertTo-Json -Depth 10)
-    Write-Host "  OK: v8.0 hooks registered (SessionStart/End, Stop, UserPromptSubmit, PreToolUse, PostToolUse)" -ForegroundColor Green
-}
-
-function Register-Mcp-Cursor {
-    Write-Host "-> Step 4: Configuring Cursor MCP server..." -ForegroundColor Yellow
-    $cfg = [System.IO.Path]::Combine($HomeDir, ".cursor", "mcp.json")
-    Merge-JsonMcp -ConfigPath $cfg -ParentKey "mcpServers"
-}
-
-function Register-Mcp-GeminiCli {
-    Write-Host "-> Step 4: Configuring Gemini CLI MCP server..." -ForegroundColor Yellow
-    $cfg = [System.IO.Path]::Combine($HomeDir, ".gemini", "settings.json")
-    Merge-JsonMcp -ConfigPath $cfg -ParentKey "mcpServers"
-}
-
-function Register-Mcp-OpenCode {
-    Write-Host "-> Step 4: Configuring OpenCode MCP server..." -ForegroundColor Yellow
-    $cfg = [System.IO.Path]::Combine($HomeDir, ".opencode", "config.json")
-    Merge-JsonMcp -ConfigPath $cfg -ParentKey "mcp"
-}
-
-function Register-Mcp-Codex {
-    Write-Host "-> Step 4: Configuring Codex CLI MCP server..." -ForegroundColor Yellow
-    $codexDir = [System.IO.Path]::Combine($HomeDir, ".codex")
-    $configPath = [System.IO.Path]::Combine($codexDir, "config.toml")
-    if (-not (Test-Path $codexDir)) {
-        New-Item -ItemType Directory -Path $codexDir -Force | Out-Null
-    }
-
-    # TOML escaping: normalize backslashes to forward slashes, escape double quotes
-    $pyEsc = $VenvPython.Replace("\", "/").Replace('"', '\"')
-    $srvEsc = $SrvPath.Replace("\", "/").Replace('"', '\"')
-    $memEsc = $MemoryDir.Replace("\", "/").Replace('"', '\"')
-
-    $tomlBlock = @"
-# --- Claude Total Memory MCP Server ---
-[mcp_servers.memory]
-command = "$pyEsc"
-args = ["$srvEsc"]
-required = true
-startup_timeout_sec = 15.0
-tool_timeout_sec = 120.0
-
-[mcp_servers.memory.env]
-TAM_MEMORY_DIR = "$memEsc"
-CLAUDE_MEMORY_DIR = "$memEsc"
-MEMORY_TRIPLE_TIMEOUT_SEC = "120"
-MEMORY_ENRICH_TIMEOUT_SEC = "90"
-MEMORY_REPR_TIMEOUT_SEC = "120"
-MEMORY_TRIPLE_MAX_PREDICT = "512"
-# --- End Claude Total Memory ---
-"@
-
-    $content = ""
-    if (Test-Path $configPath) {
-        $content = Get-Content $configPath -Raw -Encoding UTF8
-        if (-not $content) { $content = "" }
-    }
-
-    $fenceRegex = '(?s)# --- Claude Total Memory MCP Server ---.*?# --- End Claude Total Memory ---'
-    $sectionRegex = '(?ms)^\[mcp_servers\.memory(?:\.[^\]\r\n]+)?\].*?(?=^\[|\z)'
-
-    # MatchEvaluator avoids dollar-sign / backslash interpolation in the
-    # replacement string (parity with bash re.sub behavior).
-    $evaluator = [System.Text.RegularExpressions.MatchEvaluator] {
-        param($m)
-        return $tomlBlock.Trim()
-    }
-
-    if ($content -match 'mcp_servers\.memory') {
-        if ([System.Text.RegularExpressions.Regex]::IsMatch($content, $fenceRegex)) {
-            $content = [System.Text.RegularExpressions.Regex]::Replace($content, $fenceRegex, $evaluator)
-        } else {
-            $content = [System.Text.RegularExpressions.Regex]::Replace($content, $sectionRegex, '').TrimEnd() + "`n" + $tomlBlock
-        }
-        Write-Host "  OK: Updated existing memory config in $configPath" -ForegroundColor Green
-    } else {
-        $content = $content.TrimEnd() + "`n" + $tomlBlock
-        Write-Host "  OK: Added memory config to $configPath" -ForegroundColor Green
-    }
-
-    $content = $content.TrimStart("`r", "`n")
-    Write-Utf8File -Path $configPath -Content $content
-
-    # -- 4b. Install Codex Skill --
-    $skillTarget = [System.IO.Path]::Combine($HomeDir, ".agents", "skills", "memory")
-    $skillSrc = [System.IO.Path]::Combine($InstallDir, "codex-skill")
-    if (Test-Path $skillSrc) {
-        Write-Host "-> Step 4b: Installing Codex memory skill..." -ForegroundColor Yellow
-        if (-not (Test-Path $skillTarget)) {
-            New-Item -ItemType Directory -Path $skillTarget -Force | Out-Null
-        }
-        Copy-Item -Path (Join-Path $skillSrc "*") -Destination $skillTarget -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "  OK: Skill installed to $skillTarget" -ForegroundColor Green
-    }
-}
-
-# ===================================================================
-# 4. Dispatch on -Ide
-# ===================================================================
-switch ($Ide) {
-    "claude-code" { Register-Mcp-ClaudeCode }
-    "cursor"      { Register-Mcp-Cursor }
-    "gemini-cli"  { Register-Mcp-GeminiCli }
-    "opencode"    { Register-Mcp-OpenCode }
-    "codex"       { Register-Mcp-Codex }
-    default       { throw "Unsupported IDE: $Ide" }
-}
+Register-Mcp -Client $Ide
 
 # ===================================================================
 # 5. Background scheduled tasks (Task Scheduler, Windows analogue
@@ -674,41 +414,6 @@ if (Test-Path $SrvPath) {
     Write-Host "  FAIL: Server not found at $SrvPath" -ForegroundColor Red
 }
 
-function Test-McpRegistered {
-    param([string]$ConfigPath, [string]$ParentKey, [bool]$IsToml = $false)
-    if (-not (Test-Path $ConfigPath)) {
-        Write-Host "  FAIL: Config file missing: $ConfigPath" -ForegroundColor Red
-        return
-    }
-    if ($IsToml) {
-        $c = Get-Content $ConfigPath -Raw -Encoding UTF8
-        if ($c -match "mcp_servers\.memory") {
-            Write-Host "  OK: MCP server configured in $ConfigPath" -ForegroundColor Green
-        } else {
-            Write-Host "  FAIL: MCP config missing in $ConfigPath" -ForegroundColor Red
-        }
-    } else {
-        try {
-            $data = Get-Content $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($data.$ParentKey -and $data.$ParentKey.memory) {
-                Write-Host "  OK: MCP server configured in $ConfigPath" -ForegroundColor Green
-            } else {
-                Write-Host "  FAIL: MCP config issue ($ConfigPath)" -ForegroundColor Red
-            }
-        } catch {
-            Write-Host "  FAIL: Config parse error ($ConfigPath)" -ForegroundColor Red
-        }
-    }
-}
-
-switch ($Ide) {
-    "claude-code" { Test-McpRegistered -ConfigPath $ClaudeSettings -ParentKey "mcpServers" }
-    "cursor"      { Test-McpRegistered -ConfigPath ([System.IO.Path]::Combine($HomeDir, ".cursor", "mcp.json")) -ParentKey "mcpServers" }
-    "gemini-cli"  { Test-McpRegistered -ConfigPath ([System.IO.Path]::Combine($HomeDir, ".gemini", "settings.json")) -ParentKey "mcpServers" }
-    "opencode"    { Test-McpRegistered -ConfigPath ([System.IO.Path]::Combine($HomeDir, ".opencode", "config.json")) -ParentKey "mcp" }
-    "codex"       { Test-McpRegistered -ConfigPath ([System.IO.Path]::Combine($HomeDir, ".codex", "config.toml")) -ParentKey "" -IsToml $true }
-}
-
 if (Test-Path $MemoryDir) {
     Write-Host "  OK: Memory directory: $MemoryDir" -ForegroundColor Green
 } else {
@@ -724,7 +429,12 @@ Write-Host ""
 Write-Host "  INSTALLED SUCCESSFULLY (IDE: $Ide)" -ForegroundColor Green
 Write-Host ""
 switch ($Ide) {
-    "claude-code" { Write-Host "  Claude Code now has persistent memory + v8.0 hooks." }
+    "claude-code"    { Write-Host "  Claude Code now has persistent memory + v8.0 hooks." }
+    "claude-desktop" { Write-Host "  Claude Desktop now has persistent memory. Quit and reopen it." }
+    "cline"          { Write-Host "  Cline now has persistent memory. Reload the VS Code window." }
+    "continue"       { Write-Host "  Continue now has persistent memory. Reload your IDE." }
+    "windsurf"       { Write-Host "  Windsurf now has persistent memory. Restart Windsurf." }
+    "aider"          { Write-Host "  Aider now reads the memory-protocol skill (no MCP)." }
     "cursor"      { Write-Host "  Cursor now has persistent memory. Restart Cursor." }
     "gemini-cli"  { Write-Host "  Gemini CLI now has persistent memory. Restart 'gemini'." }
     "opencode"    { Write-Host "  OpenCode now has persistent memory. Restart 'opencode'." }

@@ -9,9 +9,11 @@ from pathlib import Path
 
 import pytest
 
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
+
 
 @pytest.fixture
-def store(monkeypatch, tmp_path):
+def store(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     """Instantiate real Store on a fresh temp MEMORY_DIR."""
     import sys
 
@@ -24,7 +26,7 @@ def store(monkeypatch, tmp_path):
     import server  # imported lazily so MEMORY_DIR override sticks
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
 
-    s = server.Store()
+    s = server.Store(database=store_backend)
     yield s
     try:
         s.db.close()

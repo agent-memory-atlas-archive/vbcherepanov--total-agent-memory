@@ -1,0 +1,136 @@
+{
+ "e4_multiuser": [
+  {
+   "cold_p50_ms": 1978.0118335002044,
+   "cold_searches": 80,
+   "cold_share": 1.0,
+   "experiment": "E4-multiuser",
+   "load_after": [
+    6.87,
+    6.83,
+    6.91
+   ],
+   "load_before": [
+    5.85,
+    7.0,
+    7.0
+   ],
+   "load_guard": {
+    "load": [
+     5.85,
+     7.0,
+     7.0
+    ],
+    "threshold": 6.0,
+    "waits": 2
+   },
+   "order": "rotate",
+   "p50_ms": 1978.0118335002044,
+   "p95_ms": 2197.0957920020737,
+   "run": 1,
+   "searches": 80,
+   "warm_p50_ms": null,
+   "workers": 3,
+   "workers_started": 161
+  },
+  {
+   "cold_p50_ms": 2143.4246670014545,
+   "cold_searches": 4,
+   "cold_share": 0.05,
+   "experiment": "E4-multiuser",
+   "load_after": [
+    8.61,
+    7.28,
+    7.07
+   ],
+   "load_before": [
+    5.26,
+    6.5,
+    6.79
+   ],
+   "load_guard": {
+    "load": [
+     5.26,
+     6.5,
+     6.79
+    ],
+    "threshold": 6.0,
+    "waits": 3
+   },
+   "order": "blocks",
+   "p50_ms": 619.9273749989516,
+   "p95_ms": 1089.1176250006538,
+   "run": 2,
+   "searches": 80,
+   "warm_p50_ms": 617.4937914984184,
+   "workers": 3,
+   "workers_started": 9
+  },
+  {
+   "cold_p50_ms": 2028.9590210013557,
+   "cold_searches": 4,
+   "cold_share": 0.05,
+   "experiment": "E4-multiuser",
+   "load_after": [
+    7.2,
+    6.91,
+    6.92
+   ],
+   "load_before": [
+    5.68,
+    6.63,
+    6.83
+   ],
+   "load_guard": {
+    "load": [
+     5.68,
+     6.63,
+     6.83
+    ],
+    "threshold": 6.0,
+    "waits": 2
+   },
+   "order": "blocks",
+   "p50_ms": 626.0254165008519,
+   "p95_ms": 922.0748749976337,
+   "run": 3,
+   "searches": 80,
+   "warm_p50_ms": 619.6239165001316,
+   "workers": 3,
+   "workers_started": 9
+  },
+  {
+   "cold_p50_ms": 1956.9895834993076,
+   "cold_searches": 80,
+   "cold_share": 1.0,
+   "experiment": "E4-multiuser",
+   "load_after": [
+    4.89,
+    5.69,
+    6.37
+   ],
+   "load_before": [
+    4.77,
+    6.32,
+    6.7
+   ],
+   "load_guard": {
+    "load": [
+     4.77,
+     6.32,
+     6.7
+    ],
+    "threshold": 6.0,
+    "waits": 2
+   },
+   "order": "rotate",
+   "p50_ms": 1956.9895834993076,
+   "p95_ms": 2294.4692089986347,
+   "run": 4,
+   "searches": 80,
+   "warm_p50_ms": null,
+   "workers": 3,
+   "workers_started": 161
+  }
+ ]
+}

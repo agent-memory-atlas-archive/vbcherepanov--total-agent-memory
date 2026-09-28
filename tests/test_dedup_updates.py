@@ -14,6 +14,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from memory_core.dedup import repeats
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
 
 UPDATES = [
     ("Lionel Messi's country of citizenship is Argentina.", "Lionel Messi's country of citizenship is Armenia."),
@@ -49,13 +50,13 @@ def test_empty_text_never_repeats():
 
 
 @pytest.fixture
-def store(monkeypatch, tmp_path):
+def store(store_backend, monkeypatch, tmp_path):  # noqa: F811 — pytest fixture injection
     (tmp_path / "blobs").mkdir(exist_ok=True)
     (tmp_path / "chroma").mkdir(exist_ok=True)
     import server
 
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    s = server.Store()
+    s = server.Store(database=store_backend)
     yield s
     s.db.close()
 

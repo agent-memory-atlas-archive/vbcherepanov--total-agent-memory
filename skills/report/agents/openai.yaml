@@ -1,0 +1,12 @@
+interface:
+  display_name: "Activity report"
+  short_description: "Day, week, month or all-time report from memory for a project, department or company"
+
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "total-agent-memory"
+      description: "total-agent-memory MCP server with the memory_report tool"

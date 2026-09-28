@@ -1,0 +1,16 @@
+#!/bin/sh
+# Litestream CLI from its official image, for hosts without a Litestream install:
+#   TAM_TEAM_LITESTREAM_BIN=/path/to/scripts/litestream-docker \
+#   TAM_LITESTREAM_DOCKER_MOUNT=/srv \
+#   tam-team replication restore --to /srv/tam-restored
+# TAM_LITESTREAM_DOCKER_MOUNT is bind-mounted at the same path, so the config and output paths that
+# tam-team passes resolve inside the container; it must contain the restore target's parent directory.
+# TAM_LITESTREAM_DOCKER_NETWORK optionally joins a Docker network (e.g. a local S3 container's).
+set -eu
+image="${TAM_LITESTREAM_IMAGE:-litestream/litestream:0.5.17}"
+mount="${TAM_LITESTREAM_DOCKER_MOUNT:-}"
+network="${TAM_LITESTREAM_DOCKER_NETWORK:-}"
+exec docker run --rm -i --user "$(id -u):$(id -g)" \
+    -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
+    ${mount:+-v "$mount:$mount"} ${network:+--network "$network"} \
+    "$image" "$@"

@@ -1,0 +1,34 @@
+{
+ "base_commit": "95ea2b881f507cc303eda32fc1d9849c8cf228aa",
+ "package_version": "14.5.1",
+ "release_date": "2026-09-23",
+ "macos": "27.0",
+ "kernel": "27.0.0",
+ "machine": "arm64",
+ "cpu": "Apple M2 Max",
+ "logical_cpus": 12,
+ "ram_gib": 64.0,
+ "python": "3.13.5",
+ "fastembed": "0.8.0",
+ "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (FastEmbed, ONNX)",
+ "fastembed_cache": "/var/folders/ys/0_4g85rs1rjbmpp03_0hsbrr0000gn/T/fastembed_cache",
+ "memory_mode": "fast",
+ "llm": "disabled (MEMORY_LLM_ENABLED=false)",
+ "tam_team_max_workers_default": 3,
+ "src_path": "/Users/vitalii-macpro/PROJECT/claude-memory/.claude/worktrees/agent-aff79c1fb7fee3b2b/src",
+ "team_memory_sha256": "84588e6cd5f85d17772763306e3cb92488ccc8e7b0e08275ac431c40741af368",
+ "worktree_src_diff_stat": "src/team_memory/cli.py      | 4 ++++\n src/team_memory/registry.py | 9 +++++++++\n src/team_memory/service.py  | 9 +++++++--\n 3 files changed, 20 insertions(+), 2 deletions(-)",
+ "seed": 20260925,
+ "label": "patched-01-02",
+ "started": "2026-09-25T13:14:38+0200",
+ "load_at_start": [
+  9.37,
+  8.7,
+  7.69
+ ],
+ "experiments": [
+  "e1",
+  "e2",
+  "e3"
+ ]
+}

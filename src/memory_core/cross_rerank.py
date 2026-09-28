@@ -32,6 +32,10 @@ RRF_K = 60
 MAX_PAIR_CHARS = 2000
 LATIN_SHARE_REQUIRED = 0.6
 LOAD_TIMEOUT_SECONDS = 120.0
+# Records checked for value updates of each other after ranking (O(n^2) token comparisons).
+UPDATE_ORDER_WINDOW = 50
+# Neighbour lookups joined with UNION ALL into one statement.
+NEIGHBOUR_QUERIES_PER_STATEMENT = 100
 
 
 def latin_share(text: str) -> float:
@@ -95,6 +99,11 @@ class CrossReranker:
         """Block until the model loaded or failed; True when it can re-rank."""
         self.start()
         self._ready.wait(timeout)
+        return self._encoder is not None
+
+    @property
+    def ready(self) -> bool:
+        """True once the model has loaded; False while loading or after a failed load."""
         return self._encoder is not None
 
     def applies_to(self, query: str) -> bool:
@@ -180,8 +189,14 @@ def keep_updates_below(ranked: list[dict], text_of: Callable[[dict], str],
             out[place] = ranked[source]
         moved = moved or newest_first != places
     if moved:
-        counters.bump("cross_rerank_update_order_restored")
+        counters.bump("update_order_restored")
     return out
+
+
+def order_value_updates(ranked: Sequence[dict], text_of: Callable[[dict], str],
+                        recency_of: Callable[[dict], tuple], window: int = UPDATE_ORDER_WINDOW) -> list[dict]:
+    """`keep_updates_below` over the top `window` records, whatever ranked them; the rest keep their order."""
+    return keep_updates_below(list(ranked[:window]), text_of, recency_of) + list(ranked[window:])
 
 
 def session_window_texts(db, rows: Sequence[dict], *, side_chars: int) -> dict[int, str]:
@@ -191,16 +206,20 @@ def session_window_texts(db, rows: Sequence[dict], *, side_chars: int) -> dict[i
         return {}
     parts, params = [], []
     for row in anchors:
+        # "project = ?" / "IS NULL" rather than "IS ?": PostgreSQL cannot use an index for IS NOT DISTINCT FROM.
+        project = row.get("project")
+        project_match, project_params = ("project IS NULL", []) if project is None else ("project=?", [project])
         for side, comparison, direction in ((0, "<", "DESC"), (1, ">", "ASC")):
             parts.append(
                 "SELECT * FROM (SELECT ? AS a, ? AS s, content FROM knowledge "
-                "WHERE session_id=? AND project IS ? AND status='active' "
+                f"WHERE session_id=? AND {project_match} AND status='active' "
                 f"AND (created_at, id) {comparison} (?, ?) ORDER BY created_at {direction}, id {direction} LIMIT 1)")
-            params += [row["id"], side, row["session_id"], row.get("project"), row["created_at"], row["id"]]
+            params.append([row["id"], side, row["session_id"], *project_params, row["created_at"], row["id"]])
     around: dict[tuple[int, int], str] = {}
-    for offset in range(0, len(parts), 100):
-        for a, s, content in db.execute(" UNION ALL ".join(parts[offset:offset + 100]),
-                                        params[offset * 6:(offset + 100) * 6]).fetchall():
+    for offset in range(0, len(parts), NEIGHBOUR_QUERIES_PER_STATEMENT):
+        batch = params[offset:offset + NEIGHBOUR_QUERIES_PER_STATEMENT]
+        for a, s, content in db.execute(" UNION ALL ".join(parts[offset:offset + NEIGHBOUR_QUERIES_PER_STATEMENT]),
+                                        [value for part in batch for value in part]).fetchall():
             around[(a, s)] = content or ""
     out = {}
     for row in anchors:

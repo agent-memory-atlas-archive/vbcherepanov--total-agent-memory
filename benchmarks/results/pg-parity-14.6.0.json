@@ -1,0 +1,150 @@
+{
+ "seed": 20260925,
+ "facts": 320,
+ "questions": 600,
+ "sizes": [
+  1000,
+  10000,
+  50000
+ ],
+ "quality": {
+  "sqlite": {
+   "recall_at_5": 99.67,
+   "recall_at_10": 100.0,
+   "mrr": 0.9887,
+   "ndcg_at_10": 0.9915
+  },
+  "postgres": {
+   "recall_at_5": 99.67,
+   "recall_at_10": 100.0,
+   "mrr": 0.9887,
+   "ndcg_at_10": 0.9915
+  }
+ },
+ "parity": {
+  "fused": {
+   "jaccard_mean": 1.0,
+   "kendall_tau_mean": 1.0,
+   "questions": 600
+  },
+  "lexical": {
+   "jaccard_mean": 1.0,
+   "kendall_tau_mean": 1.0,
+   "questions": 600
+  },
+  "semantic": {
+   "jaccard_mean": 1.0,
+   "kendall_tau_mean": 1.0,
+   "questions": 600
+  }
+ },
+ "base": {
+  "sqlite": {
+   "save_ms": {
+    "p50": 20.136,
+    "p95": 25.549
+   },
+   "recall_ms": {
+    "p50": 510.61,
+    "p95": 562.365
+   }
+  },
+  "postgres": {
+   "save_ms": {
+    "p50": 29.169,
+    "p95": 37.268
+   },
+   "recall_ms": {
+    "p50": 531.008,
+    "p95": 580.567
+   }
+  }
+ },
+ "scale": {
+  "sqlite": [
+   {
+    "size": 1000,
+    "records": 1000,
+    "save_ms": {
+     "p50": 16.222,
+     "p95": 19.399
+    },
+    "recall_ms": {
+     "p50": 467.688,
+     "p95": 570.211
+    }
+   },
+   {
+    "size": 10000,
+    "records": 10000,
+    "save_ms": {
+     "p50": 19.842,
+     "p95": 25.745
+    },
+    "recall_ms": {
+     "p50": 491.793,
+     "p95": 746.244
+    }
+   },
+   {
+    "size": 50000,
+    "records": 50000,
+    "save_ms": {
+     "p50": 33.009,
+     "p95": 38.81
+    },
+    "recall_ms": {
+     "p50": 485.66,
+     "p95": 621.859
+    }
+   }
+  ],
+  "postgres": [
+   {
+    "size": 1000,
+    "records": 1000,
+    "save_ms": {
+     "p50": 23.357,
+     "p95": 26.359
+    },
+    "recall_ms": {
+     "p50": 462.779,
+     "p95": 560.053
+    }
+   },
+   {
+    "size": 10000,
+    "records": 10000,
+    "save_ms": {
+     "p50": 23.805,
+     "p95": 26.281
+    },
+    "recall_ms": {
+     "p50": 484.799,
+     "p95": 602.014
+    }
+   },
+   {
+    "size": 50000,
+    "records": 50000,
+    "save_ms": {
+     "p50": 25.594,
+     "p95": 28.499
+    },
+    "recall_ms": {
+     "p50": 552.464,
+     "p95": 670.572
+    }
+   }
+  ]
+ },
+ "finished_at": "2026-09-27T16:55:49+0200",
+ "acceptance": {
+  "recall_at_10_drop_pp": 0.0,
+  "recall_ok": true,
+  "lexical_jaccard": 1.0,
+  "lexical_ok": true,
+  "p95_recall_ratio_at_10000": 0.81,
+  "latency_ok": true
+ }
+}

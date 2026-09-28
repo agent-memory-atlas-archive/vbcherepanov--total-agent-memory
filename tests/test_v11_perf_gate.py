@@ -1,4 +1,4 @@
-"""v11.0 Phase 8 — tests for `bin/memory-perf-gate`.
+"""v11.0 Phase 8 — tests for `scripts/memory-perf-gate`.
 
 The gate is a CLI script (no `.py` extension), so we load it via `runpy`
 and reach into its namespace. The bench is **never** actually executed in
@@ -17,7 +17,7 @@ import pytest
 
 
 REPO = Path(__file__).resolve().parent.parent
-GATE_PATH = REPO / "bin" / "memory-perf-gate"
+GATE_PATH = REPO / "scripts" / "memory-perf-gate"
 
 
 # ──────────────────────────────────────────────
@@ -26,7 +26,7 @@ GATE_PATH = REPO / "bin" / "memory-perf-gate"
 
 
 def _load_gate_module():
-    """Load bin/memory-perf-gate as a real importlib module so closures
+    """Load scripts/memory-perf-gate as a real importlib module so closures
     over its globals (e.g. `run_bench` referenced from inside `main`) see
     monkeypatch overrides correctly. The script has no `.py` suffix, so
     we go through `SourceFileLoader` to bypass extension sniffing."""

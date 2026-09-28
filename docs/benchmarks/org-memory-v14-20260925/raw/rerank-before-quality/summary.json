@@ -1,0 +1,70 @@
+{
+ "quality": [
+  {
+   "variant": "B-reader",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 1.0,
+   "mrr@10": 0.986,
+   "updated_questions": 80,
+   "fresh@5": 1.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 1.0
+   },
+   "non_team_results_in_top5": 2.0925,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 1.0
+   }
+  },
+  {
+   "variant": "C-team-only",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 1.0,
+   "mrr@10": 0.9891666666666667,
+   "updated_questions": 80,
+   "fresh@5": 1.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 1.0
+   },
+   "non_team_results_in_top5": 0.0,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 1.0
+   }
+  },
+  {
+   "variant": "D-editor-all-scopes",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 0.995,
+   "mrr@10": 0.9844642857142857,
+   "updated_questions": 80,
+   "fresh@5": 0.9875,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 0.99
+   },
+   "non_team_results_in_top5": 3.0,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 0.98
+   }
+  }
+ ]
+}

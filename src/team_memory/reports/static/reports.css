@@ -1,0 +1,41 @@
+/* Reports section. Uses the dashboard's design tokens from app.css (both themes). */
+.rep-controls{display:grid;gap:var(--s-3) var(--s-4);grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}
+.rep-controls select,.rep-controls input{width:100%}
+.rep-period{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:var(--s-3);align-items:center}
+.rep-periods{grid-template-columns:repeat(5,auto)}
+.rep-stepper{display:flex;align-items:center;gap:var(--s-2)}
+.rep-stepper[hidden],.rep-custom[hidden]{display:none}
+.rep-stepper .btn:first-child .icon{transform:rotate(90deg)}
+.rep-stepper .btn:last-child .icon{transform:rotate(90deg)}
+.rep-step{min-width:9ch;text-align:center;font-size:var(--t-sm)}
+.rep-custom{grid-column:1/-1;display:grid;gap:var(--s-3);grid-template-columns:repeat(2,minmax(0,220px))}
+.rep-controls .actions{grid-column:1/-1;justify-content:flex-start}
+
+.rep-list{list-style:none;display:grid;gap:var(--s-3);margin:0;padding:0}
+.rep-list li{display:grid;gap:6px;padding-bottom:var(--s-3);border-bottom:1px solid var(--line);min-width:0}
+.rep-list li:last-child{border-bottom:0;padding-bottom:0}
+.rep-list strong,.rep-list p{overflow-wrap:anywhere}
+.rep-list p{color:var(--dim)}
+.rep-label{display:inline-block;margin-right:var(--s-2);font-size:var(--t-xs);font-weight:600;letter-spacing:.02em;color:var(--muted);text-transform:uppercase}
+.rep-refs{display:inline-flex;flex-wrap:wrap;gap:4px}
+.rep-refs code{font:500 var(--t-xs) var(--font-mono);padding:1px 6px;border-radius:var(--r-sm);background:var(--soft);color:var(--dim);white-space:nowrap}
+.rep-name{overflow-wrap:anywhere;font-size:var(--t-sm)}
+.rep-name.keep{overflow-wrap:normal;word-break:normal;white-space:nowrap}
+.rep-delta{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-xs);white-space:nowrap}
+.rep-delta.up{color:var(--accent)}
+.rep-delta.down{color:var(--dim)}
+
+.rep-days{display:grid;gap:var(--s-2)}
+.rep-day{border:1px solid var(--line);border-radius:var(--r-md);background:var(--bg-elev)}
+.rep-day>summary{display:flex;justify-content:space-between;gap:var(--s-3);padding:var(--s-3) var(--s-4);cursor:pointer;list-style:none;flex-wrap:wrap}
+.rep-day>summary::-webkit-details-marker{display:none}
+.rep-day>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--r-md)}
+.rep-day .feed{padding:0 var(--s-4) var(--s-3)}
+.rep-day>p{padding:0 var(--s-4) var(--s-3)}
+
+@media (max-width:640px){
+  .rep-controls{grid-template-columns:1fr}
+  .rep-periods{grid-template-columns:repeat(3,1fr)}
+  .rep-custom{grid-template-columns:1fr 1fr}
+}
+.rep-controls a.btn{text-decoration:none}

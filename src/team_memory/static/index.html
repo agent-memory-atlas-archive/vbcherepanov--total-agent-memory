@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Team Memory</title>
+<link rel="icon" href="/dashboard/static/favicon.svg" type="image/svg+xml">
+<script src="/dashboard/static/theme.js"></script>
+<link rel="preload" href="/dashboard/static/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/dashboard/static/app.css">
+<script src="/dashboard/static/app.js" defer></script>
+<script src="/dashboard/static/records.js" defer></script>
+<script src="/dashboard/static/database.js" defer></script>
+<script src="/dashboard/static/setup.js" defer></script>
+</head>
+<body>
+<div id="sprite" hidden></div>
+
+<div id="setup" class="setup" hidden></div>
+
+<div id="login" class="login" hidden>
+  <section class="login-brand" aria-label="About">
+    <div class="brand"><span class="logo" data-icon="logo"></span>total-agent-memory <span class="version" id="loginVersion"></span></div>
+    <div>
+      <h1>Your company's shared memory</h1>
+      <p>What your teams decided, fixed and learned, available to people and to their AI agents with the right access.</p>
+    </div>
+    <ul class="login-points">
+      <li><span data-icon="shield"></span>Personal memory stays private to its owner</li>
+      <li><span data-icon="users"></span>Departments share knowledge with role-based access</li>
+      <li><span data-icon="key"></span>MCP clients connect with personal tokens</li>
+    </ul>
+  </section>
+  <section class="login-panel">
+    <div class="login-card">
+      <div>
+        <h2>Sign in</h2>
+        <p class="muted">New here? Choose <strong>Invite code</strong> and set your password.</p>
+      </div>
+      <div class="segmented" role="tablist" aria-label="Sign-in method">
+        <button type="button" role="tab" id="tab-password" data-tab="password" aria-selected="true" aria-controls="form-password">Password</button>
+        <button type="button" role="tab" id="tab-invite" data-tab="invite" aria-selected="false" aria-controls="form-invite">Invite code</button>
+        <button type="button" role="tab" id="tab-token" data-tab="token" aria-selected="false" aria-controls="form-token">Token</button>
+      </div>
+      <form id="form-password" data-panel="password" role="tabpanel" aria-labelledby="tab-password">
+        <label class="field"><span>User ID</span><input name="user_id" autocomplete="username" required></label>
+        <label class="field"><span>Password</span><input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="btn primary" type="submit">Sign in</button>
+      </form>
+      <form id="form-invite" data-panel="invite" role="tabpanel" aria-labelledby="tab-invite" hidden>
+        <label class="field"><span>User ID</span><input name="user_id" autocomplete="username" required></label>
+        <label class="field"><span>Invite code</span><input name="code" autocomplete="one-time-code" class="mono" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" required></label>
+        <label class="field"><span>New password</span><input name="password" type="password" autocomplete="new-password" minlength="12" required><small>At least 12 characters.</small></label>
+        <label class="field"><span>Repeat password</span><input name="repeat" type="password" autocomplete="new-password" minlength="12" required></label>
+        <button class="btn primary" type="submit">Set password and sign in</button>
+      </form>
+      <form id="form-token" data-panel="token" role="tabpanel" aria-labelledby="tab-token" hidden>
+        <label class="field"><span>Personal token</span><input name="token" type="password" autocomplete="off" required><small>The same token your MCP client uses.</small></label>
+        <button class="btn primary" type="submit">Sign in</button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<div id="app" class="shell" hidden>
+  <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <div class="brand"><span class="logo" data-icon="logo"></span><span id="brandName">Team Memory</span></div>
+    <nav id="nav" class="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="me"><span id="meAvatar"></span><div><strong id="whoName"></strong><small id="whoRole"></small></div></div>
+      <div class="foot-actions">
+        <button id="theme" class="btn sm" type="button"></button>
+        <button id="logout" class="btn sm" type="button"><span data-icon="logout"></span>Sign out</button>
+      </div>
+    </div>
+  </aside>
+  <div id="scrim" class="scrim" hidden></div>
+  <div class="main">
+    <header class="topbar">
+      <button id="menu" class="btn icon-only menu-btn" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button>
+      <div><div class="crumb" id="pageGroup"></div><h1 id="pageTitle"></h1></div>
+      <div class="grow"></div>
+      <span id="topRole" class="chip accent"></span>
+    </header>
+    <section id="view" class="view" tabindex="-1" aria-live="polite"></section>
+  </div>
+</div>
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,686 @@
+{
+ "e1": {
+  "attempts": [
+   {
+    "system": "team-server",
+    "attempt": "1-direct-canary",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 360
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "1-direct-text",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 360
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "1-personal-text",
+    "calls": 132,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 132
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "2-paraphrase",
+    "calls": 360,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 360
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "3-twin",
+    "calls": 72,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 72
+    },
+    "own_twin_found": 36,
+    "own_twin_expected": 36
+   },
+   {
+    "system": "team-server",
+    "attempt": "4-foreign-team-id",
+    "calls": 252,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:forbidden": 252
+    },
+    "writes_accepted": 0
+   },
+   {
+    "system": "team-server",
+    "attempt": "5-tag-field",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:invalid_request": 12
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "5-tag-query",
+    "calls": 24,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 24
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "5-tag-save",
+    "calls": 96,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:invalid_request": 96
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "6-reader-write",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "400:forbidden": 12
+    },
+    "writes_accepted": 0
+   },
+   {
+    "system": "team-server",
+    "attempt": "7-revoked-token",
+    "calls": 48,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "401:None": 48
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "7-revoked-token-control",
+    "calls": 12,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 12
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "8-removed-member",
+    "calls": 84,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 80,
+     "400:forbidden": 4
+    }
+   },
+   {
+    "system": "team-server",
+    "attempt": "9-foreign-id-own-scope",
+    "calls": 720,
+    "calls_with_leak": 0,
+    "distinct_leaked_canaries": 0,
+    "responses": {
+     "200:None": 562,
+     "400:conflict": 158
+    },
+    "foreign_content_returned": 0
+   }
+  ],
+  "control": {
+   "questions": 1200,
+   "gold_in_top5": 0.995,
+   "gold_at_1": 0.98,
+   "any_own_canary_in_top5": 1.0,
+   "gold_in_top5_by_role": {
+    "editor": 0.995,
+    "reader": 0.995
+   }
+  },
+  "meta": {
+   "integrity": {
+    "engineering": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    },
+    "sales": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    },
+    "hr": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    },
+    "finance": {
+     "records_before": 63,
+     "records_after": 63,
+     "unchanged": true
+    }
+   },
+   "twin_saves": {
+    "twin-1": {
+     "engineering": {
+      "id": 61,
+      "deduplicated": false
+     },
+     "sales": {
+      "id": 61,
+      "deduplicated": false
+     }
+    },
+    "twin-2": {
+     "hr": {
+      "id": 61,
+      "deduplicated": false
+     },
+     "finance": {
+      "id": 61,
+      "deduplicated": false
+     }
+    },
+    "twin-3": {
+     "sales": {
+      "id": 62,
+      "deduplicated": false
+     },
+     "hr": {
+      "id": 62,
+      "deduplicated": false
+     }
+    },
+    "twin-4": {
+     "finance": {
+      "id": 62,
+      "deduplicated": false
+     },
+     "engineering": {
+      "id": 62,
+      "deduplicated": false
+     }
+    },
+    "twin-5": {
+     "engineering": {
+      "id": 63,
+      "deduplicated": false
+     },
+     "hr": {
+      "id": 63,
+      "deduplicated": false
+     }
+    },
+    "twin-6": {
+     "sales": {
+      "id": 63,
+      "deduplicated": false
+     },
+     "finance": {
+      "id": 63,
+      "deduplicated": false
+     }
+    }
+   }
+  }
+ },
+ "e2a": [
+  {
+   "variant": "A-not-member",
+   "questions": 400,
+   "hit@1": 0.0,
+   "hit@5": 0.0,
+   "mrr@10": 0.0,
+   "updated_questions": 80,
+   "fresh@5": 0.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 0.0,
+   "by_kind_hit@5": {
+    "direct": 0.0,
+    "paraphrase": 0.0
+   },
+   "non_team_results_in_top5": 5.0,
+   "hit@5_by_department": {
+    "engineering": 0.0,
+    "finance": 0.0,
+    "hr": 0.0,
+    "sales": 0.0
+   }
+  },
+  {
+   "variant": "B-reader",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 1.0,
+   "mrr@10": 0.986,
+   "updated_questions": 80,
+   "fresh@5": 1.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 1.0
+   },
+   "non_team_results_in_top5": 2.0925,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 1.0
+   }
+  },
+  {
+   "variant": "C-team-only",
+   "questions": 400,
+   "hit@1": 0.98,
+   "hit@5": 1.0,
+   "mrr@10": 0.9891666666666667,
+   "updated_questions": 80,
+   "fresh@5": 1.0,
+   "stale@5": 0.0,
+   "fresh_share_of_found": 1.0,
+   "by_kind_hit@5": {
+    "direct": 1.0,
+    "paraphrase": 1.0
+   },
+   "non_team_results_in_top5": 0.0,
+   "hit@5_by_department": {
+    "engineering": 1.0,
+    "finance": 1.0,
+    "hr": 1.0,
+    "sales": 1.0
+   }
+  }
+ ],
+ "e2": {
+  "transfer_sequential": {
+   "requests": 50,
+   "first_request_ms_after_change": 1.637332999962382,
+   "requests_with_engineering_data": 0,
+   "first_request_leaked": false,
+   "sales_visible_in": 50
+  },
+  "transfer_exact_tools": [
+   {
+    "op": "memory_get",
+    "scope": "engineering",
+    "status": 400,
+    "code": "forbidden"
+   },
+   {
+    "op": "memory_export",
+    "scope": "engineering",
+    "status": 400,
+    "code": "forbidden"
+   },
+   {
+    "op": "memory_save",
+    "scope": "engineering",
+    "status": 400,
+    "code": "forbidden"
+   },
+   {
+    "op": "memory_save",
+    "scope": "sales",
+    "status": 200,
+    "code": null
+   }
+  ],
+  "transfer_concurrent": {
+   "requests": 174,
+   "not_overlapping_change": 114,
+   "not_overlapping_with_old_access": 0,
+   "overlapping_change": 60,
+   "overlapping_rejected": 60,
+   "overlapping_with_team_not_held_at_send": 0,
+   "strict_leaks": 0,
+   "codes": {
+    "200:None": 114,
+    "400:forbidden": 60
+   },
+   "latency_p50_ms": 672.1279590019549
+  },
+  "write_race": {
+   "attempts": 40,
+   "committed": 15,
+   "client_error": 25,
+   "error_but_committed": 0,
+   "codes": {
+    "400:forbidden": 25,
+    "200:None": 15
+   }
+  },
+  "offboarding": [
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_scopes"
+   },
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_recall"
+   },
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_get"
+   },
+   {
+    "check": "leaver-request",
+    "error": "Invalid or revoked token",
+    "experiment": "E2-offboarding",
+    "http_status": 401,
+    "op": "memory_save"
+   },
+   {
+    "check": "colleague-access",
+    "colleague": "sales-editor2",
+    "created_by_preserved": 25,
+    "experiment": "E2-offboarding",
+    "leaver_records": 25,
+    "visible": 25
+   },
+   {
+    "check": "colleague-access",
+    "colleague": "sales-reader",
+    "created_by_preserved": 25,
+    "experiment": "E2-offboarding",
+    "leaver_records": 25,
+    "visible": 25
+   },
+   {
+    "check": "personal-search-by-other",
+    "experiment": "E2-offboarding",
+    "foreign_scopes": [],
+    "http_status": 200,
+    "leaked_canaries": [],
+    "own_canaries": [
+     "CANARY-sales-1200",
+     "CANARY-sales-9599"
+    ],
+    "user": "sales-editor2"
+   },
+   {
+    "check": "personal-owner-id-scope",
+    "error": "1 validation error for RecordRequest\nscope.owner_id\n  Extra inputs are not permitted [type=extra_forbidden, input_value='sales-editor1', input_type=str]\n    For",
+    "experiment": "E2-offboarding",
+    "http_status": 400,
+    "user": "sales-editor2"
+   },
+   {
+    "check": "personal-search-by-other",
+    "experiment": "E2-offboarding",
+    "foreign_scopes": [],
+    "http_status": 200,
+    "leaked_canaries": [],
+    "own_canaries": [
+     "CANARY-engineering-7257"
+    ],
+    "user": "engineering-editor1"
+   },
+   {
+    "check": "personal-owner-id-scope",
+    "error": "1 validation error for RecordRequest\nscope.owner_id\n  Extra inputs are not permitted [type=extra_forbidden, input_value='sales-editor1', input_type=str]\n    For",
+    "experiment": "E2-offboarding",
+    "http_status": 400,
+    "user": "engineering-editor1"
+   }
+  ],
+  "notes": {
+   "personal_after_offboarding": {
+    "workspace_dir_exists": true,
+    "active_records_on_disk": 3,
+    "users.active": 1,
+    "unrevoked_tokens": 0,
+    "admin_events": [
+     [
+      "user_created",
+      "sales-editor1"
+     ],
+     [
+      "membership:editor",
+      "sales-editor1:sales"
+     ],
+     [
+      "token_created",
+      "sales-editor1:orgbench"
+     ],
+     [
+      "membership:None",
+      "sales-editor1:sales"
+     ]
+    ]
+   },
+   "personal_after_token_reissue": {
+    "http_status": 200,
+    "own_note_found": true
+   },
+   "user_disable": {
+    "available": true,
+    "leaver_http_statuses": [
+     401,
+     401,
+     401
+    ],
+    "token_reissue_exit_code": 1
+   },
+   "backup_contains_leaver_personal": true,
+   "cli_commands": "user-add,team-add,member,token-create,user-disable,token-revoke,backup,restore,serve"
+  }
+ },
+ "e3": {
+  "concurrency": [
+   {
+    "clients": 2,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 100,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 17.283666002185782,
+    "latency_p95_ms": 25.889000000461238,
+    "latency_max_ms": 32.77466700092191
+   },
+   {
+    "clients": 4,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 300,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 17.653291000897298,
+    "latency_p95_ms": 27.19000000070082,
+    "latency_max_ms": 32.059165998362005
+   },
+   {
+    "clients": 8,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 700,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 20.434875001228647,
+    "latency_p95_ms": 33.62162499979604,
+    "latency_max_ms": 42.6116250018822
+   },
+   {
+    "clients": 16,
+    "rounds": 100,
+    "rounds_exactly_one_success": 100,
+    "successes": 100,
+    "conflicts": 1500,
+    "other_errors": 0,
+    "lost_updates": 0,
+    "latency_p50_ms": 27.57329200176173,
+    "latency_p95_ms": 42.79833399777999,
+    "latency_max_ms": 64.2924169987964
+   }
+  ],
+  "history": [
+   {
+    "clients": 2,
+    "distinct_actors": 2,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 101,
+    "final_revision_chain_length": 101,
+    "first_id": 1,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   },
+   {
+    "clients": 4,
+    "distinct_actors": 4,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 202,
+    "final_revision_chain_length": 101,
+    "first_id": 102,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   },
+   {
+    "clients": 8,
+    "distinct_actors": 8,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 303,
+    "final_revision_chain_length": 101,
+    "first_id": 203,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   },
+   {
+    "clients": 16,
+    "distinct_actors": 15,
+    "every_success_in_history": true,
+    "experiment": "E3-history",
+    "final_id": 404,
+    "final_revision_chain_length": 101,
+    "first_id": 304,
+    "history_events": 201,
+    "insert_events": 101,
+    "rounds": 100,
+    "successful_updates": 100,
+    "supersede_events": 100
+   }
+  ],
+  "retries": [
+   {
+    "timeout": "client",
+    "op": "memory_delete",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "client",
+    "op": "memory_save",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "client",
+    "op": "memory_update",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "server",
+    "op": "memory_delete",
+    "reps": 20,
+    "first_attempt_timed_out": 0,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "server",
+    "op": "memory_save",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   },
+   {
+    "timeout": "server",
+    "op": "memory_update",
+    "reps": 20,
+    "first_attempt_timed_out": 20,
+    "timed_out_but_committed": 0,
+    "exactly_one_effect": 20,
+    "retry_same_result": 20,
+    "different_payload_rejected": 20
+   }
+  ],
+  "cross_scope": [
+   {
+    "different_payload_other_scope": {
+     "accepted": true,
+     "second_id": 1
+    },
+    "experiment": "E3-retry-cross-scope",
+    "first_id": 1,
+    "same_payload_other_scope": {
+     "accepted": true,
+     "third_id": 82
+    }
+   }
+  ]
+ }
+}

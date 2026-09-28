@@ -14,6 +14,7 @@ import server
 from memory_core import cross_rerank
 from memory_core.cross_rerank import CrossReranker, latin_share
 from memory_core.telemetry import counters
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
 
 
 class KeywordEncoder:
@@ -228,9 +229,9 @@ def test_shared_reranker_follows_config(monkeypatch):
 
 
 @pytest.fixture
-def store(tmp_path, monkeypatch):
+def store(store_backend, tmp_path, monkeypatch):  # noqa: F811 — pytest fixture injection
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    s = server.Store()
+    s = server.Store(database=store_backend)
     s.session_start("s1", project="books")
     for n in range(30):
         s.save_knowledge(sid="s1", content=f"Jon: small talk number {n}, thanks Gina", ktype="fact",

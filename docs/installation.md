@@ -285,10 +285,13 @@ systemd and install the `.path` + `.service` units like on native Linux.
 
 | IDE | macOS | Linux | WSL2 | Windows native |
 |---|:---:|:---:|:---:|:---:|
-| Claude Code | ✅ `~/.claude/settings.json` + `~/.claude.json` | ✅ | ✅\* | ✅ `%USERPROFILE%\.claude\settings.json` |
+| Claude Code | ✅ `~/.claude.json` (MCP) + `~/.claude/settings.json` (hooks) | ✅ | ✅\* | ✅ `%USERPROFILE%\.claude.json` |
 | Cursor | ✅ `~/.cursor/mcp.json` | ✅ | ✅\* | ✅ `%USERPROFILE%\.cursor\mcp.json` |
-| Gemini CLI | ✅ `~/.gemini/config.json` | ✅ | ✅\* | ✅ |
-| OpenCode | ✅ `~/.config/opencode/mcp.json` | ✅ | ✅\* | ✅ |
+| Gemini CLI | ✅ `~/.gemini/settings.json` | ✅ | ✅\* | ✅ |
+| OpenCode | ✅ `~/.config/opencode/opencode.json` | ✅ | ✅\* | ✅ |
+| Claude Desktop | ✅ `~/Library/Application Support/Claude/claude_desktop_config.json` | ✅ `~/.config/Claude/…` | ✅\* | ✅ `%APPDATA%\Claude\…` |
+| Cline | ✅ VS Code global storage `saoudrizwan.claude-dev/settings/cline_mcp_settings.json` | ✅ | ✅\* | ✅ |
+| Continue | ✅ `~/.continue/mcpServers/memory.yaml` | ✅ | ✅\* | ✅ |
 | Codex CLI | ✅ `~/.codex/config.toml` | ✅ | ✅\* | ✅ |
 
 \*WSL2: if the IDE runs on the Windows host, wrap the MCP `command` with

@@ -44,21 +44,17 @@ bash ~/total-agent-memory/scripts/diagnose.sh
 The installer writes:
 
 - `~/.claude/skills/memory-protocol/` (this skill, with `references/`)
-- `~/.claude/settings.json` — adds the MCP server entry + 5 hooks
+- `~/.claude.json` — the MCP server entry (`mcpServers.memory`), the file Claude Code reads MCP servers from
+- `~/.claude/settings.json` — the memory hooks
 - `~/.claude/CLAUDE.md` — appends `@~/.claude/rules/memory.md` reference
 
 ### Manual
 
-`~/.claude/settings.json`:
+Register the server with `claude mcp add --scope user memory -- total-agent-memory` (it lands in
+`~/.claude.json`), then add the hooks to `~/.claude/settings.json`:
 
 ```json
 {
-  "mcpServers": {
-    "memory": {
-      "command": "total-agent-memory",
-      "args": []
-    }
-  },
   "hooks": {
     "SessionStart":    [{"matcher": ".*", "hooks": [{"type": "command", "command": "~/.claude/hooks/session-start.sh"}]}],
     "PreToolUse":      [{"matcher": "Edit|Write", "hooks": [{"type": "command", "command": "~/.claude/hooks/pre-edit.sh"}]}],
@@ -180,9 +176,10 @@ loaded manually with `/recall` style commands.
 
 Writes:
 
-- `<project>/.clinerules/memory-protocol.md` — auto-loaded by Cline
-- VS Code `settings.json` — adds the MCP server under
-  `cline.mcpServers`
+- Cline's `cline_mcp_settings.json` (VS Code global storage,
+  `.../Code/User/globalStorage/saoudrizwan.claude-dev/settings/`) — the MCP server under `mcpServers`
+
+Copy `templates/cline-rules.md` into `<project>/.clinerules/memory-protocol.md` to load the protocol.
 
 ### Manual
 
@@ -192,11 +189,11 @@ Writes:
 # (paste SKILL.md body here)
 ```
 
-VS Code → settings.json:
+Cline → MCP Servers → Configure (`cline_mcp_settings.json`):
 
 ```json
 {
-  "cline.mcpServers": {
+  "mcpServers": {
     "memory": {
       "command": "total-agent-memory",
       "args": []
@@ -210,7 +207,7 @@ VS Code → settings.json:
 ## 5. Continue (VS Code / JetBrains)
 
 **Hook API:** ❌
-**Skill API:** `~/.continue/config.json` rules
+**Skill API:** `~/.continue/rules/`
 **Sub-agents:** N/A
 
 ### Install
@@ -222,24 +219,20 @@ VS Code → settings.json:
 Writes:
 
 - `~/.continue/rules/memory-protocol.md`
-- `~/.continue/config.json` — adds `mcpServers.memory` entry and
-  `systemMessage` referencing the rules file
+- `~/.continue/mcpServers/memory.yaml` — an MCP server block (`schema: v1`, `mcpServers: [{name: memory, ...}]`)
 
 ### Manual
 
-```json
-{
-  "mcpServers": {
-    "memory": {
-      "command": "total-agent-memory",
-      "args": []
-    }
-  },
-  "systemMessage": "Follow the rules in ~/.continue/rules/memory-protocol.md.",
-  "rules": [
-    {"file": "~/.continue/rules/memory-protocol.md"}
-  ]
-}
+`~/.continue/mcpServers/memory.yaml`:
+
+```yaml
+name: total-agent-memory
+version: 1.0.0
+schema: v1
+mcpServers:
+  - name: memory
+    command: total-agent-memory
+    args: []
 ```
 
 ---
@@ -325,11 +318,8 @@ Writes:
 Writes:
 
 - `~/.opencode/skills/memory-protocol/` (mirror of Claude Code skill)
-- `~/.opencode/config.toml` — MCP + hooks
-- `~/.opencode/hooks/session-start.json`, `pre-edit.json`, etc.
-
-OpenCode's hook API is JSON-event based; the bash hooks are wrapped
-by a small JSON adapter the installer writes.
+- `~/.config/opencode/opencode.json` — `mcp.memory` as a local server
+  (`"type": "local"`, `"command": [...]`, `"environment": {...}`)
 
 ---
 

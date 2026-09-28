@@ -1,0 +1,31 @@
+# Litestream sidecar config for docker-compose.team.yml (profile `litestream`).
+# Rendered by team_memory.replication.render_compose_template(); a test keeps them identical.
+# Litestream expands the ${TAM_TEAM_REPLICA_*} and AWS_* variables from the container environment.
+logging:
+  level: info
+  type: json
+addr: "${TAM_TEAM_REPLICA_METRICS_ADDR}"
+snapshot:
+  interval: "${TAM_TEAM_REPLICA_SNAPSHOT_INTERVAL}"
+  retention: "${TAM_TEAM_REPLICA_RETENTION}"
+dbs:
+  - dir: "/team-data"
+    pattern: "*.db"
+    recursive: false
+    watch: true
+    replica:
+      url: "${TAM_TEAM_REPLICA_URL}"
+      endpoint: "${TAM_TEAM_REPLICA_ENDPOINT}"
+      region: "${TAM_TEAM_REPLICA_REGION}"
+      force-path-style: ${TAM_TEAM_REPLICA_FORCE_PATH_STYLE}
+      sync-interval: "${TAM_TEAM_REPLICA_SYNC_INTERVAL}"
+  - dir: "/team-data/workspaces"
+    pattern: "memory.db"
+    recursive: true
+    watch: true
+    replica:
+      url: "${TAM_TEAM_REPLICA_URL}/workspaces"
+      endpoint: "${TAM_TEAM_REPLICA_ENDPOINT}"
+      region: "${TAM_TEAM_REPLICA_REGION}"
+      force-path-style: ${TAM_TEAM_REPLICA_FORCE_PATH_STYLE}
+      sync-interval: "${TAM_TEAM_REPLICA_SYNC_INTERVAL}"

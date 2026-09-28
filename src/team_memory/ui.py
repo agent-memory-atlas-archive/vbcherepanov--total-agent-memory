@@ -7,9 +7,9 @@ h1{font-size:26px}small,.muted{color:#a8bbcc}section,article{background:#192532;
 label{display:block;margin:12px 0}input,select,textarea,button{font:inherit;padding:10px;border:1px solid #566d83;border-radius:6px;background:#101821;color:inherit;box-sizing:border-box}
 input,textarea{width:100%}textarea{min-height:110px}button{cursor:pointer;background:#245e87;margin:8px 8px 0 0}button:disabled{opacity:.5;cursor:wait}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #8ad3ff;outline-offset:2px}
-pre{white-space:pre-wrap;overflow-wrap:anywhere}#status{min-height:24px;color:#a9dbff}nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+a{color:#8ad3ff}pre{white-space:pre-wrap;overflow-wrap:anywhere}#status{min-height:24px;color:#a9dbff}nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 </style>
-<h1>total-agent-memory</h1><small>__VERSION__ · __DATE__</small>
+<h1>total-agent-memory</h1><small>__VERSION__ · __DATE__ · <a href="/dashboard/">Панель компании</a></small>
 <section id="login"><label>Личный токен<input id="token" type="password" autocomplete="off"></label><button id="connect">Подключиться</button></section>
 <p id="status" role="status" aria-live="polite"></p>
 <main id="main" hidden><nav><strong id="actor"></strong><button id="logout">Выйти</button></nav>

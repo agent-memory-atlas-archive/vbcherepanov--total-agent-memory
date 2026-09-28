@@ -18,6 +18,7 @@ from uuid import uuid4
 
 TIMEOUT = 180
 START_TIMEOUT = 45
+STOP_TIMEOUT = 45
 
 
 class Scenario:
@@ -89,8 +90,15 @@ class Scenario:
                     process.send_signal(signal.CTRL_BREAK_EVENT)
                 else:
                     process.terminate()
-                process.wait(timeout=START_TIMEOUT)
                 self.url = None
+                try:
+                    process.wait(timeout=STOP_TIMEOUT)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=STOP_TIMEOUT)
+                    log.seek(0)
+                    raise RuntimeError(f'Server did not stop within {STOP_TIMEOUT} s of the stop signal; log:\n'
+                                       + log.read().decode('utf-8', errors='replace'))
 
     def call(self, user, name, arguments):
         token = (self.root / f'{user}.token').read_text().strip()

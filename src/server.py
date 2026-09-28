@@ -27,7 +27,8 @@ import sqlite3
 import struct
 import subprocess
 import sys
-from collections.abc import Callable
+import urllib.parse
+from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -37,6 +38,12 @@ from typing import Literal
 # module reads `USE_ADVANCED_RAG`, `MEMORY_QUALITY_GATE_ENABLED`, etc. at
 # import time. Default mode = `fast` (zero LLM in hot path).
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Settings saved from the local dashboard override the environment; they must land
+# before any module below reads its configuration at import time.
+import local_settings as _local_settings
+from paths import memory_dir_unpinned as _settings_root
+
+_local_settings.apply(os.environ, _settings_root())
 try:
     import config as _v11_config  # noqa: E402
     _v11_config.resolve_mode_defaults()
@@ -49,7 +56,10 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, ToolAnnotations
 
+import recall_output
 from memory_core.timestamps import format_utc, utc_now
+from secret_redaction import redact_secrets, redact_value
+from tam_db.contracts import Backend, StoreDatabase
 
 # chromadb (~70 MB RSS) and sentence_transformers (which pulls in torch,
 # ~450 MB) are *fallback* paths — when fastembed is healthy neither is ever
@@ -132,6 +142,7 @@ except ImportError:
     HAS_CACHE = False
 
 from paths import memory_dir as _resolve_memory_dir  # noqa: E402
+from paths import restrict_permissions  # noqa: E402
 
 MEMORY_DIR = _resolve_memory_dir()
 # Records a supersede=true save compares against (most recent first).
@@ -168,6 +179,10 @@ _IMPORTANCE_BOOST = {
 }
 USE_ADVANCED_RAG = os.environ.get("USE_ADVANCED_RAG", "auto")  # auto|true|false — HyDE + reranker
 USE_BINARY_SEARCH = os.environ.get("USE_BINARY_SEARCH", "auto")  # auto|true|false — binary quantization
+# Embedding modes served by an HTTP EmbeddingProvider (src/embed_provider.py).
+# dashscope is deliberately absent from the SentenceTransformer fallback in
+# Store.embed: a mandated model must fail loudly, not be silently replaced.
+HTTP_EMBED_MODES = ("openai", "cohere", "dashscope")
 LOG = lambda msg: sys.stderr.write(f"[memory-mcp] {msg}\n")
 
 # ── Super Memory v5 modules (lazy init) ──
@@ -225,17 +240,6 @@ def _get_v5(name, db):
     return _v5_modules[name]
 
 
-# Privacy: patterns to redact before storing
-SENSITIVE_PATTERNS = [
-    re.compile(r'(?:sk|pk|api[_-]?key)[_-]?[a-zA-Z0-9]{20,}', re.I),
-    re.compile(r'(?:password|passwd|pwd|secret|token)\s*[:=]\s*\S+', re.I),
-    re.compile(r'(?:AKIA|ASIA)[A-Z0-9]{16}'),  # AWS keys
-    re.compile(r'ghp_[a-zA-Z0-9]{36}'),  # GitHub PAT
-    re.compile(r'eyJ[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}'),  # JWT
-    re.compile(r'(?:bearer|authorization)\s+\S+', re.I),
-    re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),  # emails
-    re.compile(r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'),  # credit cards
-]
 PRIVACY_TAG_RE = re.compile(r'<private>.*?</private>', re.DOTALL)
 
 
@@ -244,11 +248,52 @@ PRIVACY_TAG_RE = re.compile(r'<private>.*?</private>', re.DOTALL)
 # ═══════════════════════════════════════════════════════════
 
 class Store:
-    def __init__(self, connection_factory: Callable[..., sqlite3.Connection] = sqlite3.Connection):
+    is_postgres = False
+    background_queues = True
+
+    def __init__(self, connection_factory: Callable[..., sqlite3.Connection] = sqlite3.Connection,
+                 database: StoreDatabase | None = None, *, background_queues: bool = True):
         for d in ["raw", "chroma", "transcripts", "queue", "backups", "extract-queue"]:
             (MEMORY_DIR / d).mkdir(parents=True, exist_ok=True)
 
+        # PostgreSQL only through an explicit StoreDatabase (the team worker Runtime);
+        # no environment variable can move the personal Store off SQLite.
+        self.database = database or StoreDatabase.sqlite()
+        self.is_postgres = self.database.backend is Backend.POSTGRES
+        # Team workers have no consumer for the triple / deep-enrichment /
+        # representations queues, so they disable enqueuing into them.
+        self.background_queues = background_queues
         self.db_path = MEMORY_DIR / "memory.db"
+        if self.is_postgres:
+            self._open_postgres(connection_factory)
+            from memory_core.pg_vector_search import PgVectorSearch as VectorSearch
+        else:
+            self._open_sqlite(connection_factory)
+            from memory_core.vector_search import VectorSearch
+            for problem in restrict_permissions(MEMORY_DIR):
+                LOG(problem)
+        from memory_core.vector_search import DEFAULT_VECTOR_CACHE_BYTES
+        self._vector_search = VectorSearch(
+            self.db, max_cache_bytes=int(os.environ.get("MEMORY_VECTOR_CACHE_BYTES", DEFAULT_VECTOR_CACHE_BYTES)),
+        )
+        self._init_services()
+
+    def _open_postgres(self, connection_factory):
+        """Workspace schema on PostgreSQL: connect as the workspace role, apply its migrations."""
+        import enrichment_worker
+        from tam_db import pg_connection, pg_schema
+
+        enrichment_worker.reject_postgres()
+        # The default (sqlite3.Connection) or any other sqlite3 factory means "no subclass".
+        if not issubclass(connection_factory, pg_connection.PgConnection):
+            connection_factory = pg_connection.PgConnection
+        self.db = pg_connection.connect(self.database, factory=connection_factory)
+        self.db.row_factory = sqlite3.Row
+        from memory_core.embeddings import EmbeddingProvider
+        self.evidence_embedder = EmbeddingProvider()
+        pg_schema.ensure(self.db)
+
+    def _open_sqlite(self, connection_factory):
         # check_same_thread=False lets background threads *read* through this
         # Connection (the enrichment worker calls Store._binary_search, and
         # SELECT does not open an implicit transaction).
@@ -275,11 +320,7 @@ class Store:
         self._apply_sql_migrations()
         self._check_fts()
 
-        from memory_core.vector_search import DEFAULT_VECTOR_CACHE_BYTES, VectorSearch
-        self._vector_search = VectorSearch(
-            self.db, max_cache_bytes=int(os.environ.get("MEMORY_VECTOR_CACHE_BYTES", DEFAULT_VECTOR_CACHE_BYTES)),
-        )
-
+    def _init_services(self):
         self.chroma = None
         # v11 §J — per-space Chroma collections so different embedding-space
         # models (text 384d, code 768d, ...) can coexist without the HNSW
@@ -320,7 +361,8 @@ class Store:
         # (public API turns into no-op), so we always construct it.
         try:
             from cache_layer import TwoLevelCache as _V9TwoLevelCache
-            self.v9_cache = _V9TwoLevelCache(db_path=str(MEMORY_DIR / "memory.db"))
+            # L2 opens its own connection to memory.db; a PostgreSQL workspace has no such file.
+            self.v9_cache = _V9TwoLevelCache(db_path=str(MEMORY_DIR / "memory.db"), l2_enabled=not self.is_postgres)
         except Exception as _e:  # pragma: no cover — never hit in CI
             LOG(f"v9 cache init failed: {_e}")
             self.v9_cache = None
@@ -419,7 +461,7 @@ class Store:
     def _active_embed_model_name(self):
         """Name of the model currently writing into the embeddings table."""
         mode = self._embed_mode
-        if mode in ("openai", "cohere"):
+        if mode in HTTP_EMBED_MODES:
             provider = self.embed_provider
             if provider is not None:
                 return getattr(provider, "model", None) or getattr(provider, "model_name", mode)
@@ -451,7 +493,7 @@ class Store:
         if configured == "fastembed":
             if HAS_FASTEMBED and self.fastembed:
                 return "fastembed"
-        elif configured in ("openai", "cohere"):
+        elif configured in HTTP_EMBED_MODES:
             provider = self.embed_provider
             if provider is not None and provider.available():
                 return configured
@@ -641,7 +683,7 @@ class Store:
 
         # ── upstream embedding ─────────────────────────────
         def _compute(batch):
-            if self._embed_mode in ("openai", "cohere"):
+            if self._embed_mode in HTTP_EMBED_MODES:
                 r = self._provider_embed(batch)
                 if r:
                     return r
@@ -756,6 +798,21 @@ class Store:
         binary_blob = self._quantize_binary(embedding)
         float32_blob = self._float32_to_blob(embedding)
         now = utc_now()
+        if self.is_postgres:
+            from memory_core.pg_vector_search import vector_literal
+            self.db.execute("""
+                INSERT OR REPLACE INTO embeddings (
+                    knowledge_id, binary_vector, float32_vector,
+                    embed_model, embed_dim, created_at,
+                    embedding_provider, embedding_space, content_type, language, embedding
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS vector))
+            """, (
+                knowledge_id, binary_blob, float32_blob,
+                model_name, len(embedding), now,
+                provider, embedding_space, content_type, language, vector_literal(embedding),
+            ))
+            return
         self.db.execute("""
             INSERT OR REPLACE INTO embeddings (
                 knowledge_id, binary_vector, float32_vector,
@@ -777,7 +834,7 @@ class Store:
     def _perf_snapshot() -> dict[str, float]:
         """v11 Phase 5 — return the in-process telemetry counter snapshot.
 
-        Used by `bin/memory-bench` to assert `llm_calls == 0` and
+        Used by `scripts/memory-bench` to assert `llm_calls == 0` and
         `network_calls == 0` over a benchmark run, and to read the
         accumulated `*_ms` timers for p50/p95/p99 reporting.
         """
@@ -1281,13 +1338,8 @@ class Store:
         if cleaned != text:
             redacted = True
             text = cleaned
-        # Strip known sensitive patterns
-        for pat in SENSITIVE_PATTERNS:
-            new_text = pat.sub("[REDACTED]", text)
-            if new_text != text:
-                redacted = True
-                text = new_text
-        return text, redacted
+        text, secrets = redact_secrets(text)
+        return text, redacted or secrets
 
     @staticmethod
     def _estimate_tokens(text):
@@ -1354,6 +1406,18 @@ class Store:
             if not terms:
                 return None
             fts_q = f"content : ({terms}) AND fts_project : {project_token(project)}"
+            if self.is_postgres:
+                from memory_core.pg_fts import match_source
+                source, source_params = match_source("knowledge_fts", fts_q)
+                rows = self.q(f"""
+                    SELECT k.id, k.content FROM ({source}) f JOIN knowledge k ON k.id=f.id
+                    WHERE k.status='active' AND k.project=? AND k.type=?
+                    ORDER BY k.id
+                """, (*source_params, project, ktype))
+                for row in rows:
+                    if repeats(content, row["content"]):
+                        return row["id"]
+                return None
             # Materialized so SQLite runs MATCH once instead of once per
             # project row.
             rows = self.q("""
@@ -1393,7 +1457,7 @@ class Store:
                         importance="medium", skip_quality=False, coref=None,
                         agent_id=None, parent_agent_id=None,
                         _from_outbox=False, source_format: Literal['auto', 'conversation'] = 'auto',
-                        repeat: Literal['replace', 'confirm'] = 'replace'):
+                        repeat: Literal['replace', 'confirm'] = 'replace', embedding=None):
         """Save knowledge. Returns
         ``(record_id, was_deduplicated, was_redacted, private_sections, quality_meta)``.
 
@@ -1409,6 +1473,10 @@ class Store:
         is already validated). The optional ``importance`` field
         (``critical|high|medium|low``, default ``medium``) is persisted on
         the row and consumed by `fusion.py` to boost recall ranking.
+
+        ``embedding`` is an optional precomputed text-space vector from the
+        configured provider (callers that batch their embedding requests);
+        when given, the store does not embed the content again.
         """
         # v11 Phase 5 — total wall-clock for this save. Recorded into
         # `memory_core.telemetry.counters['save_total_ms']` so the bench
@@ -1434,7 +1502,7 @@ class Store:
                 skip_quality=skip_quality, coref=coref,
                 agent_id=agent_id, parent_agent_id=parent_agent_id,
                 _from_outbox=_from_outbox, source_format=source_format,
-                repeat=repeat,
+                repeat=repeat, embedding=embedding,
             )
 
     def _save_knowledge_impl(self, sid, content, ktype, project="general", tags=None,
@@ -1442,7 +1510,7 @@ class Store:
                               importance="medium", skip_quality=False, coref=None,
                               agent_id=None, parent_agent_id=None,
                               _from_outbox=False, source_format: Literal['auto', 'conversation'] = 'auto',
-                              repeat: Literal['replace', 'confirm'] = 'replace'):
+                              repeat: Literal['replace', 'confirm'] = 'replace', embedding=None):
         """Underlying implementation; wrapped by `save_knowledge` for telemetry."""
         if source_format not in ('auto', 'conversation'):
             raise ValueError('Unsupported source format')
@@ -1749,7 +1817,11 @@ class Store:
         embs: list[list[float]] | None = None
         model_name = self._active_embed_model_name()
         _v11_provider_name = self._embed_mode or "fastembed"
-        if _v11_space != "text":
+        if embedding is not None:
+            # A precomputed vector is always in the text space of the active model.
+            embs = [[float(x) for x in embedding]]
+            _v11_space = "text"
+        elif _v11_space != "text":
             try:
                 from memory_core.embeddings import EmbeddingProvider as _V11Embed
                 if not hasattr(self, "_v11_embed_provider") or self._v11_embed_provider is None:
@@ -1819,26 +1891,27 @@ class Store:
             except Exception as e:
                 LOG(f"episodic event creation skipped: {e}")
 
-        # Enqueue for async deep triple extraction (processed by reflection agent)
-        try:
-            from triple_extraction_queue import TripleExtractionQueue
-            TripleExtractionQueue(self.db).enqueue(rid)
-        except Exception as e:
-            LOG(f"Triple-enqueue error: {e}")
+        if self.background_queues:
+            # Enqueue for async deep triple extraction (processed by reflection agent)
+            try:
+                from triple_extraction_queue import TripleExtractionQueue
+                TripleExtractionQueue(self.db).enqueue(rid)
+            except Exception as e:
+                LOG(f"Triple-enqueue error: {e}")
 
-        # Enqueue for async deep metadata enrichment (entities/intent/topics)
-        try:
-            from deep_enrichment_queue import DeepEnrichmentQueue
-            DeepEnrichmentQueue(self.db).enqueue(rid)
-        except Exception as e:
-            LOG(f"Deep-enrich-enqueue error: {e}")
+            # Enqueue for async deep metadata enrichment (entities/intent/topics)
+            try:
+                from deep_enrichment_queue import DeepEnrichmentQueue
+                DeepEnrichmentQueue(self.db).enqueue(rid)
+            except Exception as e:
+                LOG(f"Deep-enrich-enqueue error: {e}")
 
-        # Enqueue for async multi-representation embedding generation (GEM-RAG)
-        try:
-            from representations_queue import RepresentationsQueue
-            RepresentationsQueue(self.db).enqueue(rid)
-        except Exception as e:
-            LOG(f"Repr-enqueue error: {e}")
+            # Enqueue for async multi-representation embedding generation (GEM-RAG)
+            try:
+                from representations_queue import RepresentationsQueue
+                RepresentationsQueue(self.db).enqueue(rid)
+            except Exception as e:
+                LOG(f"Repr-enqueue error: {e}")
 
         # Ping the reflection runner (watched by LaunchAgent). The runner
         # debounces: within the debounce window, multiple saves coalesce into
@@ -2014,15 +2087,25 @@ class Store:
         terms = prefix_match_query(content)
         if not terms:
             return []
-        rows = self.db.execute("""
-            WITH f AS MATERIALIZED (
-                SELECT rowid AS id FROM knowledge_fts WHERE knowledge_fts MATCH ?
-            )
-            SELECT k.id, k.content FROM f JOIN knowledge k ON k.id=f.id
-            WHERE k.status='active' AND k.project=? AND k.type=? AND k.id<>?
-            ORDER BY k.id DESC LIMIT ?
-        """, (f"content : ({terms}) AND fts_project : {project_token(project)}",
-              project, ktype, rid, SUPERSEDE_CANDIDATES)).fetchall()
+        if self.is_postgres:
+            from memory_core.pg_fts import match_source
+            source, source_params = match_source(
+                "knowledge_fts", f"content : ({terms}) AND fts_project : {project_token(project)}")
+            rows = self.db.execute(f"""
+                SELECT k.id, k.content FROM ({source}) f JOIN knowledge k ON k.id=f.id
+                WHERE k.status='active' AND k.project=? AND k.type=? AND k.id<>?
+                ORDER BY k.id DESC LIMIT ?
+            """, (*source_params, project, ktype, rid, SUPERSEDE_CANDIDATES)).fetchall()
+        else:
+            rows = self.db.execute("""
+                WITH f AS MATERIALIZED (
+                    SELECT rowid AS id FROM knowledge_fts WHERE knowledge_fts MATCH ?
+                )
+                SELECT k.id, k.content FROM f JOIN knowledge k ON k.id=f.id
+                WHERE k.status='active' AND k.project=? AND k.type=? AND k.id<>?
+                ORDER BY k.id DESC LIMIT ?
+            """, (f"content : ({terms}) AND fts_project : {project_token(project)}",
+                  project, ktype, rid, SUPERSEDE_CANDIDATES)).fetchall()
         retired = [row[0] for row in rows if updates_value(content, row[1])]
         for old_id in retired:
             self.db.execute(
@@ -2804,7 +2887,7 @@ class Recall:
 
     def search(self, query, project=None, ktype="all", limit=10, detail="full", branch=None, fusion="rrf",
                rerank=False, diverse=False, embedding_space=None, _explain=False,
-               record_usage=True):
+               record_usage=True, defer_cross_rerank=False):
         # v11 Phase 5 — total wall-clock for this search; recorded into
         # `memory_core.telemetry.counters['search_total_ms']`.
         try:
@@ -2820,13 +2903,20 @@ class Recall:
                 query, project=project, ktype=ktype, limit=limit, detail=detail,
                 branch=branch, fusion=fusion, rerank=rerank, diverse=diverse,
                 embedding_space=embedding_space, _explain=_explain,
-                record_usage=record_usage,
+                record_usage=record_usage, defer_cross_rerank=defer_cross_rerank,
             )
 
     def _search_impl(self, query, project=None, ktype="all", limit=10, detail="full",
                      branch=None, fusion="rrf", rerank=False, diverse=False,
-                     embedding_space=None, _explain=False, record_usage=True):
+                     embedding_space=None, _explain=False, record_usage=True,
+                     defer_cross_rerank=False):
         """Underlying implementation; wrapped by `search` for telemetry.
+
+        `defer_cross_rerank=True` (team server workers) skips the cross-encoder
+        stage and returns the whole fused window instead of `limit` records,
+        each with `fused_rank` and, when context is on, `rerank_context`
+        (the record with its session neighbours). The caller re-ranks once,
+        across workspaces. Deferred searches bypass the result caches.
 
         v11 Phase 6b — `embedding_space` (str | list[str] | None) filters
         vector candidates to rows tagged with one of the listed spaces.
@@ -2847,6 +2937,8 @@ class Recall:
         cross = shared_reranker()
         cross_active = cross is not None and cross.applies_to(query)
         pool = max(limit, (cross.window + 1) // 2) if cross_active else limit
+        deferred = defer_cross_rerank and cross_active
+        keep = max(limit, cross.window) if deferred else limit
         cacheable = not self.s.db.in_transaction
         revision = (self.s.db.total_changes,
                     self.s.db.execute("PRAGMA data_version").fetchone()[0])
@@ -2877,7 +2969,7 @@ class Recall:
         }
         # _explain bypasses both caches: the payload includes ephemeral
         # tier rankings that are not part of the cached representation.
-        if cacheable and not _explain and _v9 is not None and _v9.l1.enabled:
+        if cacheable and not deferred and not _explain and _v9 is not None and _v9.l1.enabled:
             hit = _v9.recall_get(query, mode="search", k=limit, filters=_v9_filters)
             if hit is not None:
                 if record_usage:
@@ -2887,7 +2979,7 @@ class Recall:
                 return hit
 
         # Check cache first (include fusion param in cache key)
-        if cacheable and not _explain and self.s.cache is not None:
+        if cacheable and not deferred and not _explain and self.s.cache is not None:
             cache_key = self.s.cache.make_key(query=query, project=project, ktype=ktype,
                                                limit=limit, detail=detail, branch=branch,
                                                fusion=fusion, rerank=rerank, diverse=diverse,
@@ -2960,7 +3052,22 @@ class Recall:
             params.append(pool * 3)
             from memory_core.telemetry import op_timer
             with op_timer("retrieval_fts_ms"):
-                if project:
+                if self.s.is_postgres:
+                    from memory_core.fts_schema import SCOPED_BM25_WEIGHTS, scoped_match
+                    from memory_core.pg_fts import match_source
+
+                    if project:
+                        source, source_params = match_source(
+                            "knowledge_fts", scoped_match(fts_q, project),
+                            weights=tuple(float(w) for w in SCOPED_BM25_WEIGHTS.split(",")))
+                    else:
+                        source, source_params = match_source("knowledge_fts", fts_q)
+                    fts_rows = self.s.db.execute(f"""
+                        SELECT k.*, f.rank AS _bm25
+                        FROM ({source}) f JOIN knowledge k ON k.id=f.id{joins}
+                        WHERE {' AND '.join(conds[1:])} ORDER BY f.rank, k.id LIMIT ?
+                    """, [*source_params, *params[1:]]).fetchall()
+                elif project:
                     # The project's token is ANDed into MATCH so FTS5 ranks
                     # only that project's matches; materialized so the planner
                     # does not re-run MATCH per project row instead.
@@ -3331,7 +3438,7 @@ class Recall:
                         item["drift"] = True
                         item["score"] *= 0.3
                         drifted.append(kid)
-                if drifted:
+                if drifted and self.s.background_queues:
                     # Asynchronously re-enqueue for regeneration so the next
                     # recall sees a fresh summary. Best-effort: silent on
                     # error (queue table may not exist on legacy DB).
@@ -3463,9 +3570,18 @@ class Recall:
             except Exception as e:
                 LOG(f"Temporal filter failed, keeping RRF order: {e}")
 
+        def recency(item):
+            return item["r"].get("created_at") or "", item["r"]["id"]
+
         # Stage 4.8: cross-encoder over the fused window (fastembed, local).
         # Its rank joins the RRF rank; see memory_core/cross_rerank.py.
-        if cross_active and len(ranked) > 1:
+        if deferred and cross.context_chars and len(ranked) > 1:
+            from memory_core.cross_rerank import session_window_texts
+            window = ranked[:cross.window]
+            texts = session_window_texts(self.s.db, [item["r"] for item in window], side_chars=cross.context_chars)
+            for item in window:
+                item["rerank_context"] = texts.get(item["r"]["id"], item["r"].get("content", ""))
+        if cross_active and not deferred and len(ranked) > 1:
             from config import get_cross_rerank_mode
             from memory_core.cross_rerank import session_window_texts
             try:
@@ -3475,9 +3591,6 @@ class Recall:
                     texts = session_window_texts(db, [item["r"] for item in window], side_chars=cross.context_chars)
                     return [texts.get(item["r"]["id"], item["r"].get("content", "")) for item in window]
 
-                def recency(item):
-                    return item["r"].get("created_at") or "", item["r"]["id"]
-
                 ranked = cross.rerank(query, ranked, lambda item: item["r"].get("content", ""),
                                       wait=get_cross_rerank_mode() == "on",
                                       context_of=with_neighbours if cross.context_chars else None,
@@ -3486,6 +3599,12 @@ class Recall:
                 from memory_core.telemetry import counters as _cross_counters
                 LOG(f"cross-rerank failed, keeping fused order: {e}")
                 _cross_counters.bump("cross_rerank_errors")
+
+        # Stage 4.9: a record never ranks above its own later value update, in every language and
+        # with the cross-encoder off too (memory_core.cross_rerank.keep_updates_below).
+        if len(ranked) > 1:
+            from memory_core.cross_rerank import order_value_updates
+            ranked = order_value_updates(ranked, lambda item: item["r"].get("content", ""), recency)
 
         # Stage 5 (optional): CrossEncoder re-ranking
         # CE is trained on MS-MARCO (web search) — helps for precision in large bases,
@@ -3505,14 +3624,14 @@ class Recall:
                         ordered = self._bounded_reranker.rank(query, [item["r"] for item in ranked])
                         by_id = {item["r"]["id"]: item for item in ranked}
                         ranked = [by_id[hit["id"]] for hit in ordered]
-                    ranked = ranked[:limit]
+                    ranked = ranked[:keep]
                 else:
-                    ranked = rerank_results(query, ranked, top_k=limit)
+                    ranked = rerank_results(query, ranked, top_k=keep)
             except Exception as e:
                 LOG(f"Reranker failed, using original ranking: {e}")
-                ranked = ranked[:limit]
+                ranked = ranked[:keep]
         else:
-            ranked = ranked[:limit]
+            ranked = ranked[:keep]
 
         # Stage 6 (optional): MMR diversity
         # Useful for broad queries ("what do I know about X") to get different aspects.
@@ -3571,7 +3690,7 @@ class Recall:
                         key=lambda x: x.get("rrf_score", x.get("score", 0)),
                         reverse=True,
                     )
-                    ranked = ranked[:limit]
+                    ranked = ranked[:keep]
         except Exception as e:
             LOG(f"smart router skipped: {e}")
 
@@ -3601,7 +3720,7 @@ class Recall:
             except Exception as e:
                 LOG(f"graph_expand failed, keeping original ranked: {e}")
 
-        ranked = [item for item in ranked if scope.allows(item["r"], self.s.db)][:limit]
+        ranked = [item for item in ranked if scope.allows(item["r"], self.s.db)][:keep]
 
         # Usage statistics (recall_count, last_recalled) for the dashboard and
         # consolidation; they do not affect ranking. Callers that measure
@@ -3614,7 +3733,7 @@ class Recall:
 
         total_tokens = 0
         grouped = {}
-        for item in ranked:
+        for fused_rank, item in enumerate(ranked):
             r = item["r"]
             t = r["type"]
             if t not in grouped:
@@ -3697,6 +3816,10 @@ class Recall:
                 }
                 if "rrf_score" in item:
                     entry["rrf_score"] = round(item["rrf_score"], 6)
+                if deferred:
+                    entry["fused_rank"] = fused_rank
+                    if "rerank_context" in item:
+                        entry["rerank_context"] = item["rerank_context"]
                 est = Store._estimate_tokens(json.dumps(entry))
                 entry["_tokens"] = est
                 total_tokens += est
@@ -3724,7 +3847,7 @@ class Recall:
 
         # Cache the result. _explain payloads are NOT cached — they include
         # ephemeral tier rankings tied to a single execution.
-        if cacheable and not _explain and self.s.cache is not None:
+        if cacheable and not deferred and not _explain and self.s.cache is not None:
             cache_key = self.s.cache.make_key(query=query, project=project, ktype=ktype,
                                                limit=limit, detail=detail, branch=branch,
                                                fusion=fusion, rerank=rerank, diverse=diverse,
@@ -3732,7 +3855,7 @@ class Recall:
             self.s.cache.put(cache_key, result, project=project)
 
         # v9 A2 L1: mirror into fast LRU tagged with the ids this result touched.
-        if cacheable and not _explain and _v9 is not None and _v9.l1.enabled:
+        if cacheable and not deferred and not _explain and _v9 is not None and _v9.l1.enabled:
             try:
                 _ids: list[int] = []
                 for _tier in result.get("results", {}).values():
@@ -3809,10 +3932,18 @@ class Recall:
             fts_q = " OR ".join(Store._fts_escape(w) for w in query.split() if len(w) > 2) or Store._fts_escape(query)
             sids = set()
             try:
-                for r in self.s.q(
-                    "SELECT DISTINCT k.session_id as sid FROM knowledge_fts f "
-                    "JOIN knowledge k ON k.id=f.rowid WHERE f.content MATCH ? LIMIT ?",
-                    (fts_q, limit * 3)):
+                if self.s.is_postgres:
+                    from memory_core.pg_fts import match_source
+                    source, source_params = match_source("knowledge_fts", f"content : ({fts_q})")
+                    session_rows = self.s.q(
+                        f"SELECT DISTINCT k.session_id as sid FROM ({source}) f "
+                        "JOIN knowledge k ON k.id=f.id LIMIT ?", (*source_params, limit * 3))
+                else:
+                    session_rows = self.s.q(
+                        "SELECT DISTINCT k.session_id as sid FROM knowledge_fts f "
+                        "JOIN knowledge k ON k.id=f.rowid WHERE f.content MATCH ? LIMIT ?",
+                        (fts_q, limit * 3))
+                for r in session_rows:
                     sids.add(r["sid"])
             except Exception:
                 pass
@@ -4082,7 +4213,7 @@ _DESTRUCTIVE_TOOLS = frozenset({
 _IDEMPOTENT_TOOLS = frozenset({
     "memory_delete", "memory_forget", "memory_rebuild_embeddings",
     "memory_rebuild_fts", "memory_warmup", "memory_graph_index",
-    "memory_wiki_generate", "rule_set_phase", "memory_entity_resolve",
+    "memory_wiki_generate", "rule_set_phase", "memory_entity_resolve", "memory_report",
 })
 
 
@@ -4105,6 +4236,7 @@ async def list_tools():
 
 
 async def _tool_catalogue():
+    from memory_reports import tool as report_tool
     return [
         Tool(
             name="memory_recall",
@@ -4264,15 +4396,18 @@ async def _tool_catalogue():
         ),
         Tool(
             name="memory_update",
-            description="Update existing knowledge. Finds old by search query, supersedes it, creates new version.",
+            description="Update existing knowledge. Replaces the record `id`, or the best match for `find` "
+                        "(within `project` when given): supersedes it and creates a new version.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "find": {"type": "string", "description": "Search query to find the old knowledge"},
+                    "id": {"type": "integer", "description": "Exact record to replace; takes precedence over find"},
+                    "find": {"type": "string", "description": "Search query to find the old knowledge (when no id)"},
+                    "project": {"type": "string", "description": "Limit the find search to this project"},
                     "new_content": {"type": "string", "description": "New content to replace with"},
                     "reason": {"type": "string", "description": "Why updating"},
                 },
-                "required": ["find", "new_content"],
+                "required": ["new_content"],
             },
         ),
         Tool(
@@ -4331,6 +4466,7 @@ async def _tool_catalogue():
                 },
             },
         ),
+        Tool(name=report_tool.NAME, description=report_tool.DESCRIPTION, inputSchema=report_tool.input_schema()),
         Tool(
             name="memory_get",
             description="Batched fetch by ID — complement to memory_recall(mode='index'). "
@@ -4361,12 +4497,16 @@ async def _tool_catalogue():
         ),
         Tool(
             name="memory_delete",
-            description="Delete a knowledge record (soft-delete). Removes from search results and ChromaDB. "
-                        "Use when knowledge is wrong or no longer relevant.",
+            description="Delete a knowledge record. By default a soft delete: the record leaves search results "
+                        "and vectors but stays in the database. hard=true erases it for good, with its earlier "
+                        "versions, derived rows and its text in the raw call log (use for personal data or "
+                        "anything that must not be kept).",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "id": {"type": "integer", "description": "Knowledge record ID to delete"},
+                    "hard": {"type": "boolean", "default": False,
+                             "description": "Erase permanently instead of hiding; cannot be undone"},
                 },
                 "required": ["id"],
             },
@@ -4782,6 +4922,9 @@ async def _tool_catalogue():
                     "context": {"type": "string"},
                     "project": {"type": "string", "default": "general"},
                     "invalidate_previous": {"type": "boolean", "default": True},
+                    "valid_from": {"type": "string",
+                                   "description": "ISO 8601 time the fact became true; default now. "
+                                                  "Back-dated facts close and are closed by their neighbours."},
                 },
                 "required": ["subject", "predicate", "object"],
             },
@@ -4797,6 +4940,7 @@ async def _tool_catalogue():
                     "object": {"type": "string"},
                     "reason": {"type": "string", "default": "manually_invalidated"},
                     "project": {"type": "string", "default": "general"},
+                    "at": {"type": "string", "description": "ISO 8601 time the fact stopped being true; default now"},
                 },
                 "required": ["subject", "predicate", "object"],
             },
@@ -5354,6 +5498,8 @@ async def _call_tool_impl(name, args) -> tuple[list[TextContent], bool]:
         # Guarded: a client can call a tool before _bootstrap_session() has
         # run (or after a failed bootstrap). Losing the audit line is fine;
         # crashing the transport is not.
+        # Credentials never reach the raw log, the store or any derived table.
+        args, _ = redact_value(args or {})
         if store is not None:
             store.raw_append(SID, {"type": "tool_call", "tool": name, "args": args})
         r = await _do(name, args)
@@ -5538,6 +5684,18 @@ def _eval_run_locomo(
     report = harness.run_suite(scenarios)
     elapsed_ms = (_t.perf_counter() - t0) * 1000.0
     return {"report": report, "elapsed_ms": elapsed_ms, "scenarios": scenarios}
+
+
+SUPERSEDE_NOTE = ("No active record states an older value of the same statement, so nothing was retired. "
+                  "Use memory_update(id=..., new_content=...) to replace a specific record.")
+
+
+def _required_text(a, key):
+    """The non-blank string argument `key`; a blank one is a caller error, not an empty record."""
+    value = a.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{key} must be non-empty text")
+    return value
 
 
 async def _do(name, a):
@@ -5764,6 +5922,8 @@ async def _do(name, a):
         if mode_param == "evidence":
             from evidence_endpoint import evidence_response
             result = evidence_response(store, recall, a, result)
+        elif mode_param == "search":
+            result = recall_output.shape(result)
         return J(result)
 
     elif name == "memory_timeline":
@@ -5783,7 +5943,7 @@ async def _do(name, a):
 
     elif name == "memory_save":
         rid, was_dedup, was_redacted, private_sections, quality_meta = store.save_knowledge(
-            SID, a["content"], a["type"],
+            SID, _required_text(a, "content"), a["type"],
             a.get("project", "general"), a.get("tags", []), a.get("context", ""),
             branch=a.get("branch", BRANCH), filter_name=a.get("filter"),
             source_format=a.get("source_format", "auto"),
@@ -5818,6 +5978,8 @@ async def _do(name, a):
         result = {"saved": True, "id": rid, "deduplicated": was_dedup}
         if superseded:
             result["superseded"] = superseded
+        elif a.get("supersede") and not was_dedup:
+            result["supersede_note"] = SUPERSEDE_NOTE
         if was_redacted:
             result["privacy_redacted"] = True
         if private_sections:
@@ -5849,16 +6011,20 @@ async def _do(name, a):
         return J(result)
 
     elif name == "memory_update":
-        res = recall.search(a["find"], limit=3)
-        items = [i for g in res.get("results", {}).values() for i in g]
-        if not items:
-            return J({"error": "Not found", "query": a["find"]})
-        old = items[0]
-        old_rec = store.q1("SELECT * FROM knowledge WHERE id=?", (old["id"],))
+        new_content = _required_text(a, "new_content")
+        if a.get("id") is not None:
+            old = {"id": int(a["id"])}
+        else:
+            res = recall.search(_required_text(a, "find"), a.get("project"), limit=3)
+            items = [i for g in res.get("results", {}).values() for i in g]
+            if not items:
+                return J({"error": "Not found", "query": a["find"]})
+            old = items[0]
+        old_rec = store.q1("SELECT * FROM knowledge WHERE id=? AND status='active'", (old["id"],))
         if not old_rec:
             return J({"error": "Record not found in DB"})
         new_id, _, _, _, _ = store.save_knowledge(
-            SID, a["new_content"], old_rec["type"], old_rec["project"],
+            SID, new_content, old_rec["type"], old_rec["project"],
             json.loads(old_rec.get("tags", "[]")),
             f"Updated: {a.get('reason', '')}. Was: {old_rec['content'][:200]}",
             branch=old_rec.get("branch", ""), skip_dedup=True, skip_quality=True,
@@ -5954,6 +6120,10 @@ async def _do(name, a):
             ],
         })
 
+    elif name == "memory_report":
+        from memory_reports import tool as report_tool
+        return report_tool.handle(store.db, a, MEMORY_DIR)
+
     elif name == "memory_forget":
         dry_run = a.get("dry_run", True)
         if dry_run:
@@ -5998,7 +6168,7 @@ async def _do(name, a):
         placeholders = ",".join("?" * len(ids))
         rows = store.db.execute(
             f"SELECT id, session_id, type, content, context, project, tags, "
-            f"status, confidence, created_at, last_confirmed, recall_count, branch "
+            f"status, superseded_by, confidence, created_at, last_confirmed, recall_count, branch "
             f"FROM knowledge WHERE id IN ({placeholders})",
             ids,
         ).fetchall()
@@ -6028,6 +6198,7 @@ async def _do(name, a):
                     "context": r["context"] or "",
                     "session_id": r["session_id"] or "",
                     "status": r["status"] or "",
+                    "superseded_by": r["superseded_by"],
                     "confidence": r["confidence"] if "confidence" in r.keys() else 1.0,
                     "last_confirmed": r["last_confirmed"] or "",
                     "recall_count": r["recall_count"] or 0,
@@ -6055,6 +6226,18 @@ async def _do(name, a):
                 "tags": tags, "version": i + 1,
             })
         return J({"record_id": a["id"], "total_versions": len(versions), "versions": versions})
+
+    elif name == "memory_delete" and a.get("hard"):
+        import erasure
+        erased = erasure.erase(store, int(a["id"]), MEMORY_DIR / "raw", MEMORY_DIR / "chroma")
+        if erased is None:
+            return J({"error": "Record not found", "id": a["id"]})
+        for project in erased["projects"]:
+            if store.cache is not None:
+                store.cache.invalidate(project=project)
+        if getattr(store, "v9_cache", None) is not None:
+            store.v9_cache.invalidate_all()
+        return J({"deleted": True, "hard": True, "id": a["id"], **erased})
 
     elif name == "memory_delete":
         rec = store.delete_knowledge(a["id"])
@@ -6358,6 +6541,7 @@ async def _do(name, a):
             confidence=a.get("confidence", 1.0),
             context=a.get("context"),
             project=a.get("project", "general"),
+            valid_from=a.get("valid_from"),
             invalidate_previous=a.get("invalidate_previous", True),
         )
         return J({"assertion_id": fid})
@@ -6369,6 +6553,7 @@ async def _do(name, a):
             a["subject"], a["predicate"], a["object"],
             reason=a.get("reason", "manually_invalidated"),
             project=a.get("project", "general"),
+            at=a.get("at"),
         )
         return J({"closed": closed})
 
@@ -6599,7 +6784,7 @@ async def _do(name, a):
     # ── v11.0 Phase 6 — fast-path & introspection tool dispatch ──────
     elif name == "memory_save_fast":
         rid, was_dedup, was_redacted, private_sections, quality_meta = store.save_knowledge(
-            SID, a["content"], a["type"],
+            SID, _required_text(a, "content"), a["type"],
             a.get("project", "general"), a.get("tags", []), a.get("context", ""),
             branch=a.get("branch", BRANCH), filter_name=a.get("filter"),
             source_format=a.get("source_format", "auto"),
@@ -6621,6 +6806,8 @@ async def _do(name, a):
         out = {"saved": True, "id": rid, "deduplicated": was_dedup, "mode": "fast"}
         if superseded:
             out["superseded"] = superseded
+        elif a.get("supersede") and not was_dedup:
+            out["supersede_note"] = SUPERSEDE_NOTE
         if was_redacted:
             out["privacy_redacted"] = True
         if private_sections:
@@ -6636,7 +6823,7 @@ async def _do(name, a):
             embedding_space=a.get("embedding_space"),
         )
         result["mode"] = "fast"
-        return J(result)
+        return J(recall_output.shape(result))
 
     elif name == "memory_explain_search":
         result = recall.search(
@@ -7327,6 +7514,10 @@ async def _bootstrap_session():
     cleaned = store.cleanup_old_observations()
     if cleaned:
         LOG(f"Cleaned {cleaned} old observations (>{OBSERVATION_RETENTION_DAYS}d)")
+    import erasure
+    pruned = erasure.prune_raw_logs(MEMORY_DIR / "raw", os.environ.get("MEMORY_RAW_LOG_RETENTION_DAYS"))
+    if pruned:
+        LOG(f"Removed {pruned} raw call logs older than {os.environ['MEMORY_RAW_LOG_RETENTION_DAYS']}d")
     LOG(f"Session: {SID} | Branch: {BRANCH or '(none)'} | Memory: {MEMORY_DIR} | Sessions: {store.total_sessions()}")
     LOG(f"Config: decay={DECAY_HALF_LIFE}d archive={ARCHIVE_AFTER_DAYS}d purge={PURGE_AFTER_DAYS}d")
     from memory_core.cross_rerank import shared_reranker
@@ -7370,6 +7561,8 @@ async def _run_streamable_http(host: str, port: int, sock: socket.socket | None 
     from starlette.responses import JSONResponse, Response
     from starlette.routing import Mount, Route
 
+    hosts, origins = _http_allowed_hosts(host, os.environ)
+    security = _transport_security_kwargs(hosts, origins)
     # One manager per process. A single process keeps short-lived sessions
     # in memory; workers sharing a socket cannot, so they run stateless.
     manager = StreamableHTTPSessionManager(
@@ -7377,19 +7570,17 @@ async def _run_streamable_http(host: str, port: int, sock: socket.socket | None 
         event_store=None,
         json_response=False,
         stateless=stateless,
+        **security,
     )
 
-    async def handle_mcp(scope, receive, send):
+    async def serve_mcp(scope, receive, send):
         await manager.handle_request(scope, receive, send)
 
+    # mcp releases without TransportSecuritySettings get the same checks here.
+    handle_mcp = serve_mcp if security else _RebindingGuard(serve_mcp, hosts, origins)
+
     async def healthz(request: Request) -> Response:
-        return JSONResponse({
-            "status": "ok",
-            "transport": "streamable-http",
-            "session_id": SID,
-            "memory_dir": str(MEMORY_DIR),
-            "pid": os.getpid(),
-        })
+        return JSONResponse({"status": "ok", "version": _SERVER_VERSION})
 
     @asynccontextmanager
     async def lifespan(starlette_app):
@@ -7432,6 +7623,82 @@ def _transport() -> str:
 
 def _http_address() -> tuple[str, int]:
     return os.environ.get("MCP_HTTP_HOST", "127.0.0.1"), int(os.environ.get("MCP_HTTP_PORT", "3737"))
+
+
+# DNS-rebinding protection for the unauthenticated HTTP transport: a browser
+# page on a rebound domain sends its own name as Host and is refused.
+HTTP_LOOPBACK_NAMES = ("127.0.0.1", "localhost", "[::1]")
+HTTP_WILDCARD_BINDS = frozenset(("0.0.0.0", "::", "[::]", ""))
+
+
+def _http_host_name(value: str) -> str | None:
+    """Host name as it appears in a Host header: lowercased, IPv6 bracketed, no port."""
+    raw = value.strip()
+    if not raw:
+        return None
+    if ":" in raw and not raw.startswith("["):
+        raw = f"[{raw}]" if raw.count(":") > 1 else raw.split(":", 1)[0]
+    try:
+        name = urllib.parse.urlsplit("//" + raw).hostname
+    except ValueError:
+        return None
+    if not name:
+        return None
+    return f"[{name}]" if ":" in name else name.rstrip(".")
+
+
+def _http_allowed_hosts(bind: str, environ: Mapping[str, str]) -> tuple[list[str], list[str]]:
+    """(Host patterns, Origin patterns): loopback, a non-wildcard bind address
+    and MCP_HTTP_ALLOWED_HOSTS, each with and without a port."""
+    names = list(HTTP_LOOPBACK_NAMES)
+    extra = [] if bind.strip() in HTTP_WILDCARD_BINDS else [bind]
+    extra += environ.get("MCP_HTTP_ALLOWED_HOSTS", "").split(",")
+    for value in extra:
+        name = _http_host_name(value)
+        if name and name not in names:
+            names.append(name)
+    hosts = [pattern for name in names for pattern in (name, name + ":*")]
+    origins = [f"{scheme}://{pattern}" for scheme in ("http", "https") for pattern in hosts]
+    return hosts, origins
+
+
+def _http_pattern_match(value: str | None, patterns: list[str]) -> bool:
+    """Exact match or `name:*` (any port), as mcp's TransportSecurityMiddleware matches."""
+    if not value:
+        return False
+    return value in patterns or any(p.endswith(":*") and value.startswith(p[:-1]) for p in patterns)
+
+
+def _transport_security_kwargs(hosts: list[str], origins: list[str]) -> dict[str, object]:
+    """`security_settings` for StreamableHTTPSessionManager when this mcp release supports it."""
+    import inspect
+
+    from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+    if "security_settings" not in inspect.signature(StreamableHTTPSessionManager.__init__).parameters:
+        return {}
+    from mcp.server.transport_security import TransportSecuritySettings
+    return {"security_settings": TransportSecuritySettings(
+        enable_dns_rebinding_protection=True, allowed_hosts=hosts, allowed_origins=origins)}
+
+
+class _RebindingGuard:
+    """ASGI equivalent of mcp's DNS-rebinding check: 421 for a foreign Host, 403 for a foreign Origin."""
+
+    def __init__(self, inner, hosts: list[str], origins: list[str]):
+        self.inner, self.hosts, self.origins = inner, hosts, origins
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
+            origin = headers.get("origin")
+            status = 421 if not _http_pattern_match(headers.get("host"), self.hosts) else \
+                403 if origin and not _http_pattern_match(origin, self.origins) else None
+            if status is not None:
+                from starlette.responses import Response
+                await Response("Invalid Host header" if status == 421 else "Invalid Origin header",
+                               status_code=status)(scope, receive, send)
+                return
+        await self.inner(scope, receive, send)
 
 
 def _http_workers() -> int:

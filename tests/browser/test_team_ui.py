@@ -64,7 +64,9 @@ def test_authorship_scopes_edit_history_and_search(browser, server):
         login(petya, server, 'petya')
         from version import RELEASE_DATE, VERSION
         playwright.expect(vasya.get_by_role('heading', name='total-agent-memory', exact=True)).to_be_visible()
-        playwright.expect(vasya.locator('small')).to_have_text(f'{VERSION} · {RELEASE_DATE}')
+        playwright.expect(vasya.locator('small')).to_have_text(f'{VERSION} · {RELEASE_DATE} · Панель компании')
+        dashboard_link = vasya.locator('small').get_by_role('link', name='Панель компании', exact=True)
+        playwright.expect(dashboard_link).to_have_attribute('href', '/dashboard/')
         private = f'Личный секрет Васи {marker}: сервер стоит в кабинете 402.'
         team = f'Команда {marker}: выпуск согласован на пятницу.'
         shared = f'Общая инструкция {marker}: проверять резервную копию ежедневно.'

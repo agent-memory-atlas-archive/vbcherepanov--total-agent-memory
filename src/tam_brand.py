@@ -1,0 +1,13 @@
+"""total-agent-memory brand assets for src/dashboard.py and team UI (framework-agnostic)."""
+import base64
+
+ACCENT = "#E08A2E"
+INK = "#16181D"
+PAPER = "#F4F1EA"
+
+MARK_SVG_LIGHT = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"><g transform="translate(0 0) scale(1.0)"><rect x="6" y="6" width="32" height="32" rx="7" fill="#16181D"/><rect x="44" y="6" width="32" height="32" rx="7" fill="#16181D"/><rect x="82" y="6" width="32" height="32" rx="7" fill="#16181D"/><rect x="6" y="44" width="32" height="32" rx="7" fill="#16181D"/><rect x="44" y="44" width="32" height="32" rx="7" fill="#E08A2E"/><rect x="82" y="44" width="32" height="32" rx="7" fill="#16181D"/><rect x="6" y="82" width="32" height="32" rx="7" fill="#16181D"/><rect x="44" y="82" width="32" height="32" rx="7" fill="#16181D"/><rect x="85" y="85" width="26" height="26" rx="5" fill="none" stroke="#16181D" stroke-width="5"/></g></svg>'  # for light backgrounds
+MARK_SVG_DARK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"><g transform="translate(0 0) scale(1.0)"><rect x="6" y="6" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="44" y="6" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="82" y="6" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="6" y="44" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="44" y="44" width="32" height="32" rx="7" fill="#E08A2E"/><rect x="82" y="44" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="6" y="82" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="44" y="82" width="32" height="32" rx="7" fill="#F4F1EA"/><rect x="85" y="85" width="26" height="26" rx="5" fill="none" stroke="#F4F1EA" stroke-width="5"/></g></svg>'    # for dark backgrounds
+FAVICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><style>.f{fill:#16181D}.s{stroke:#16181D}@media (prefers-color-scheme:dark){.f{fill:#F4F1EA}.s{stroke:#F4F1EA}}</style><rect class="f" x="6" y="6" width="32" height="32" rx="7"/><rect class="f" x="44" y="6" width="32" height="32" rx="7"/><rect class="f" x="82" y="6" width="32" height="32" rx="7"/><rect class="f" x="6" y="44" width="32" height="32" rx="7"/><rect x="44" y="44" width="32" height="32" rx="7" fill="#E08A2E"/><rect class="f" x="82" y="44" width="32" height="32" rx="7"/><rect class="f" x="6" y="82" width="32" height="32" rx="7"/><rect class="f" x="44" y="82" width="32" height="32" rx="7"/><rect class="s" x="85" y="85" width="26" height="26" rx="5" fill="none" stroke-width="5"/></svg>'       # adapts to prefers-color-scheme
+
+FAVICON_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(FAVICON_SVG.encode()).decode()
+FAVICON_LINK = f'<link rel="icon" type="image/svg+xml" href="{FAVICON_DATA_URI}">'

@@ -72,44 +72,37 @@ def test_install_ps1_honors_install_test_mode_env(install_text: str):
 
 
 # ------------------------------------------------------------------
-# Register-Mcp-* functions (one per IDE)
+# Registration is delegated to src/setup_wizard/register.py
 # ------------------------------------------------------------------
 
-REGISTER_FUNCS = (
-    "Register-Mcp-ClaudeCode",
-    "Register-Mcp-Cursor",
-    "Register-Mcp-GeminiCli",
-    "Register-Mcp-OpenCode",
-    "Register-Mcp-Codex",
-)
+def _function_body(text: str, name: str) -> str:
+    match = re.search(rf"function\s+{re.escape(name)}\b.*?^\}}", text, re.DOTALL | re.MULTILINE)
+    assert match, f"{name} function body not found"
+    return match.group(0)
 
 
-@pytest.mark.parametrize("func_name", REGISTER_FUNCS)
-def test_register_mcp_function_defined(install_text: str, func_name: str):
-    pattern = rf"function\s+{re.escape(func_name)}\b"
-    assert re.search(pattern, install_text), f"missing function {func_name}"
+def test_install_ps1_delegates_registration_to_the_module(install_text: str):
+    body = _function_body(install_text, "Register-Mcp")
+    assert '"-m", "setup_wizard.register"' in body
+    assert '"--command", $VenvPython, "--arg", $SrvPath' in body
+    assert "$LASTEXITCODE -ne 0" in body and "throw" in body
+    assert "Register-Mcp -Client $Ide" in install_text
+    for leftover in ("Merge-JsonMcp", "Register-Mcp-ClaudeCode", "mcp_servers.memory", "ConvertTo-HashtableFromPSObject"):
+        assert leftover not in install_text, f"duplicated registration code left behind: {leftover}"
 
 
-def test_register_mcp_dispatch_switch(install_text: str):
-    """All 5 IDEs must be dispatched from the switch."""
-    # Match the dispatch switch block
-    assert 'switch ($Ide)' in install_text
-    assert "Register-Mcp-ClaudeCode" in install_text
-    assert "Register-Mcp-Cursor" in install_text
-    assert "Register-Mcp-GeminiCli" in install_text
-    assert "Register-Mcp-OpenCode" in install_text
-    assert "Register-Mcp-Codex" in install_text
+def test_codex_env_overrides_are_passed_to_the_module(install_text: str):
+    body = _function_body(install_text, "Register-Mcp")
+    for flag in ("MEMORY_TRIPLE_TIMEOUT_SEC=120", "MEMORY_ENRICH_TIMEOUT_SEC=90", "MEMORY_REPR_TIMEOUT_SEC=120",
+                 "MEMORY_TRIPLE_MAX_PREDICT=512"):
+        assert flag in body
+    assert 'if ($Client -eq "claude-code") { $registerArgs += "--hooks" }' in body
 
 
-def test_codex_register_uses_toml_fence(install_text: str):
-    """Codex branch must use the same fence markers as install.sh."""
-    assert "# --- Claude Total Memory MCP Server ---" in install_text
-    assert "# --- End Claude Total Memory ---" in install_text
-    # v7.1 env overrides
-    assert 'MEMORY_TRIPLE_TIMEOUT_SEC' in install_text
-    assert 'MEMORY_ENRICH_TIMEOUT_SEC' in install_text
-    assert 'MEMORY_REPR_TIMEOUT_SEC' in install_text
-    assert 'MEMORY_TRIPLE_MAX_PREDICT' in install_text
+def test_install_codex_ps1_delegates_to_the_module():
+    text = (ROOT / "install-codex.ps1").read_text(encoding="utf-8")
+    assert "-m setup_wizard.register --client codex" in text
+    assert "mcp_servers.memory" not in text and "toml_block" not in text
 
 
 # ------------------------------------------------------------------
@@ -161,30 +154,29 @@ def test_ps1_hook_is_nonempty(ps1_name: str):
 
 
 # ------------------------------------------------------------------
-# Hook registration in settings.json
+# Hook registration in settings.json (done by the module on Windows too)
 # ------------------------------------------------------------------
 
-def test_register_claudecode_wires_all_v8_hooks(install_text: str):
-    """SessionStart, SessionEnd, Stop, UserPromptSubmit, PreToolUse, PostToolUse all present."""
-    # These must appear as keys in the hooks hashtable assignment
-    required_events = (
-        "SessionStart",
-        "SessionEnd",
-        "Stop",
-        "UserPromptSubmit",
-        "PreToolUse",
-        "PostToolUse",
-    )
-    # narrow search to the ClaudeCode function body
-    match = re.search(
-        r"function\s+Register-Mcp-ClaudeCode.*?^\}",
-        install_text,
-        re.DOTALL | re.MULTILINE,
-    )
-    assert match, "Register-Mcp-ClaudeCode function body not found"
-    body = match.group(0)
-    for evt in required_events:
-        assert f'"{evt}"' in body, f"hooks block must set {evt}"
+def test_module_registers_all_v8_hooks_as_powershell_on_windows(tmp_path):
+    import json
+
+    from setup_wizard import clients
+    from setup_wizard.register import main
+
+    home = tmp_path / "home"
+    home.mkdir()
+    host = clients.Host(home, "Windows", {"APPDATA": str(home / "AppData" / "Roaming")}, lambda _b: None)
+    assert main(["--client", "claude-code", "--memory-dir", str(home / ".tam"), "--command", "C:/py/python.exe",
+                 "--arg", "C:/tam/src/server.py", "--env", "CLAUDE_MEMORY_DIR=C:/tam-data"],
+                environ={"TAM_MEMORY_DIR": str(home / ".tam")}, host=host) == 0
+    hooks = json.loads((home / ".claude" / "settings.json").read_text())["hooks"]
+    for event in ("SessionStart", "SessionEnd", "Stop", "UserPromptSubmit", "PreToolUse", "PostToolUse"):
+        commands = [h["command"] for block in hooks[event] for h in block["hooks"]]
+        assert commands and all(c.startswith("powershell -ExecutionPolicy Bypass -NoProfile -File") for c in commands)
+        assert all(c.rstrip('"').endswith(".ps1") for c in commands)
+    assert (home / ".claude" / "hooks" / "session-start.ps1").is_file()
+    entry = json.loads((home / ".claude.json").read_text())["mcpServers"]["memory"]
+    assert entry["command"] == "C:/py/python.exe" and entry["env"]["CLAUDE_MEMORY_DIR"] == "C:/tam-data"
 
 
 # ------------------------------------------------------------------

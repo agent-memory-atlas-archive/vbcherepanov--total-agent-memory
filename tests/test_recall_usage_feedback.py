@@ -20,12 +20,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 import server  # noqa: E402
+from tests.pg_store_support import store_backend  # noqa: F401 — fixture
 
 
 @pytest.fixture
-def seeded(tmp_path, monkeypatch):
+def seeded(store_backend, tmp_path, monkeypatch):  # noqa: F811 — pytest fixture injection
     monkeypatch.setattr(server, "MEMORY_DIR", tmp_path)
-    store = server.Store()
+    store = server.Store(database=store_backend)
     store.session_start("s1", project="usage")
     for text in (
         "PostgreSQL 18 uses UUID v7 primary keys for the orders table",

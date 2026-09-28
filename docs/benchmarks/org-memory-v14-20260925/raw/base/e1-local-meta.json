@@ -1,0 +1,77 @@
+{
+ "twin_saves": {
+  "twin-1": [
+   {
+    "department": "engineering",
+    "id": 261,
+    "deduplicated": false
+   },
+   {
+    "department": "sales",
+    "id": 262,
+    "deduplicated": true
+   }
+  ],
+  "twin-2": [
+   {
+    "department": "hr",
+    "id": 263,
+    "deduplicated": false
+   },
+   {
+    "department": "finance",
+    "id": 264,
+    "deduplicated": true
+   }
+  ],
+  "twin-3": [
+   {
+    "department": "sales",
+    "id": 265,
+    "deduplicated": false
+   },
+   {
+    "department": "hr",
+    "id": 266,
+    "deduplicated": true
+   }
+  ],
+  "twin-4": [
+   {
+    "department": "finance",
+    "id": 267,
+    "deduplicated": false
+   },
+   {
+    "department": "engineering",
+    "id": 268,
+    "deduplicated": true
+   }
+  ],
+  "twin-5": [
+   {
+    "department": "engineering",
+    "id": 269,
+    "deduplicated": false
+   },
+   {
+    "department": "hr",
+    "id": 270,
+    "deduplicated": true
+   }
+  ],
+  "twin-6": [
+   {
+    "department": "sales",
+    "id": 271,
+    "deduplicated": false
+   },
+   {
+    "department": "finance",
+    "id": 272,
+    "deduplicated": true
+   }
+  ]
+ },
+ "spoof_id": 273
+}

@@ -65,11 +65,12 @@ Write-Host ""
 $sandbox = New-Sandbox
 $result = Invoke-Install -SandboxHome $sandbox
 $claudeSettings = Join-Path $sandbox ".claude\settings.json"
+$claudeConfig = Join-Path $sandbox ".claude.json"
 
 Assert-True "default install exits cleanly" { $result.ExitCode -eq 0 }
 Assert-True "claude settings.json created" { Test-Path $claudeSettings }
-Assert-True "memory MCP server present in settings.json" {
-    $data = Get-Content $claudeSettings -Raw | ConvertFrom-Json
+Assert-True "memory MCP server present in ~/.claude.json (where Claude Code reads it)" {
+    $data = Get-Content $claudeConfig -Raw | ConvertFrom-Json
     $null -ne $data.mcpServers.memory
 }
 Assert-True "hooks block registered (UserPromptSubmit)" {
@@ -110,13 +111,13 @@ Remove-Item -Recurse -Force $sandbox -ErrorAction SilentlyContinue
 # ---------- opencode ----------
 $sandbox = New-Sandbox
 $result = Invoke-Install -SandboxHome $sandbox -ExtraArgs @("-Ide", "opencode")
-$opencodeCfg = Join-Path $sandbox ".opencode\config.json"
+$opencodeCfg = Join-Path $sandbox ".config\opencode\opencode.json"
 
 Assert-True "opencode install exits cleanly" { $result.ExitCode -eq 0 }
-Assert-True "opencode config.json created" { Test-Path $opencodeCfg }
-Assert-True "opencode uses 'mcp' parent key (not 'mcpServers')" {
+Assert-True "opencode opencode.json created" { Test-Path $opencodeCfg }
+Assert-True "opencode entry is a local mcp server" {
     $data = Get-Content $opencodeCfg -Raw | ConvertFrom-Json
-    $null -ne $data.mcp.memory
+    $data.mcp.memory.type -eq "local"
 }
 
 Remove-Item -Recurse -Force $sandbox -ErrorAction SilentlyContinue
@@ -137,7 +138,7 @@ Assert-True "codex config has env overrides" {
 }
 Assert-True "codex config has fence markers" {
     $c = Get-Content $codexCfg -Raw
-    $c -match "# --- Claude Total Memory MCP Server ---" -and $c -match "# --- End Claude Total Memory ---"
+    $c -match "# --- total-agent-memory MCP Server ---" -and $c -match "# --- End total-agent-memory ---"
 }
 
 Remove-Item -Recurse -Force $sandbox -ErrorAction SilentlyContinue

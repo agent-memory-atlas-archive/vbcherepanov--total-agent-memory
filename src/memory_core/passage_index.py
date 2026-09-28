@@ -12,6 +12,7 @@ import numpy as np
 from memory_core.query_terms import lexical_terms
 from memory_core.retrieval import MemoryHit
 from memory_core.telemetry import counters, op_timer
+from tam_db.contracts import Backend
 
 PASSAGE_CHARS = 900
 EMBED_BATCH_SIZE = 64
@@ -116,11 +117,21 @@ class PassageIndex:
                 return []
             terms = lexical_terms(query)
             match = ' OR '.join('"' + term.replace('"', '""') + '"' for term in terms)
-            lexical = self.db.execute(
-                f'SELECT p.id FROM evidence_passages_fts JOIN evidence_passages p ON p.id=evidence_passages_fts.rowid '
-                f'WHERE evidence_passages_fts MATCH ? AND p.knowledge_id IN ({marks}) ORDER BY rank,p.id',
-                [match, *source_ids],
-            ).fetchall() if match else []
+            if match and getattr(self.db, 'backend', None) is Backend.POSTGRES:
+                from memory_core.pg_fts import match_source
+
+                source, source_params = match_source('evidence_passages_fts', match)
+                lexical = self.db.execute(
+                    f'SELECT p.id FROM ({source}) m JOIN evidence_passages p ON p.id=m.id '
+                    f'WHERE p.knowledge_id IN ({marks}) ORDER BY m.rank,p.id',
+                    [*source_params, *source_ids],
+                ).fetchall()
+            else:
+                lexical = self.db.execute(
+                    f'SELECT p.id FROM evidence_passages_fts JOIN evidence_passages p ON p.id=evidence_passages_fts.rowid '
+                    f'WHERE evidence_passages_fts MATCH ? AND p.knowledge_id IN ({marks}) ORDER BY rank,p.id',
+                    [match, *source_ids],
+                ).fetchall() if match else []
             vectors = np.asarray([np.frombuffer(r['vector'], dtype='<f4') for r in rows])
             query_vector = np.asarray(self.query_embed(query) if self.query_embed else self.embed([query])[0], dtype=np.float32)
             if vectors.shape[1:] != query_vector.shape or not np.isfinite(query_vector).all():

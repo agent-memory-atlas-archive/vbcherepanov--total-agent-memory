@@ -60,6 +60,31 @@ def test_embedded_secret_values_are_redacted(name):
     assert EMBEDDED[name][1] not in text
 
 
+@pytest.mark.parametrize("card", [
+    "4111" + "111111111111",
+    "4111 " + "1111 1111 1111",
+    "5500-" + "0000-0000-0004",
+])
+def test_payment_card_numbers_are_redacted(card):
+    text, changed = redact_secrets(f"paid with {card} today")
+    assert changed
+    assert text == f"paid with {REDACTED} today"
+
+
+@pytest.mark.parametrize("text", [
+    "request 12345678-1234-4234-9acc-b8df23f981f4 failed",   # UUID whose first groups are all digits
+    "order 1234567812345678 shipped",                        # 16 digits that fail the Luhn check
+    "build abc1234567812345670 done",                        # digits inside a longer identifier
+])
+def test_identifiers_that_look_like_card_numbers_survive(text):
+    assert redact_secrets(text) == (text, False)
+
+
+def test_digit_only_uuid_request_id_survives_redaction():
+    args = {"content": "note", "request_id": "12345678-1234-4234-9acc-b8df23f981f4"}
+    assert redact_value(args) == (args, False)
+
+
 def test_url_keeps_host_after_redacting_credentials():
     assert redact_secrets("postgres://app:pw@db:5432/shop")[0] == f"postgres://{REDACTED}@db:5432/shop"
 

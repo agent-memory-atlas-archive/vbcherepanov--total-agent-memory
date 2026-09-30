@@ -4,6 +4,7 @@ Release summaries for the 14.x series, moved here from the README. The
 [CHANGELOG](../CHANGELOG.md) is the complete, authoritative record; this page
 keeps the measurements and usage notes that the summaries added.
 
+- [14.7.0](#version-1470--whole-records-fill-the-context-budget)
 - [14.6.0](#version-1460--a-company-memory-server-you-can-run-dashboard-roles-onboarding-postgresql)
 - [14.5.0](#version-1450--no-significant-difference-from-mem0-platform-on-locomo-and-longmemeval)
 - [14.4.0](#version-1440--opt-in-fact-supersession-cheaper-writes-at-1m-records)
@@ -12,6 +13,33 @@ keeps the measurements and usage notes that the summaries added.
 - [14.2.0](#version-1420--facts-that-change-over-time)
 - [14.1.0](#version-1410--what-is-new)
 - [14.0.0](#version-1400--what-is-new)
+## Version 14.7.0 — whole records fill the context budget
+
+**Release date: 2026-09-30.**
+
+`memory_recall(mode="context", fill_budget=true)` searches up to 100 hits deep and keeps whole
+records, in rank order, until `context_max_chars` is used. The plain context mode takes the top
+`limit` hits and excerpts them; with short records most of the budget stays empty. Off by default.
+
+| Context holds the evidence ([details](benchmarks/context-fill-v14/RESULTS.md)) | Plain context | `fill_budget` |
+|---|---:|---:|
+| LoCoMo, 383 questions, at least one gold turn, 8,000 characters | 0.815 | **0.890** |
+| LongMemEval-S, 94 questions, every gold turn, 16,000 characters | 0.766 | **0.830** |
+| same, 40,000 characters | 0.766 | **0.904** |
+| multi-session questions only (30), every gold turn, 40,000 characters | 0.333 | **0.733** |
+
+**AMA-Bench, full test set.** TAM as the memory of a gpt-5-mini agent scored **0.658** (mean over
+24 domain x capability cells, judge gpt-5.2) on all 208 episodes and 2,496 questions; GPT-5 mini
+reading the whole trajectory scores 0.656 on the published board. The result is submitted to the
+leaderboard and self-reported until the board verifies it. Adapters, configuration and the command:
+[docs/benchmarks/ama-bench](benchmarks/ama-bench/README.md).
+
+Also fixed: a code record saved while the code embedding model could not be loaded (offline, or
+after macOS purged the model cache) was labelled with the code model and became invisible to
+semantic search; it is now stored in the text space. Details: [CHANGELOG](../CHANGELOG.md).
+
+---
+
 ## Version 14.6.0 — a company memory server you can run: dashboard, roles, onboarding, PostgreSQL
 
 **Release date: 2026-09-27.**

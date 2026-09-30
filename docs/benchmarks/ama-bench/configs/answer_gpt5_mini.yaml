@@ -1,0 +1,10 @@
+# Answer model for the AMA-Bench pilot. No api_key and no base_url here on purpose:
+# run_guarded.py puts a per-run session token in OPENAI_API_KEY and the local budget
+# proxy in OPENAI_BASE_URL (the OpenAI SDK reads both); only the proxy holds the key.
+provider: "openai"
+model: "gpt-5-mini"
+max_tokens: 4096           # max_output_tokens per answer (reasoning tokens included)
+max_model_length: 400000
+temperature: 0.0           # ignored by the gpt-5 Responses path
+reasoning_effort: "minimal"
+timeout: 600

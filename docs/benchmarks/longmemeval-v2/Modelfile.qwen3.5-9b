@@ -1,0 +1,7 @@
+# Reader for LongMemEval-V2 runs: the unchanged qwen3.5:9b weights (Ollama library,
+# Q4_K_M) under the name `qwen3.5-9b`, which the leaderboard packager requires
+# (substring check on run_args.json "model"). The only change is a context window
+# large enough for memory context + thinking + answer; Ollama's default would
+# silently truncate the prompt.
+FROM qwen3.5:9b
+PARAMETER num_ctx 65536

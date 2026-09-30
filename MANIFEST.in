@@ -12,6 +12,9 @@ recursive-include benchmarks *.py
 include benchmarks/data/memory-contracts-v1.json
 include *.sh *.ps1 requirements*.txt Dockerfile docker-compose*.yml Makefile server.json .env.example .gitignore .dockerignore .mcp.json
 include docs/installation.md
+graft docs/benchmarks/tam_bench_common
+graft docs/benchmarks/ama-bench
+graft docs/benchmarks/longmemeval-v2
 recursive-include migrations/postgres *.sql
 recursive-include src/team_memory/static *.html *.js *.css *.svg *.woff2 *.txt
 recursive-include src/team_memory/reports/static *.js *.css

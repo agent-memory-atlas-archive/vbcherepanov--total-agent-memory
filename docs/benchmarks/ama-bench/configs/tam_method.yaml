@@ -1,0 +1,16 @@
+# total-agent-memory (TAM) method settings for AMA-Bench. All values are general
+# defaults; none is tuned to AMA-Bench (it has only a test split).
+# tam_src comes from TAM_SRC_DIR and work_root from TAM_BENCH_WORK_ROOT (set by
+# run_pilot.sh), so this file holds no machine paths.
+top_k: 10                  # recall limit per question when fill_budget is off
+fill_budget: true          # TAM budget fill: keep whole ranked hits until max_context_chars is used
+fill_pool: 100             # ranked hits the budget fill draws from
+context_radius: 1          # each hit comes with this many trajectory steps before and after it
+fragment_max_chars: 2000   # a trajectory step longer than this is split on line boundaries
+max_context_chars: 40000   # budget for retrieved steps handed to the answerer
+max_task_chars: 4000       # task description is prepended, truncated to this
+embed_batch: 64
+embed_provider: fastembed  # local embeddings; no API key reaches TAM
+cross_rerank: "on"         # wait for the local cross-encoder so every question is re-ranked the same way
+max_live_workers: 4        # episode stores open at the same time (one process each)
+worker_timeout_s: 1800

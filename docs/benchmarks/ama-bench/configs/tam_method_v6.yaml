@@ -1,0 +1,21 @@
+top_k: 10
+fill_budget: true
+fill_pool: 100
+context_radius: 1
+fragment_max_chars: 2000
+max_context_chars: 70000
+max_task_chars: 4000
+embed_batch: 64
+embed_provider: fastembed
+cross_rerank: "on"
+max_live_workers: 4
+worker_timeout_s: 1800
+step_anchors: true
+anchor_radius: 1
+anchor_step_chars: 8000
+digest_chars: 30000
+quote_anchors: true
+quote_max_matches: 6
+timeline_chars: 8000
+inventory_verbs: [take, move, put, drop, pick, use, heat, cool, clean, slice]
+action_stats: true

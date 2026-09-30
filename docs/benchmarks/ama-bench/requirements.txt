@@ -1,0 +1,9 @@
+# Run environment for the AMA-Bench pilot with the TAM method (one interpreter runs the
+# harness and the TAM worker). Install TAM itself first, from the TAM repo root:
+#   pip install -e .
+# then the harness packages the API path actually imports:
+openai>=1.12
+pyyaml>=6.0
+tqdm>=4.65
+numpy>=1.24
+huggingface_hub>=0.22   # only for setup_harness.sh when the dataset is downloaded

@@ -134,6 +134,11 @@ docs/benchmarks/release-final-v14-20260915/*
 docs/benchmarks/aml-cycle2/*
 !docs/benchmarks/aml-cycle2/README.md
 !docs/benchmarks/aml-cycle2/FROZEN.md
+!docs/benchmarks/tam_bench_common/
+!docs/benchmarks/ama-bench/
+!docs/benchmarks/longmemeval-v2/
+!docs/benchmarks/context-fill-v14/
+!docs/benchmarks/context-fill-v14/raw/
 
 # uv lockfile: dependencies live in pyproject.toml and requirements*.txt
 uv.lock

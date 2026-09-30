@@ -1,0 +1,10 @@
+# Judge model for the AMA-Bench pilot (harness judge prompt, max_tokens=2048 per call,
+# hard-coded in utils/evaluation_metrics.py). Key handling as in answer_gpt5_mini.yaml.
+# reasoning_effort: gpt-5.2 accepts none|low|medium|high|xhigh (model page,
+# developers.openai.com/api/docs/models/gpt-5.2); the harness default "minimal" is not
+# in that list, so the model's own default "none" is set explicitly.
+provider: "openai"
+model: "gpt-5.2"
+temperature: 0.0           # ignored by the gpt-5 Responses path
+reasoning_effort: "none"
+timeout: 600

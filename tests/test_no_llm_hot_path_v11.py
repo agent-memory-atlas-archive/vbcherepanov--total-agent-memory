@@ -395,7 +395,23 @@ def test_code_chunk_uses_code_space_even_when_only_text_model_configured(
     assert row[1], "embedding_model must be recorded even on fallback"
 
 
-def test_code_save_uses_code_specific_embedding_model_by_default(fast_store):
+@pytest.fixture
+def code_model_cached():
+    """Make sure the code model is in the fastembed cache before the tripwire
+    blocks the network. The cache lives in the system temp dir, which macOS
+    purges; on a cold cache the tripwire blocks the download and the save
+    degrades to the text model, which is correct behaviour but not what the
+    test measures."""
+    import config
+    from embed_provider import FastEmbedProvider
+
+    model = config.get_code_embed_model()
+    if not FastEmbedProvider(model=model).available():
+        pytest.skip(f"{model} is neither cached nor downloadable")
+    return model
+
+
+def test_code_save_uses_code_specific_embedding_model_by_default(code_model_cached, fast_store):
     """Phase 5b — with default config (MEMORY_CODE_EMBED_MODEL not set,
     so it defaults to jinaai/jina-embeddings-v2-base-code, 768d), a code
     save must produce a 768-dim vector under the code model. Proves the
@@ -419,6 +435,52 @@ def test_code_save_uses_code_specific_embedding_model_by_default(fast_store):
         f"expected code-aware model, got {row[1]!r}"
     )
     assert row[2] == 768, f"expected 768d (jina-code), got {row[2]}"
+
+
+def test_code_save_without_code_model_is_recorded_in_text_space(fast_store, monkeypatch):
+    """Regression: when the code model cannot be loaded (cold cache, offline),
+    the row used to carry the code model's name and `embedding_space=code`
+    while holding a 384d text-model vector, so code search later failed with
+    "re-embed required". It must be recorded honestly in the text space."""
+    import config
+    from memory_core import embeddings
+
+    code_model = config.get_code_embed_model()
+    real_build = embeddings._build_fastembed
+    monkeypatch.setattr(
+        embeddings, "_build_fastembed",
+        lambda model: None if model == code_model else real_build(model),
+    )
+    monkeypatch.setattr(
+        embeddings, "_build_choose_embed_fallback",
+        lambda: pytest.fail("a non-text space must not borrow the text backend"),
+    )
+    rid, *_ = fast_store.save_knowledge(
+        sid="s1",
+        content="def add(a: int, b: int) -> int:\n    return a + b\n",
+        ktype="solution", project="demo",
+    )
+    row = fast_store.db.execute(
+        "SELECT embedding_space, embed_model, embed_dim FROM embeddings WHERE knowledge_id=?",
+        (rid,),
+    ).fetchone()
+    assert row[0] == "text"
+    assert row[1] == fast_store._active_embed_model_name()
+    assert row[2] == len(fast_store.embed(["probe"])[0])
+
+
+def test_unloadable_space_model_is_not_retried(monkeypatch):
+    """A failed per-space model load is remembered: every later call must not
+    repeat the (network-bound) load attempt."""
+    from memory_core import embeddings
+
+    attempts = []
+    monkeypatch.setattr(embeddings, "_build_fastembed", lambda model: attempts.append(model))
+    provider = embeddings.EmbeddingProvider()
+    for text in ("def a(): pass", "def b(): pass"):
+        with pytest.raises(RuntimeError, match="could not be loaded"):
+            provider.embed_query(text, space="code")
+    assert len(attempts) == 1
 
 
 # ──────────────────────────────────────────────

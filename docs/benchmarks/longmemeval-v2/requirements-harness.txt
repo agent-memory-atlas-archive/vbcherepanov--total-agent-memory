@@ -1,0 +1,13 @@
+# Environment of the LongMemEval-V2 harness process (Python >= 3.11).
+# Mirrors the upstream requirements.txt at commit 2cc8c540 plus torch/torchvision,
+# which the harness needs to count memory-context tokens with the Qwen3.5-9B processor
+# (CPU builds are enough). TAM itself runs in its own interpreter (run_tam.py --tam-python).
+huggingface_hub
+numpy
+openai
+openai-agents
+pillow
+tqdm
+transformers
+torch
+torchvision

@@ -3,9 +3,14 @@ from __future__ import annotations
 import sqlite3
 
 import config as _cfg
+from memory_core.context_budget import fill_budget, group_by_anchor
 from memory_core.evidence_chains import EvidenceChains
-from memory_core.evidence_pack import DEFAULT_EVIDENCE_CHARS, pack_evidence_records
-from memory_core.evidence_window import EvidenceWindow
+from memory_core.evidence_pack import (
+    DEFAULT_EVIDENCE_CHARS,
+    pack_evidence_records,
+    packed_size,
+)
+from memory_core.evidence_window import MAX_WINDOW_RECORDS, EvidenceWindow
 from memory_core.relative_dates import annotate
 from memory_core.retrieval import MemoryHit, SearchScope
 from memory_core.telemetry import counters, op_timer
@@ -19,14 +24,27 @@ class EvidenceContext:
     def build(
         self, hits: list[MemoryHit], *, query: str, scope: SearchScope,
         radius: int = 1, max_chars: int = DEFAULT_EVIDENCE_CHARS, max_bytes: int | None = None,
+        fill: bool = False,
     ) -> list[MemoryHit]:
+        """Anchors plus session neighbours, packed into the budget.
+
+        With ``fill`` the hits are a deep ranked list: each hit with its neighbours (and,
+        after all of them, linked sources) is kept whole in rank order while it fits
+        (``fill_budget``), instead of every hit being excerpted to a share of the budget.
+        """
         with op_timer("evidence_context_ms"):
-            expanded = self.window.expand(hits, scope=scope, radius=radius)
+            neighbors = {"max_neighbors": min(MAX_WINDOW_RECORDS, 2 * radius * len(hits))} if fill else {}
+            expanded = self.window.expand(hits, scope=scope, radius=radius, **neighbors)
             linked = self.chains.expand(expanded, scope)
-            linked = rank_weighted(linked)
             if _cfg.context_resolves_dates():
                 linked = [{**hit, "content": annotate(str(hit.get("content", "")), hit.get("created_at"))}
                           for hit in linked]
+            if fill:
+                use_bytes = max_bytes is not None
+                limit = min(max_chars, max_bytes) if use_bytes else max_chars
+                linked = fill_budget(group_by_anchor(linked), limit,
+                                     cost=lambda hit: packed_size(hit, use_bytes=use_bytes))
+            linked = rank_weighted(linked)
             result = pack_evidence_records(
                 linked, query=query, max_chars=max_chars, max_bytes=max_bytes,
             )

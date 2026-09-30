@@ -85,6 +85,7 @@ class EmbeddingProvider:
 
     def __init__(self) -> None:
         self._providers: dict[tuple[str, str], object] = {}
+        self._unavailable: set[tuple[str, str]] = set()
         self._cached_query = lru_cache(maxsize=QUERY_CACHE_SIZE)(self._encode_query)
 
     # ─── public ─────────────────────────────────────────────────────
@@ -148,9 +149,18 @@ class EmbeddingProvider:
         cached = self._providers.get(key)
         if cached is not None:
             return cached
+        if key in self._unavailable:
+            raise RuntimeError(f"EmbeddingProvider: {model!r} for space {space_norm!r} could not be loaded")
 
         # Preferred: FastEmbed (local, no HTTP, fits the hot path).
         provider = _build_fastembed(model)
+        if provider is None and space_norm != DEFAULT_SPACE:
+            # The fallback below serves the text backend's model, not `model`:
+            # its vectors would be recorded under `model` with the wrong
+            # dimension. Fail instead, so the caller stores the row in the
+            # text space; remember the failure so later calls stay offline.
+            self._unavailable.add(key)
+            raise RuntimeError(f"EmbeddingProvider: {model!r} for space {space_norm!r} could not be loaded")
         if provider is None:
             # Secondary: choose_embed.get_provider() — handles bge-m3 / ST /
             # OpenAI per V9_EMBED_BACKEND. Still LLM-free for local backends.

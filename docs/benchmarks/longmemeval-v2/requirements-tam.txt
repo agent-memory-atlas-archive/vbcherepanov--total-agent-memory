@@ -1,0 +1,5 @@
+# Environment of the TAM worker process (run_tam.py --tam-python): TAM's own runtime
+# dependencies, e.g. from the TAM repo root:
+#   python -m venv .venv && .venv/bin/pip install -e .
+# Embeddings (fastembed) and the cross-encoder (fastembed ONNX TextCrossEncoder) run
+# locally on CPU; no torch and no API key are needed in this environment.

@@ -42,6 +42,12 @@ def _headers(evidence: Sequence[MemoryHit]) -> list[str]:
     ]
 
 
+def packed_size(hit: MemoryHit, *, use_bytes: bool = False) -> int:
+    """Characters (or UTF-8 bytes) one record takes in a packed context: header, content, separators."""
+    text = _headers([hit])[0] + str(hit.get("content", "")).strip()
+    return (len(text.encode("utf-8")) if use_bytes else len(text)) + 2
+
+
 def pack_evidence_records(
     evidence: Sequence[MemoryHit], *, query: str = "",
     max_chars: int = DEFAULT_EVIDENCE_CHARS, max_bytes: int | None = None,

@@ -4270,6 +4270,11 @@ async def _tool_catalogue():
                         "description": "Evidence mode: missing relation; subject must occur in the original question."},
                     "neighbors": {"type": "integer", "default": 2,
                                   "description": "Timeline/context modes: records before/after each hit; context accepts 0–3."},
+                    "fill_budget": {"type": "boolean", "default": False,
+                                    "description": "Context mode: search deeper (up to 100 hits) and keep whole hits in rank order "
+                                                   "until context_max_chars is used, instead of excerpting the top `limit` hits "
+                                                   "to fit. Neighbours default to 0 here; pass `neighbors` to keep each hit "
+                                                   "with the records around it."},
                     "detail": {"type": "string", "enum": ["compact", "summary", "full", "auto"], "default": "full",
                                "description": "Level of detail: 'compact' ~50 tokens/result (id+title+score), "
                                               "'summary' truncates content to 150 chars, 'full' returns everything, "
@@ -5720,6 +5725,10 @@ async def _do(name, a):
         # caller's detail= for those modes.
         search_detail = "full" if mode_param != "search" else detail_param
         search_limit = min(50, a.get("limit", 10) * 2) if mode_param == "evidence" else a.get("limit", 10)
+        fill_context = mode_param == "context" and bool(a.get("fill_budget", False))
+        if fill_context:
+            from memory_core.context_budget import FILL_SEARCH_LIMIT
+            search_limit = max(search_limit, FILL_SEARCH_LIMIT)
         result = recall.search(a["query"], a.get("project"), a.get("type", "all"),
                                search_limit, search_detail,
                                a.get("branch"), a.get("fusion", "rrf"),
@@ -5900,8 +5909,11 @@ async def _do(name, a):
             evidence = EvidenceContext(store.db, get_recall_excluded_tags()).build(
                 flatten_results(result), query=a["query"],
                 scope=SearchScope(project=a.get("project"), kind=a.get("type", "all"), branch=a.get("branch")),
-                radius=int(a.get("neighbors", 1)),
+                # With fill_budget the budget goes to further ranked hits: on LoCoMo, neighbours
+                # took room from them and lowered coverage (docs/benchmarks/context-fill-v14).
+                radius=int(a.get("neighbors", 0 if fill_context else 1)),
                 max_chars=a.get("context_max_chars", DEFAULT_EVIDENCE_CHARS),
+                fill=fill_context,
             )
             result = {**result, "mode": "context", "results": evidence, "total": len(evidence),
                       "answer_guidance": ANSWER_GUIDANCE,

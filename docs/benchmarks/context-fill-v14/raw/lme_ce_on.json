@@ -1,0 +1,3497 @@
+{
+ "summary": {
+  "kind": "lme",
+  "cross_rerank": "on",
+  "questions": 94,
+  "r@10": 0.9574,
+  "variants": {
+   "base@16000": {
+    "cov_any": 0.9574,
+    "cov_all": 0.766,
+    "mean_records": 10.0,
+    "mean_chars": 10534
+   },
+   "fill@16000": {
+    "cov_any": 1.0,
+    "cov_all": 0.8298,
+    "mean_records": 17.7,
+    "mean_chars": 15971
+   },
+   "base@40000": {
+    "cov_any": 0.9574,
+    "cov_all": 0.766,
+    "mean_records": 10.0,
+    "mean_chars": 10534
+   },
+   "fill@40000": {
+    "cov_any": 1.0,
+    "cov_all": 0.9043,
+    "mean_records": 49.8,
+    "mean_chars": 39960
+   }
+  }
+ },
+ "rows": [
+  {
+   "unit": "e47becba",
+   "id": "e47becba",
+   "question": "What degree did I graduate with?",
+   "gold": [
+    "answer_280352e9:4:0",
+    "answer_280352e9:5:0",
+    "answer_280352e9:5:1"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9337
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 22,
+     "chars": 15952
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9337
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 74,
+     "chars": 39940
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "118b2229",
+   "id": "118b2229",
+   "question": "How long is my daily commute to work?",
+   "gold": [
+    "answer_40a90d51:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10900
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 13,
+     "chars": 15996
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10900
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 51,
+     "chars": 39984
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "51a45a95",
+   "id": "51a45a95",
+   "question": "Where did I redeem a $5 coupon on coffee creamer?",
+   "gold": [
+    "answer_d61669c7:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12910
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12910
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 41,
+     "chars": 39981
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "58bf7951",
+   "id": "58bf7951",
+   "question": "What play did I attend at the local community theater?",
+   "gold": [
+    "answer_355c48bb:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9312
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15927
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9312
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 56,
+     "chars": 39927
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "1e043500",
+   "id": "1e043500",
+   "question": "What is the name of the playlist I created on Spotify?",
+   "gold": [
+    "answer_3e012175:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12937
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 14,
+     "chars": 15993
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12937
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 53,
+     "chars": 39952
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "c5e8278d",
+   "id": "c5e8278d",
+   "question": "What was my last name before I changed it?",
+   "gold": [
+    "answer_f6168136:0:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11900
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11900
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 47,
+     "chars": 39993
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "6ade9755",
+   "id": "6ade9755",
+   "question": "Where do I take yoga classes?",
+   "gold": [
+    "answer_9398da02:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8330
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8330
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 46,
+     "chars": 39975
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "6f9b354f",
+   "id": "6f9b354f",
+   "question": "What color did I repaint my bedroom walls?",
+   "gold": [
+    "answer_feb5200f:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12568
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15957
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12568
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 59,
+     "chars": 39976
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "58ef2f1c",
+   "id": "58ef2f1c",
+   "question": "When did I volunteer at the local animal shelter's fundraising dinner?",
+   "gold": [
+    "answer_59547700:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11092
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11092
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 41,
+     "chars": 39977
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "f8c5f88b",
+   "id": "f8c5f88b",
+   "question": "Where did I buy my new tennis racket from?",
+   "gold": [
+    "answer_c3567066:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9481
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15973
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9481
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39940
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "5d3d2817",
+   "id": "5d3d2817",
+   "question": "What was my previous occupation?",
+   "gold": [
+    "answer_235eb6fb:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9444
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9444
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 58,
+     "chars": 39989
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "7527f7e2",
+   "id": "7527f7e2",
+   "question": "How much did I spend on a designer handbag?",
+   "gold": [
+    "answer_7cb94507:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11730
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15998
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11730
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 65,
+     "chars": 39997
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "c960da58",
+   "id": "c960da58",
+   "question": "How many playlists do I have on Spotify?",
+   "gold": [
+    "answer_e05e4612:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10860
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15944
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10860
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 47,
+     "chars": 39998
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "3b6f954b",
+   "id": "3b6f954b",
+   "question": "Where did I attend for my study abroad program?",
+   "gold": [
+    "answer_94030872:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12277
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15991
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12277
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 45,
+     "chars": 39980
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "726462e0",
+   "id": "726462e0",
+   "question": "What was the discount I got on my first purchase from the new clothing brand?",
+   "gold": [
+    "answer_f38f679b:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13608
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13608
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 32,
+     "chars": 39957
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "94f70d80",
+   "id": "94f70d80",
+   "question": "How long did it take me to assemble the IKEA bookshelf?",
+   "gold": [
+    "answer_c63c0458:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10365
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 16000
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10365
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 34,
+     "chars": 39967
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "66f24dbb",
+   "id": "66f24dbb",
+   "question": "What did I buy for my sister's birthday gift?",
+   "gold": [
+    "answer_fea2e4d3:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7263
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15978
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7263
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 65,
+     "chars": 39918
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "ad7109d1",
+   "id": "ad7109d1",
+   "question": "What speed is my new internet plan?",
+   "gold": [
+    "answer_679840f8:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12699
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 14,
+     "chars": 15991
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12699
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 63,
+     "chars": 39895
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "af8d2e46",
+   "id": "af8d2e46",
+   "question": "How many shirts did I pack for my 5-day trip to Costa Rica?",
+   "gold": [
+    "answer_82a04f59:6:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9869
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15941
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9869
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 65,
+     "chars": 39939
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "dccbc061",
+   "id": "dccbc061",
+   "question": "What was my previous stance on spirituality?",
+   "gold": [
+    "answer_8f276838:0:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13510
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 21,
+     "chars": 15964
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13510
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 62,
+     "chars": 39956
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "c8c3f81d",
+   "id": "c8c3f81d",
+   "question": "What brand are my favorite running shoes?",
+   "gold": [
+    "answer_761acef8:6:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10423
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15926
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10423
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 48,
+     "chars": 39945
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "8ebdbe50",
+   "id": "8ebdbe50",
+   "question": "What certification did I complete last month?",
+   "gold": [
+    "answer_8ad8a34f:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8062
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15992
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8062
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 39,
+     "chars": 39956
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "6b168ec8",
+   "id": "6b168ec8",
+   "question": "How many bikes do I own?",
+   "gold": [
+    "answer_e623ae87:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12489
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15971
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12489
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 63,
+     "chars": 39942
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "75499fd8",
+   "id": "75499fd8",
+   "question": "What breed is my dog?",
+   "gold": [
+    "answer_723bf11f:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 11124
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15999
+    },
+    "base@40000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 11124
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 62,
+     "chars": 39956
+    }
+   },
+   "r@10": false
+  },
+  {
+   "unit": "21436231",
+   "id": "21436231",
+   "question": "How many largemouth bass did I catch on my fishing trip to Lake Michigan?",
+   "gold": [
+    "answer_1e6d4567:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9939
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15955
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9939
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 52,
+     "chars": 39995
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "95bcc1c8",
+   "id": "95bcc1c8",
+   "question": "How many amateur comedians did I watch perform at the open mic night?",
+   "gold": [
+    "answer_cb742a61:0:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 14111
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 14,
+     "chars": 15954
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 14111
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 38,
+     "chars": 39964
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "0862e8bf",
+   "id": "0862e8bf",
+   "question": "What is the name of my cat?",
+   "gold": [
+    "answer_c6fd8ebd:10:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8915
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15980
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8915
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 64,
+     "chars": 39972
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "853b0a1d",
+   "id": "853b0a1d",
+   "question": "How old was I when my grandma gave me the silver necklace?",
+   "gold": [
+    "answer_69811d4a:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9642
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15995
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9642
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 63,
+     "chars": 39957
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "a06e4cfe",
+   "id": "a06e4cfe",
+   "question": "What is my preferred gin-to-vermouth ratio for a classic gin martini?",
+   "gold": [
+    "answer_6fe9fb49:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10730
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15997
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10730
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 62,
+     "chars": 39938
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "37d43f65",
+   "id": "37d43f65",
+   "question": "How much RAM did I upgrade my laptop to?",
+   "gold": [
+    "answer_55161935:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7324
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15982
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7324
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 71,
+     "chars": 39973
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "b86304ba",
+   "id": "b86304ba",
+   "question": "How much is the painting of a sunset worth in terms of the amount I paid for it?",
+   "gold": [
+    "answer_645b0329:6:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9229
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15984
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9229
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 41,
+     "chars": 40000
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "d52b4f67",
+   "id": "d52b4f67",
+   "question": "Where did I attend my cousin's wedding?",
+   "gold": [
+    "answer_0df6aa4b:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9025
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15899
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9025
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 55,
+     "chars": 39975
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "25e5aa4f",
+   "id": "25e5aa4f",
+   "question": "Where did I complete my Bachelor's degree in Computer Science?",
+   "gold": [
+    "answer_986de8c3:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12751
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 12,
+     "chars": 15936
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12751
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 40,
+     "chars": 39970
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "caf9ead2",
+   "id": "caf9ead2",
+   "question": "How long did it take to move to the new apartment?",
+   "gold": [
+    "answer_0714183a:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 6181
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 21,
+     "chars": 15957
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 6181
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 45,
+     "chars": 39957
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "8550ddae",
+   "id": "8550ddae",
+   "question": "What type of cocktail recipe did I try last weekend?",
+   "gold": [
+    "answer_c8354ae9:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10216
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15937
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10216
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 45,
+     "chars": 39915
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "60d45044",
+   "id": "60d45044",
+   "question": "What type of rice is my favorite?",
+   "gold": [
+    "answer_9cddca88:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13344
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 13,
+     "chars": 15899
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13344
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 40,
+     "chars": 39990
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "3f1e9474",
+   "id": "3f1e9474",
+   "question": "Who did I have a conversation with about destiny?",
+   "gold": [
+    "answer_57fc1954:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10403
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15972
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10403
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 49,
+     "chars": 39945
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "86b68151",
+   "id": "86b68151",
+   "question": "Where did I buy my new bookshelf from?",
+   "gold": [
+    "answer_dc11c1eb:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8432
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15964
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8432
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 54,
+     "chars": 39964
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "577d4d32",
+   "id": "577d4d32",
+   "question": "What time do I stop checking work emails and messages?",
+   "gold": [
+    "answer_0dd4d99a:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11340
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15958
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11340
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39976
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "ec81a493",
+   "id": "ec81a493",
+   "question": "How many copies of my favorite artist's debut album were released worldwide?",
+   "gold": [
+    "answer_ed1982fc:6:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8877
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 25,
+     "chars": 15973
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8877
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 62,
+     "chars": 39978
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "15745da0",
+   "id": "15745da0",
+   "question": "How long have I been collecting vintage cameras?",
+   "gold": [
+    "answer_586de428:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12048
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15987
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12048
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 51,
+     "chars": 39887
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "e01b8e2f",
+   "id": "e01b8e2f",
+   "question": "Where did I go on a week-long trip with my family?",
+   "gold": [
+    "answer_5ca6cd28:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 5643
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 26,
+     "chars": 15978
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 5643
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 56,
+     "chars": 39996
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "bc8a6e93",
+   "id": "bc8a6e93",
+   "question": "What did I bake for my niece's birthday party?",
+   "gold": [
+    "answer_e6143162:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13346
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15961
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 13346
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 56,
+     "chars": 39902
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "ccb36322",
+   "id": "ccb36322",
+   "question": "What is the name of the music streaming service have I been using lately?",
+   "gold": [
+    "answer_f1fbb330:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8382
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 23,
+     "chars": 15998
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8382
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39998
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "001be529",
+   "id": "001be529",
+   "question": "How long did I wait for the decision on my asylum application?",
+   "gold": [
+    "answer_530960c1:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7352
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 23,
+     "chars": 15995
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7352
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 65,
+     "chars": 39970
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "b320f3f8",
+   "id": "b320f3f8",
+   "question": "What type of action figure did I buy from a thrift store?",
+   "gold": [
+    "answer_5cc9b056:0:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 14147
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 12,
+     "chars": 15995
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 14147
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 30,
+     "chars": 40000
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "19b5f2b3",
+   "id": "19b5f2b3",
+   "question": "How long was I in Japan for?",
+   "gold": [
+    "answer_5ff494b9:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9909
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 18,
+     "chars": 15989
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9909
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 59,
+     "chars": 39973
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "4fd1909e",
+   "id": "4fd1909e",
+   "question": "Where did I attend the Imagine Dragons concert?",
+   "gold": [
+    "answer_2952aee4:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7781
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 25,
+     "chars": 15941
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7781
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 74,
+     "chars": 39948
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "545bd2b5",
+   "id": "545bd2b5",
+   "question": "How much screen time have I been averaging on Instagram per day?",
+   "gold": [
+    "answer_47ffab4c:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11009
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15903
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11009
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 39,
+     "chars": 39951
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "8a137a7f",
+   "id": "8a137a7f",
+   "question": "What type of bulb did I replace in my bedside lamp?",
+   "gold": [
+    "answer_15d63a22:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7508
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15997
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7508
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 67,
+     "chars": 39997
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "76d63226",
+   "id": "76d63226",
+   "question": "What size is my new Samsung TV?",
+   "gold": [
+    "answer_bbdc7b0a:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8791
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 21,
+     "chars": 15985
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8791
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 66,
+     "chars": 39988
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "86f00804",
+   "id": "86f00804",
+   "question": "What book am I currently reading?",
+   "gold": [
+    "answer_96b8c9ee:0:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10826
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 21,
+     "chars": 15976
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10826
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 47,
+     "chars": 39975
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "8e9d538c",
+   "id": "8e9d538c",
+   "question": "How many skeins of worsted weight yarn did I find in my stash?",
+   "gold": [
+    "answer_7bdcbd23:2:0",
+    "answer_7bdcbd23:3:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10805
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15998
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10805
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 59,
+     "chars": 39942
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "311778f1",
+   "id": "311778f1",
+   "question": "How many hours did I spend watching documentaries on Netflix last month?",
+   "gold": [
+    "answer_e40b054e:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9342
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15952
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9342
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39979
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "c19f7a0b",
+   "id": "c19f7a0b",
+   "question": "What time do I usually get home from work on weeknights?",
+   "gold": [
+    "answer_f442ccbe:8:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11516
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15978
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11516
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 35,
+     "chars": 39879
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "4100d0a0",
+   "id": "4100d0a0",
+   "question": "What is my ethnicity?",
+   "gold": [
+    "answer_83c13ff9:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10773
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 21,
+     "chars": 15972
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10773
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 68,
+     "chars": 39986
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "29f2956b",
+   "id": "29f2956b",
+   "question": "How much time do I dedicate to practicing guitar every day?",
+   "gold": [
+    "answer_7cc5362f:0:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 14352
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 12,
+     "chars": 15990
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 14352
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 38,
+     "chars": 39970
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "1faac195",
+   "id": "1faac195",
+   "question": "Where does my sister Emily live?",
+   "gold": [
+    "answer_d01949bf:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8525
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15984
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8525
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 62,
+     "chars": 39990
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "faba32e5",
+   "id": "faba32e5",
+   "question": "How long did Alex marinate the BBQ ribs in special sauce?",
+   "gold": [
+    "answer_39b12014:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10614
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15965
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10614
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 50,
+     "chars": 39973
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "f4f1d8a4",
+   "id": "f4f1d8a4",
+   "question": "Who gave me a new stand mixer as a birthday gift?",
+   "gold": [
+    "answer_f5b33470:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12688
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 14,
+     "chars": 15950
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12688
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 37,
+     "chars": 39985
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "c14c00dd",
+   "id": "c14c00dd",
+   "question": "What brand of shampoo do I currently use?",
+   "gold": [
+    "answer_304511ce:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12286
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15996
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12286
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39989
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "36580ce8",
+   "id": "36580ce8",
+   "question": "What health issue did I initially think was just a cold?",
+   "gold": [
+    "answer_93e1bd22:4:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9162
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 24,
+     "chars": 15961
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9162
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 63,
+     "chars": 39984
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "3d86fd0a",
+   "id": "3d86fd0a",
+   "question": "Where did I meet Sophia?",
+   "gold": [
+    "answer_19c24c11:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7988
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 26,
+     "chars": 15989
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7988
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 63,
+     "chars": 39912
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "a82c026e",
+   "id": "a82c026e",
+   "question": "What game did I finally beat last weekend?",
+   "gold": [
+    "answer_787e6a6d:2:0"
+   ],
+   "category": "single-session-user",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7556
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 22,
+     "chars": 15993
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7556
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 55,
+     "chars": 39970
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "0a995998",
+   "id": "0a995998",
+   "question": "How many items of clothing do I need to pick up or return from a store?",
+   "gold": [
+    "answer_afa9873b_1:4:0",
+    "answer_afa9873b_2:10:0",
+    "answer_afa9873b_3:6:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12958
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 14,
+     "chars": 15961
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12958
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 37,
+     "chars": 39974
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "6d550036",
+   "id": "6d550036",
+   "question": "How many projects have I led or am currently leading?",
+   "gold": [
+    "answer_ec904b3c_1:0:0",
+    "answer_ec904b3c_2:2:0",
+    "answer_ec904b3c_3:0:0",
+    "answer_ec904b3c_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 11472
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 16,
+     "chars": 15984
+    },
+    "base@40000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 11472
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 37,
+     "chars": 39990
+    }
+   },
+   "r@10": false
+  },
+  {
+   "unit": "gpt4_59c863d7",
+   "id": "gpt4_59c863d7",
+   "question": "How many model kits have I worked on or bought?",
+   "gold": [
+    "answer_593bdffd_1:0:0",
+    "answer_593bdffd_2:0:0",
+    "answer_593bdffd_2:8:0",
+    "answer_593bdffd_3:0:0",
+    "answer_593bdffd_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 11138
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 17,
+     "chars": 15965
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 11138
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 41,
+     "chars": 39990
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "b5ef892d",
+   "id": "b5ef892d",
+   "question": "How many days did I spend on camping trips in the United States this year?",
+   "gold": [
+    "answer_a8b4290f_1:0:0",
+    "answer_a8b4290f_2:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10361
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 16000
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10361
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 38,
+     "chars": 39875
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "e831120c",
+   "id": "e831120c",
+   "question": "How many weeks did it take me to watch all the Marvel Cinematic Universe movies and the main Star Wars films?",
+   "gold": [
+    "answer_86c505e7_1:0:0",
+    "answer_86c505e7_2:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10101
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 19,
+     "chars": 15980
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 10101
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 50,
+     "chars": 39990
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "3a704032",
+   "id": "3a704032",
+   "question": "How many plants did I acquire in the last month?",
+   "gold": [
+    "answer_c2204106_1:4:0",
+    "answer_c2204106_2:2:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 14207
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 14,
+     "chars": 15962
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 14207
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 34,
+     "chars": 39919
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_d84a3211",
+   "id": "gpt4_d84a3211",
+   "question": "How much total money have I spent on bike-related expenses since the start of the year?",
+   "gold": [
+    "answer_2880eb6c_1:6:0",
+    "answer_2880eb6c_2:2:0",
+    "answer_2880eb6c_3:8:0",
+    "answer_2880eb6c_4:6:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 7472
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 23,
+     "chars": 15988
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 7472
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 52,
+     "chars": 39858
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "aae3761f",
+   "id": "aae3761f",
+   "question": "How many hours in total did I spend driving to my three road trip destinations combined?",
+   "gold": [
+    "answer_526354c8_1:0:0",
+    "answer_526354c8_2:0:0",
+    "answer_526354c8_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8478
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15987
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8478
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 55,
+     "chars": 39935
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_f2262a51",
+   "id": "gpt4_f2262a51",
+   "question": "How many different doctors did I visit?",
+   "gold": [
+    "answer_55a6940c_1:0:0",
+    "answer_55a6940c_1:4:0",
+    "answer_55a6940c_2:2:0",
+    "answer_55a6940c_2:6:0",
+    "answer_55a6940c_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 13523
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 17,
+     "chars": 15995
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 13523
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 50,
+     "chars": 39986
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "dd2973ad",
+   "id": "dd2973ad",
+   "question": "What time did I go to bed on the day before I had a doctor's appointment?",
+   "gold": [
+    "answer_f9de4602_1:0:0",
+    "answer_f9de4602_2:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8343
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15988
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 8343
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 44,
+     "chars": 39947
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "c4a1ceb8",
+   "id": "c4a1ceb8",
+   "question": "How many different types of citrus fruits have I used in my cocktail recipes?",
+   "gold": [
+    "answer_56d02cab_1:0:0",
+    "answer_56d02cab_2:0:0",
+    "answer_56d02cab_3:0:0",
+    "answer_56d02cab_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 13970
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 14,
+     "chars": 15961
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 13970
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39995
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_a56e767c",
+   "id": "gpt4_a56e767c",
+   "question": "How many movie festivals that I attended?",
+   "gold": [
+    "answer_cf9e3940_1:0:0",
+    "answer_cf9e3940_1:6:0",
+    "answer_cf9e3940_2:0:0",
+    "answer_cf9e3940_2:10:0",
+    "answer_cf9e3940_2:4:0",
+    "answer_cf9e3940_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 10774
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 15,
+     "chars": 15915
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 10774
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 49,
+     "chars": 39881
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "6cb6f249",
+   "id": "6cb6f249",
+   "question": "How many days did I take social media breaks in total?",
+   "gold": [
+    "answer_a4204937_1:0:0",
+    "answer_a4204937_2:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12955
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15914
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12955
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39914
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "46a3abf7",
+   "id": "46a3abf7",
+   "question": "How many tanks do I currently have, including the one I set up for my friend's kid?",
+   "gold": [
+    "answer_c65042d7_1:0:0",
+    "answer_c65042d7_2:0:0",
+    "answer_c65042d7_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9764
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15877
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9764
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 53,
+     "chars": 39984
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "36b9f61e",
+   "id": "36b9f61e",
+   "question": "What is the total amount I spent on luxury items in the past few months?",
+   "gold": [
+    "answer_ef74281f_1:0:0",
+    "answer_ef74281f_2:2:0",
+    "answer_ef74281f_3:2:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11004
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15992
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 11004
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 38,
+     "chars": 39999
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "28dc39ac",
+   "id": "28dc39ac",
+   "question": "How many hours have I spent playing games in total?",
+   "gold": [
+    "answer_8d015d9d_1:0:0",
+    "answer_8d015d9d_2:0:0",
+    "answer_8d015d9d_3:6:0",
+    "answer_8d015d9d_4:0:0",
+    "answer_8d015d9d_5:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 8392
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 16,
+     "chars": 15989
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 8392
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 43,
+     "chars": 39981
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_2f8be40d",
+   "id": "gpt4_2f8be40d",
+   "question": "How many weddings have I attended in this year?",
+   "gold": [
+    "answer_e7b0637e_1:0:0",
+    "answer_e7b0637e_2:0:0",
+    "answer_e7b0637e_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 14701
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 13,
+     "chars": 15954
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 14701
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 38,
+     "chars": 39973
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "2e6d26dc",
+   "id": "2e6d26dc",
+   "question": "How many babies were born to friends and family members in the last few months?",
+   "gold": [
+    "answer_fa526fc0_1:0:0",
+    "answer_fa526fc0_2:0:0",
+    "answer_fa526fc0_3:0:0",
+    "answer_fa526fc0_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 7429
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 17,
+     "chars": 15973
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 7429
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 37,
+     "chars": 39989
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_15e38248",
+   "id": "gpt4_15e38248",
+   "question": "How many pieces of furniture did I buy, assemble, sell, or fix in the past few months?",
+   "gold": [
+    "answer_8858d9dc_1:0:0",
+    "answer_8858d9dc_2:0:0",
+    "answer_8858d9dc_3:0:0",
+    "answer_8858d9dc_4:0:0",
+    "answer_8858d9dc_4:2:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12463
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 14,
+     "chars": 15903
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12463
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 35,
+     "chars": 39973
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "88432d0a",
+   "id": "88432d0a",
+   "question": "How many times did I bake something in the past two weeks?",
+   "gold": [
+    "answer_733e443a_1:0:0",
+    "answer_733e443a_2:2:0",
+    "answer_733e443a_3:0:0",
+    "answer_733e443a_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 12202
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 20,
+     "chars": 15919
+    },
+    "base@40000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 12202
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 56,
+     "chars": 39941
+    }
+   },
+   "r@10": false
+  },
+  {
+   "unit": "80ec1f4f",
+   "id": "80ec1f4f",
+   "question": "How many different museums or galleries did I visit in the month of February?",
+   "gold": [
+    "answer_990c8992_1:0:0",
+    "answer_990c8992_2:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 10413
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 25,
+     "chars": 15950
+    },
+    "base@40000": {
+     "any": false,
+     "all": false,
+     "n": 10,
+     "chars": 10413
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 53,
+     "chars": 39899
+    }
+   },
+   "r@10": false
+  },
+  {
+   "unit": "d23cf73b",
+   "id": "d23cf73b",
+   "question": "How many different cuisines have I learned to cook or tried out in the past few months?",
+   "gold": [
+    "answer_5a0d28f8_1:0:0",
+    "answer_5a0d28f8_2:0:0",
+    "answer_5a0d28f8_3:0:0",
+    "answer_5a0d28f8_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9992
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 21,
+     "chars": 15999
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9992
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 45,
+     "chars": 39973
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_7fce9456",
+   "id": "gpt4_7fce9456",
+   "question": "How many properties did I view before making an offer on the townhouse in the Brookside neighborhood?",
+   "gold": [
+    "answer_a679a86a_1:0:0",
+    "answer_a679a86a_2:0:0",
+    "answer_a679a86a_3:4:0",
+    "answer_a679a86a_3:6:0",
+    "answer_a679a86a_4:0:0",
+    "answer_a679a86a_5:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9031
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 17,
+     "chars": 15992
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 9031
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 36,
+     "chars": 39920
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "d682f1a2",
+   "id": "d682f1a2",
+   "question": "How many different types of food delivery services have I used recently?",
+   "gold": [
+    "answer_c008e5df_1:0:0",
+    "answer_c008e5df_2:0:0",
+    "answer_c008e5df_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 8803
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 19,
+     "chars": 15994
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 8803
+    },
+    "fill@40000": {
+     "any": true,
+     "all": false,
+     "n": 44,
+     "chars": 39931
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "7024f17c",
+   "id": "7024f17c",
+   "question": "How many hours of jogging and yoga did I do last week?",
+   "gold": [
+    "answer_a21f3697_1:0:0",
+    "answer_a21f3697_2:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12807
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 16,
+     "chars": 15995
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12807
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 47,
+     "chars": 39988
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_5501fe77",
+   "id": "gpt4_5501fe77",
+   "question": "Which social media platform did I gain the most followers on over the past month?",
+   "gold": [
+    "answer_203bf3fa_1:0:0",
+    "answer_203bf3fa_2:0:0",
+    "answer_203bf3fa_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9977
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 15,
+     "chars": 15981
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9977
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 37,
+     "chars": 39935
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_2ba83207",
+   "id": "gpt4_2ba83207",
+   "question": "Which grocery store did I spend the most money at in the past month?",
+   "gold": [
+    "answer_6a3b5c13_1:0:0",
+    "answer_6a3b5c13_2:0:0",
+    "answer_6a3b5c13_3:0:0",
+    "answer_6a3b5c13_4:6:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7995
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15957
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 7995
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 45,
+     "chars": 39983
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "2318644b",
+   "id": "2318644b",
+   "question": "How much more did I spend on accommodations per night in Hawaii compared to Tokyo?",
+   "gold": [
+    "answer_eaa8e3ef_1:0:0",
+    "answer_eaa8e3ef_2:2:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12046
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 17,
+     "chars": 15986
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 12046
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 39,
+     "chars": 39918
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "2ce6a0f2",
+   "id": "2ce6a0f2",
+   "question": "How many different art-related events did I attend in the past month?",
+   "gold": [
+    "answer_901a6763_1:2:0",
+    "answer_901a6763_2:0:0",
+    "answer_901a6763_3:0:0",
+    "answer_901a6763_4:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12594
+    },
+    "fill@16000": {
+     "any": true,
+     "all": false,
+     "n": 19,
+     "chars": 15994
+    },
+    "base@40000": {
+     "any": true,
+     "all": false,
+     "n": 10,
+     "chars": 12594
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 40,
+     "chars": 39992
+    }
+   },
+   "r@10": true
+  },
+  {
+   "unit": "gpt4_d12ceb0e",
+   "id": "gpt4_d12ceb0e",
+   "question": "What is the average age of me, my parents, and my grandparents?",
+   "gold": [
+    "answer_2504635e_1:0:0",
+    "answer_2504635e_2:0:0",
+    "answer_2504635e_3:0:0"
+   ],
+   "category": "multi-session",
+   "results": {
+    "base@16000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9533
+    },
+    "fill@16000": {
+     "any": true,
+     "all": true,
+     "n": 20,
+     "chars": 15993
+    },
+    "base@40000": {
+     "any": true,
+     "all": true,
+     "n": 10,
+     "chars": 9533
+    },
+    "fill@40000": {
+     "any": true,
+     "all": true,
+     "n": 71,
+     "chars": 39985
+    }
+   },
+   "r@10": true
+  }
+ ]
+}
